@@ -151,16 +151,16 @@ export class FlashcardModal extends Modal {
         }
         this.fileLinkView.addEventListener("click", async () => {
             const activeLeaf: WorkspaceLeaf = this.plugin.app.workspace.activeLeaf;
-            if (this.plugin.app.workspace.getActiveFile() === null)
-                await activeLeaf.openFile(this.currentCard.note);
-            else {
-                const newLeaf = this.plugin.app.workspace.createLeafBySplit(
-                    activeLeaf,
-                    "vertical",
-                    false
-                );
-                await newLeaf.openFile(this.currentCard.note, { active: true });
-            }
+            // if (this.plugin.app.workspace.getActiveFile() === null)
+            await activeLeaf.openFile(this.currentCard.note);
+            // else {
+            //     const newLeaf = this.plugin.app.workspace.createLeafBySplit(
+            //         activeLeaf,
+            //         "vertical",
+            //         false
+            //     );
+            //     await newLeaf.openFile(this.currentCard.note, { active: true });
+            // }
             const activeView: MarkdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
             activeView.editor.setCursor({
                 line: this.currentCard.lineNo,
