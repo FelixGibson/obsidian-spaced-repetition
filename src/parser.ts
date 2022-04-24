@@ -8,7 +8,7 @@ import { CardType } from "src/scheduling";
  * @param singlelineReversedCardSeparator - Separator for inline reversed cards
  * @param multilineCardSeparator - Separator for multiline basic cards
  * @param multilineReversedCardSeparator - Separator for multiline basic card
- * @returns An array of [CardType, card text, line number] tuples
+ * @returns An array of [CardType, card text, line number, tag] tuples
  */
 export function parse(
     text: string,
@@ -17,19 +17,22 @@ export function parse(
     multilineCardSeparator: string,
     multilineReversedCardSeparator: string,
     convertHighlightsToClozes: boolean,
-    convertBoldTextToClozes: boolean
-): [CardType, string, number][] {
+    convertBoldTextToClozes: boolean,
+    flashcardTags: string[]
+): [CardType, string, number, string][] {
     let cardText = "";
-    const cards: [CardType, string, number][] = [];
+    const cards: [CardType, string, number, string][] = [];
     let cardType: CardType | null = null;
     let lineNo = 0;
+    let cardTag = "";
 
     const lines: string[] = text.split("\n");
     for (let i = 0; i < lines.length; i++) {
         if (lines[i].length === 0) {
             if (cardType) {
-                cards.push([cardType, cardText, lineNo]);
+                cards.push([cardType, cardText, lineNo, cardTag]);
                 cardType = null;
+                cardTag = "";
             }
 
             cardText = "";
@@ -58,8 +61,15 @@ export function parse(
                 cardText += "\n" + lines[i + 1];
                 i++;
             }
-            cards.push([cardType, cardText, lineNo]);
+            for (const tag of flashcardTags) {
+                if (cardText.includes(tag)) {
+                    cardTag = tag.replace(/^#/, "");
+                    break;
+                }
+            }
+            cards.push([cardType, cardText, lineNo, cardTag]);
             cardType = null;
+            cardTag = "";
             cardText = "";
         } else if (
             cardType === null &&
@@ -67,12 +77,30 @@ export function parse(
                 (convertBoldTextToClozes && /\*\*.*?\*\*/gm.test(lines[i])))
         ) {
             cardType = CardType.Cloze;
+            for (const tag of flashcardTags) {
+                if (cardText.includes(tag)) {
+                    cardTag = tag.replace(/^#/, "");
+                    break;
+                }
+            }
             lineNo = i;
         } else if (lines[i] === multilineCardSeparator) {
             cardType = CardType.MultiLineBasic;
+            for (const tag of flashcardTags) {
+                if (cardText.includes(tag)) {
+                    cardTag = tag.replace(/^#/, "");
+                    break;
+                }
+            }
             lineNo = i;
         } else if (lines[i] === multilineReversedCardSeparator) {
             cardType = CardType.MultiLineReversed;
+            for (const tag of flashcardTags) {
+                if (cardText.includes(tag)) {
+                    cardTag = tag.replace(/^#/, "");
+                    break;
+                }
+            }
             lineNo = i;
         } else if (lines[i].startsWith("```") || lines[i].startsWith("~~~")) {
             const codeBlockClose = lines[i].match(/`+|~+/)[0];
@@ -86,7 +114,7 @@ export function parse(
     }
 
     if (cardType && cardText) {
-        cards.push([cardType, cardText, lineNo]);
+        cards.push([cardType, cardText, lineNo, cardTag]);
     }
 
     return cards;
