@@ -746,19 +746,7 @@ export class Deck {
         let interval = 1.0,
             ease: number = modal.plugin.data.settings.baseEase,
             delayBeforeReview = 0;
-        if (this.dueFlashcards.length > 0) {
-            if (modal.plugin.data.settings.randomizeCardOrder) {
-                modal.currentCardIdx = Math.floor(Math.random() * this.dueFlashcards.length);
-            } else {
-                modal.currentCardIdx = 0;
-            }
-            modal.currentCard = this.dueFlashcards[modal.currentCardIdx];
-            modal.renderMarkdownWrapper(modal.currentCard.front, modal.flashcardView);
-
-            interval = modal.currentCard.interval;
-            ease = modal.currentCard.ease;
-            delayBeforeReview = modal.currentCard.delayBeforeReview;
-        } else if (this.newFlashcards.length > 0) {
+        if (this.newFlashcards.length > 0) {
             if (modal.plugin.data.settings.randomizeCardOrder) {
                 const pickedCardIdx = Math.floor(Math.random() * this.newFlashcards.length);
                 modal.currentCardIdx = pickedCardIdx;
@@ -787,6 +775,18 @@ export class Deck {
             ) {
                 ease = modal.plugin.easeByPath[modal.currentCard.note.path];
             }
+        } else if (this.dueFlashcards.length > 0) {
+            if (modal.plugin.data.settings.randomizeCardOrder) {
+                modal.currentCardIdx = Math.floor(Math.random() * this.dueFlashcards.length);
+            } else {
+                modal.currentCardIdx = 0;
+            }
+            modal.currentCard = this.dueFlashcards[modal.currentCardIdx];
+            modal.renderMarkdownWrapper(modal.currentCard.front, modal.flashcardView);
+
+            interval = modal.currentCard.interval;
+            ease = modal.currentCard.ease;
+            delayBeforeReview = modal.currentCard.delayBeforeReview;
         }
 
         const hardInterval: number = schedule(
