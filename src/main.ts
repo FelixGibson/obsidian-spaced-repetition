@@ -640,8 +640,16 @@ export default class SRPlugin extends Plugin {
             `^[\\t ]*${escapeRegex(settings.multilineCardSeparator)}`,
             "gm"
         );
+        const multilineRegexEnd = new RegExp(
+            `(?<=(^[\\t ]*${escapeRegex(settings.multilineCardSeparator)}))`,
+            "gm"
+        );
         const multilineRegexReversed = new RegExp(
             `^[\\t ]*${escapeRegex(settings.multilineReversedCardSeparator)}`,
+            "gm"
+        );
+        const multilineRegexReversedEnd = new RegExp(
+            `(?<=(^[\\t ]*${escapeRegex(settings.multilineReversedCardSeparator)}))`,
             "gm"
         );
 
@@ -743,15 +751,17 @@ export default class SRPlugin extends Plugin {
                     siblingMatches.push([side2, side1]);
                 } else if (cardType === CardType.MultiLineBasic) {
                     idx = cardText.search(multilineRegex) - 1;
+                    const answerIdx = cardText.search(multilineRegexEnd);
                     siblingMatches.push([
                         cardText.substring(0, idx),
-                        cardText.substring(idx + 2 + settings.multilineCardSeparator.length),
+                        cardText.substring(answerIdx + settings.multilineCardSeparator.length),
                     ]);
                 } else if (cardType === CardType.MultiLineReversed) {
                     idx = cardText.search(multilineRegexReversed) - 1;
+                    const answerIdx = cardText.search(multilineRegexReversedEnd);
                     const side1: string = cardText.substring(0, idx),
                         side2: string = cardText.substring(
-                            idx + 2 + settings.multilineReversedCardSeparator.length
+                            answerIdx + settings.multilineReversedCardSeparator.length
                         );
                     siblingMatches.push([side1, side2]);
                     siblingMatches.push([side2, side1]);
