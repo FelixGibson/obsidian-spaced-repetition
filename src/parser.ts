@@ -1,3 +1,4 @@
+import { min } from "moment";
 import { CardType } from "src/scheduling";
 
 /**
@@ -30,17 +31,39 @@ export function parse(
         `^[\\t ]*${escapeRegex(multilineReversedCardSeparator)}`,
         "gm"
     );
+    let indentOnCardSeparatorLineNumber: number | null = null;
 
     const lines: string[] = text.split("\n");
     for (let i = 0; i < lines.length; i++) {
-        if (lines[i].length === 0) {
+        // let indentSofar = Number.MAX_VALUE;
+        // let indentCur = 0;
+        // if (i > 0) {
+        //     indentSofar = Math.min(getIndent(lines[i - 1]), indentSofar);
+        // }
+        // indentCur = getIndent(lines[i]);
+        if (
+            lines[i].length === 0 ||
+            (indentOnCardSeparatorLineNumber !== null &&
+                getIndent(lines[indentOnCardSeparatorLineNumber]) > getIndent(lines[i]))
+        ) {
             if (cardType) {
+                if (cardType === CardType.MultiLineBasic) {
+                    const idx =
+                        cardText.search(
+                            new RegExp(
+                                `\\n[^\\n]*\\n^[\\t ]*${escapeRegex(multilineCardSeparator)}`,
+                                "gm"
+                            )
+                        ) + 1;
+                    cardText = cardText.substring(idx);
+                }
                 cards.push([cardType, cardText, lineNo, cardTag]);
                 cardType = null;
                 cardTag = "";
             }
 
             cardText = "";
+            indentOnCardSeparatorLineNumber = null;
             continue;
         } else if (lines[i].startsWith("<!--") && !lines[i].startsWith("<!--SR:")) {
             while (i + 1 < lines.length && !lines[i].includes("-->")) i++;
@@ -90,6 +113,7 @@ export function parse(
             }
             lineNo = i;
         } else if (multilineRegex.test(lines[i])) {
+            indentOnCardSeparatorLineNumber = i;
             cardType = CardType.MultiLineBasic;
             for (const tag of flashcardTags) {
                 if (cardText.includes(tag)) {
@@ -99,6 +123,7 @@ export function parse(
             }
             lineNo = i;
         } else if (multilineRegexReversed.test(lines[i])) {
+            indentOnCardSeparatorLineNumber = i;
             cardType = CardType.MultiLineReversed;
             for (const tag of flashcardTags) {
                 if (cardText.includes(tag)) {
@@ -127,4 +152,17 @@ export function parse(
 
 export function escapeRegex(str: string): string {
     return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+}
+
+function getIndent(str: string): number {
+    let indent = 0;
+    while (str.startsWith("\t")) {
+        indent += 4;
+        str = str.substring(1);
+    }
+    while (str.startsWith(" ")) {
+        indent++;
+        str = str.substring(1);
+    }
+    return indent;
 }
