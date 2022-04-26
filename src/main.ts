@@ -23,7 +23,7 @@ import {
 import { escapeRegexString, cyrb53 } from "src/utils";
 import { ReviewDeck, ReviewDeckSelectionModal } from "src/review-deck";
 import { t } from "src/lang/helpers";
-import { parse } from "src/parser";
+import { parse, escapeRegex } from "src/parser";
 import { appIcon } from "src/icons/appicon";
 
 interface PluginData {
@@ -636,6 +636,14 @@ export default class SRPlugin extends Plugin {
             scheduledCount = 0;
         const settings: SRSettings = this.data.settings;
         const noteDeckPath = deckPath;
+        const multilineRegex = new RegExp(
+            `^[\\t ]*${escapeRegex(settings.multilineCardSeparator)}`,
+            "gm"
+        );
+        const multilineRegexReversed = new RegExp(
+            `^[\\t ]*${escapeRegex(settings.multilineReversedCardSeparator)}`,
+            "gm"
+        );
 
         const now: number = Date.now();
         const parsedCards: [CardType, string, number, string][] = parse(
@@ -734,13 +742,13 @@ export default class SRPlugin extends Plugin {
                     siblingMatches.push([side1, side2]);
                     siblingMatches.push([side2, side1]);
                 } else if (cardType === CardType.MultiLineBasic) {
-                    idx = cardText.indexOf("\n" + settings.multilineCardSeparator + "\n");
+                    idx = cardText.search(multilineRegex) - 1;
                     siblingMatches.push([
                         cardText.substring(0, idx),
                         cardText.substring(idx + 2 + settings.multilineCardSeparator.length),
                     ]);
                 } else if (cardType === CardType.MultiLineReversed) {
-                    idx = cardText.indexOf("\n" + settings.multilineReversedCardSeparator + "\n");
+                    idx = cardText.search(multilineRegexReversed) - 1;
                     const side1: string = cardText.substring(0, idx),
                         side2: string = cardText.substring(
                             idx + 2 + settings.multilineReversedCardSeparator.length

@@ -25,6 +25,11 @@ export function parse(
     let cardType: CardType | null = null;
     let lineNo = 0;
     let cardTag = "";
+    const multilineRegex = new RegExp(`^[\\t ]*${escapeRegex(multilineCardSeparator)}`, "gm");
+    const multilineRegexReversed = new RegExp(
+        `^[\\t ]*${escapeRegex(multilineReversedCardSeparator)}`,
+        "gm"
+    );
 
     const lines: string[] = text.split("\n");
     for (let i = 0; i < lines.length; i++) {
@@ -84,7 +89,7 @@ export function parse(
                 }
             }
             lineNo = i;
-        } else if (lines[i] === multilineCardSeparator) {
+        } else if (multilineRegex.test(lines[i])) {
             cardType = CardType.MultiLineBasic;
             for (const tag of flashcardTags) {
                 if (cardText.includes(tag)) {
@@ -93,7 +98,7 @@ export function parse(
                 }
             }
             lineNo = i;
-        } else if (lines[i] === multilineReversedCardSeparator) {
+        } else if (multilineRegexReversed.test(lines[i])) {
             cardType = CardType.MultiLineReversed;
             for (const tag of flashcardTags) {
                 if (cardText.includes(tag)) {
@@ -118,4 +123,8 @@ export function parse(
     }
 
     return cards;
+}
+
+export function escapeRegex(str: string): string {
+    return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
 }

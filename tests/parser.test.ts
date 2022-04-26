@@ -65,6 +65,18 @@ test("Test parsing of multi line basic cards", () => {
         [CardType.MultiLineBasic, "Line0\nQ1 #p\n?\nA1\nAnswerExtra", 4, "p"],
         [CardType.MultiLineBasic, "Q2 #p\n?\nA2", 9, "p"],
     ]);
+    expect(parse("Some text before\nQuestion #p\n\t?\nAnswer", ...defaultArgs)).toEqual([
+        [CardType.MultiLineBasic, "Some text before\nQuestion #p\n\t?\nAnswer", 2, "p"],
+    ]);
+    expect(parse("Some text before\nQuestion #p\n ?\nAnswer", ...defaultArgs)).toEqual([
+        [CardType.MultiLineBasic, "Some text before\nQuestion #p\n ?\nAnswer", 2, "p"],
+    ]);
+    expect(parse("Some text before\nQuestion #p\n\t ?\nAnswer", ...defaultArgs)).toEqual([
+        [CardType.MultiLineBasic, "Some text before\nQuestion #p\n\t ?\nAnswer", 2, "p"],
+    ]);
+    expect(parse("Some text before\nQuestion #p\n\t  ?\nAnswer", ...defaultArgs)).toEqual([
+        [CardType.MultiLineBasic, "Some text before\nQuestion #p\n\t  ?\nAnswer", 2, "p"],
+    ]);
 });
 
 // test("Test parsing of multi line reversed cards", () => {
