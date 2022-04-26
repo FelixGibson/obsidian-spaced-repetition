@@ -790,8 +790,8 @@ export default class SRPlugin extends Plugin {
                 : "";
             const siblings: Card[] = [];
             for (let i = 0; i < siblingMatches.length; i++) {
-                const front: string = siblingMatches[i][0].trim(),
-                    back: string = siblingMatches[i][1].trim();
+                const front: string = siblingMatches[i][0],
+                    back: string = siblingMatches[i][1];
 
                 const cardObj: Card = {
                     isDue: i < scheduling.length,
