@@ -166,9 +166,10 @@ export class FlashcardModal extends Modal {
                 line: this.currentCard.lineNo,
                 ch: 0,
             });
-            this.currentDeck.deleteFlashcardAtIndex(this.currentCardIdx, this.currentCard.isDue);
-            this.burySiblingCards(false);
-            this.currentDeck.nextCard(this);
+            activeView.editor.scrollTo(this.currentCard.lineNo, 0);
+            // this.currentDeck.deleteFlashcardAtIndex(this.currentCardIdx, this.currentCard.isDue);
+            // this.burySiblingCards(false);
+            // this.currentDeck.nextCard(this);
         });
 
         this.resetLinkView = this.contentEl.createDiv("sr-link");
