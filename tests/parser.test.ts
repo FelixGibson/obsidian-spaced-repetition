@@ -54,7 +54,7 @@ test("Test parsing of multi line basic cards", () => {
         [CardType.MultiLineBasic, "Question #p\n?\nAnswer\n<!--SR:2021-08-11,4,270-->", 1, "p"],
     ]);
     expect(parse("Some text before\nQuestion #p\n?\nAnswer", ...defaultArgs)).toEqual([
-        [CardType.MultiLineBasic, "Some text before\nQuestion #p\n?\nAnswer", 2, "p"],
+        [CardType.MultiLineBasic, "Question #p\n?\nAnswer", 2, "p"],
     ]);
     expect(parse("Question #p\n?\nAnswer\nSome text after!", ...defaultArgs)).toEqual([
         [CardType.MultiLineBasic, "Question #p\n?\nAnswer\nSome text after!", 1, "p"],
@@ -66,13 +66,13 @@ test("Test parsing of multi line basic cards", () => {
         [CardType.MultiLineBasic, "Q2 #p\n?\nA2", 9, "p"],
     ]);
     expect(parse("Some text before\nQuestion #p\n\t?\n\tAnswer", ...defaultArgs)).toEqual([
-        [CardType.MultiLineBasic, "Some text before\nQuestion #p\n\t?\n\tAnswer", 2, "p"],
+        [CardType.MultiLineBasic, "Question #p\n\t?\n\tAnswer", 2, "p"],
     ]);
     expect(parse("Some text before\nQuestion #p\n ?\n Answer", ...defaultArgs)).toEqual([
-        [CardType.MultiLineBasic, "Some text before\nQuestion #p\n ?\n Answer", 2, "p"],
+        [CardType.MultiLineBasic, "Question #p\n ?\n Answer", 2, "p"],
     ]);
     expect(parse("Some text before\nQuestion #p\n\t ?\n\t Answer", ...defaultArgs)).toEqual([
-        [CardType.MultiLineBasic, "Some text before\nQuestion #p\n\t ?\n\t Answer", 2, "p"],
+        [CardType.MultiLineBasic, "Question #p\n\t ?\n\t Answer", 2, "p"],
     ]);
     expect(
         parse(
@@ -91,6 +91,32 @@ test("Test parsing of multi line basic cards", () => {
     expect(
         parse("Question #p\n\t ?\n\tAnswer\n\t  Ans2\n\t Ans3\n\tNot4\nNot5", ...defaultArgs)
     ).toEqual([[CardType.MultiLineBasic, "Question #p\n\t ?", 1, "p"]]);
+    expect(
+        parse(
+            "- [[Option-doc]]\n- str-[doc](https://doc.rust-lang.org/std/primitive.str.html)  #p\n ?\n tip: 和Java常量池一样",
+            ...defaultArgs
+        )
+    ).toEqual([
+        [
+            CardType.MultiLineBasic,
+            "- str-[doc](https://doc.rust-lang.org/std/primitive.str.html)  #p\n ?\n tip: 和Java常量池一样",
+            2,
+            "p",
+        ],
+    ]);
+    expect(
+        parse(
+            "- String-[doc](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)   3类 #c\n  x \n\t- ps: 分别是', '', \\`， 三种，其中第三种可以用来穿插表达式  <!--SR:!2022-04-29,2,248-->\n- JavaScript Modules-[doc](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) #p\n  ?\n\t- ps: 可以看那个example，已经讲得很明白了，就是浏览器原生支持module.那么这和standard的script有什么不同？？\n- ",
+            ...defaultArgs
+        )
+    ).toEqual([
+        [
+            CardType.MultiLineBasic,
+            "- JavaScript Modules-[doc](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) #p\n  ?\n\t- ps: 可以看那个example，已经讲得很明白了，就是浏览器原生支持module.那么这和standard的script有什么不同？？",
+            4,
+            "p",
+        ],
+    ]);
 });
 
 // test("Test parsing of multi line reversed cards", () => {

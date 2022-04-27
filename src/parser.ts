@@ -64,7 +64,6 @@ export function parse(
 
             cardText = "";
             indentOnCardSeparatorLineNumber = null;
-            continue;
         } else if (lines[i].startsWith("<!--") && !lines[i].startsWith("<!--SR:")) {
             while (i + 1 < lines.length && !lines[i].includes("-->")) i++;
             i++;
@@ -144,6 +143,13 @@ export function parse(
     }
 
     if (cardType && cardText) {
+        if (cardType === CardType.MultiLineBasic) {
+            const idx =
+                cardText.search(
+                    new RegExp(`\\n[^\\n]*\\n^[\\t ]*${escapeRegex(multilineCardSeparator)}`, "gm")
+                ) + 1;
+            cardText = cardText.substring(idx);
+        }
         cards.push([cardType, cardText, lineNo, cardTag]);
     }
 
