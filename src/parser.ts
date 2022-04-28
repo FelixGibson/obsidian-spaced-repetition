@@ -21,136 +21,210 @@ export function parse(
     convertBoldTextToClozes: boolean,
     flashcardTags: string[]
 ): [CardType, string, number, string][] {
-    let cardText = "";
     const cards: [CardType, string, number, string][] = [];
-    let cardType: CardType | null = null;
-    let lineNo = 0;
-    let cardTag = "";
+    const stack: {
+        cardType: CardType | null;
+        cardText: string;
+        lineNo: number;
+        cardTag: string;
+        indentOnCardSeparatorLineNumber: number | null;
+    }[] = [];
     const multilineRegex = new RegExp(`^[\\t ]*${escapeRegex(multilineCardSeparator)}`, "gm");
     const multilineRegexReversed = new RegExp(
         `^[\\t ]*${escapeRegex(multilineReversedCardSeparator)}`,
         "gm"
     );
-    let indentOnCardSeparatorLineNumber: number | null = null;
-
+    if (stack.length === 0) {
+        stack.push({
+            cardType: null,
+            cardText: "",
+            lineNo: 0,
+            cardTag: "",
+            indentOnCardSeparatorLineNumber: null,
+        });
+    }
     const lines: string[] = text.split("\n");
     for (let i = 0; i < lines.length; i++) {
-        // let indentSofar = Number.MAX_VALUE;
-        // let indentCur = 0;
-        // if (i > 0) {
-        //     indentSofar = Math.min(getIndent(lines[i - 1]), indentSofar);
-        // }
-        // indentCur = getIndent(lines[i]);
         if (
             lines[i].length === 0 ||
-            (indentOnCardSeparatorLineNumber !== null &&
-                getIndent(lines[indentOnCardSeparatorLineNumber]) > getIndent(lines[i]))
+            (stack.length > 0 &&
+                stack[stack.length - 1].indentOnCardSeparatorLineNumber !== null &&
+                getIndent(lines[stack[stack.length - 1].indentOnCardSeparatorLineNumber]) >
+                    getIndent(lines[i]))
         ) {
-            if (cardType) {
-                if (cardType === CardType.MultiLineBasic) {
+            if (stack.length > 0 && stack[stack.length - 1].cardType !== null) {
+                if (stack[stack.length - 1].cardType === CardType.MultiLineBasic) {
                     const idx =
-                        cardText.search(
+                        stack[stack.length - 1].cardText.search(
                             new RegExp(
                                 `\\n[^\\n]*\\n^[\\t ]*${escapeRegex(multilineCardSeparator)}`,
                                 "gm"
                             )
                         ) + 1;
-                    cardText = cardText.substring(idx);
+                    stack[stack.length - 1].cardText =
+                        stack[stack.length - 1].cardText.substring(idx);
                 }
-                cards.push([cardType, cardText, lineNo, cardTag]);
-                cardType = null;
-                cardTag = "";
+                cards.push([
+                    stack[stack.length - 1].cardType,
+                    stack[stack.length - 1].cardText,
+                    stack[stack.length - 1].lineNo,
+                    stack[stack.length - 1].cardTag,
+                ]);
+                stack.pop();
+                if (stack.length === 0) {
+                    stack.push({
+                        cardType: null,
+                        cardText: "",
+                        lineNo: 0,
+                        cardTag: "",
+                        indentOnCardSeparatorLineNumber: null,
+                    });
+                }
             }
-
-            cardText = "";
-            indentOnCardSeparatorLineNumber = null;
         } else if (lines[i].startsWith("<!--") && !lines[i].startsWith("<!--SR:")) {
             while (i + 1 < lines.length && !lines[i].includes("-->")) i++;
             i++;
             continue;
         }
 
-        if (cardText.length > 0) {
-            cardText += "\n";
+        for (let j = 0; j < stack.length; j++) {
+            stack[j].cardText += "\n";
+            stack[j].cardText += lines[i];
         }
-        cardText += lines[i];
 
         if (
             lines[i].includes(singlelineReversedCardSeparator) ||
             lines[i].includes(singlelineCardSeparator)
         ) {
-            cardType = lines[i].includes(singlelineReversedCardSeparator)
+            if (stack[stack.length - 1].cardType !== null) {
+                stack.push({
+                    cardType: null,
+                    cardText: "",
+                    lineNo: 0,
+                    cardTag: "",
+                    indentOnCardSeparatorLineNumber: null,
+                });
+            }
+            stack[stack.length - 1].cardType = lines[i].includes(singlelineReversedCardSeparator)
                 ? CardType.SingleLineReversed
                 : CardType.SingleLineBasic;
-            cardText = lines[i];
-            lineNo = i;
+            stack[stack.length - 1].cardText = lines[i];
+            stack[stack.length - 1].lineNo = i;
             if (i + 1 < lines.length && lines[i + 1].startsWith("<!--SR:")) {
-                cardText += "\n" + lines[i + 1];
+                stack[stack.length - 1].cardText += "\n" + lines[i + 1];
                 i++;
             }
             for (const tag of flashcardTags) {
-                if (cardText.includes(tag)) {
-                    cardTag = tag.replace(/^#/, "");
+                if (stack[stack.length - 1].cardText.includes(tag)) {
+                    stack[stack.length - 1].cardTag = tag.replace(/^#/, "");
                     break;
                 }
             }
-            cards.push([cardType, cardText, lineNo, cardTag]);
-            cardType = null;
-            cardTag = "";
-            cardText = "";
+            cards.push([
+                stack[stack.length - 1].cardType,
+                stack[stack.length - 1].cardText,
+                stack[stack.length - 1].lineNo,
+                stack[stack.length - 1].cardTag,
+            ]);
+            stack.pop();
+            if (stack.length === 0) {
+                stack.push({
+                    cardType: null,
+                    cardText: "",
+                    lineNo: 0,
+                    cardTag: "",
+                    indentOnCardSeparatorLineNumber: null,
+                });
+            }
         } else if (
-            cardType === null &&
+            stack[stack.length - 1].cardType === null &&
             ((convertHighlightsToClozes && /==.*?==/gm.test(lines[i])) ||
                 (convertBoldTextToClozes && /\*\*.*?\*\*/gm.test(lines[i])))
         ) {
-            cardType = CardType.Cloze;
+            stack[stack.length - 1].cardType = CardType.Cloze;
             for (const tag of flashcardTags) {
-                if (cardText.includes(tag)) {
-                    cardTag = tag.replace(/^#/, "");
+                if (stack[stack.length - 1].cardText.includes(tag)) {
+                    stack[stack.length - 1].cardTag = tag.replace(/^#/, "");
                     break;
                 }
             }
-            lineNo = i;
+            stack[stack.length - 1].lineNo = i;
         } else if (multilineRegex.test(lines[i])) {
-            indentOnCardSeparatorLineNumber = i;
-            cardType = CardType.MultiLineBasic;
+            if (stack[stack.length - 1].cardType !== null) {
+                stack.push({
+                    cardType: null,
+                    cardText: "",
+                    lineNo: 0,
+                    cardTag: "",
+                    indentOnCardSeparatorLineNumber: null,
+                });
+                if (i > 0) {
+                    stack[stack.length - 1].cardText = lines[i - 1] + "\n" + lines[i];
+                }
+            }
+            stack[stack.length - 1].indentOnCardSeparatorLineNumber = i;
+            stack[stack.length - 1].cardType = CardType.MultiLineBasic;
             for (const tag of flashcardTags) {
-                if (cardText.includes(tag)) {
-                    cardTag = tag.replace(/^#/, "");
+                if (stack[stack.length - 1].cardText.includes(tag)) {
+                    stack[stack.length - 1].cardTag = tag.replace(/^#/, "");
                     break;
                 }
             }
-            lineNo = i;
+            stack[stack.length - 1].lineNo = i;
         } else if (multilineRegexReversed.test(lines[i])) {
-            indentOnCardSeparatorLineNumber = i;
-            cardType = CardType.MultiLineReversed;
+            if (stack[stack.length - 1].cardType !== null) {
+                stack.push({
+                    cardType: null,
+                    cardText: "",
+                    lineNo: 0,
+                    cardTag: "",
+                    indentOnCardSeparatorLineNumber: null,
+                });
+            }
+            stack[stack.length - 1].indentOnCardSeparatorLineNumber = i;
+            stack[stack.length - 1].cardType = CardType.MultiLineReversed;
             for (const tag of flashcardTags) {
-                if (cardText.includes(tag)) {
-                    cardTag = tag.replace(/^#/, "");
+                if (stack[stack.length - 1].cardText.includes(tag)) {
+                    stack[stack.length - 1].cardTag = tag.replace(/^#/, "");
                     break;
                 }
             }
-            lineNo = i;
+            stack[stack.length - 1].lineNo = i;
         } else if (lines[i].startsWith("```") || lines[i].startsWith("~~~")) {
             const codeBlockClose = lines[i].match(/`+|~+/)[0];
             while (i + 1 < lines.length && !lines[i + 1].startsWith(codeBlockClose)) {
                 i++;
-                cardText += "\n" + lines[i];
+                stack[stack.length - 1].cardText += "\n" + lines[i];
             }
-            cardText += "\n" + codeBlockClose;
+            stack[stack.length - 1].cardText += "\n" + codeBlockClose;
             i++;
         }
     }
 
-    if (cardType && cardText) {
-        if (cardType === CardType.MultiLineBasic) {
+    if (stack[stack.length - 1].cardType && stack[stack.length - 1].cardText) {
+        if (stack[stack.length - 1].cardType === CardType.MultiLineBasic) {
             const idx =
-                cardText.search(
+                stack[stack.length - 1].cardText.search(
                     new RegExp(`\\n[^\\n]*\\n^[\\t ]*${escapeRegex(multilineCardSeparator)}`, "gm")
                 ) + 1;
-            cardText = cardText.substring(idx);
+            stack[stack.length - 1].cardText = stack[stack.length - 1].cardText.substring(idx);
         }
-        cards.push([cardType, cardText, lineNo, cardTag]);
+        cards.push([
+            stack[stack.length - 1].cardType,
+            stack[stack.length - 1].cardText,
+            stack[stack.length - 1].lineNo,
+            stack[stack.length - 1].cardTag,
+        ]);
+        stack.pop();
+        if (stack.length === 0) {
+            stack.push({
+                cardType: null,
+                cardText: "",
+                lineNo: 0,
+                cardTag: "",
+                indentOnCardSeparatorLineNumber: null,
+            });
+        }
     }
 
     return cards;

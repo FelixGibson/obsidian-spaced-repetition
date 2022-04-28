@@ -117,6 +117,44 @@ test("Test parsing of multi line basic cards", () => {
             "p",
         ],
     ]);
+    expect(
+        parse(
+            "- module system, include: 4个点 #p\n   ?\n\t- ps: 注意一个细节，这4个feature应该是上层包含下一层，比如packages包含众多crates, crates包含众多modules， modules包含众多paths :: #p\n\t- ps: module应该和C++中的namespace有点像",
+            ...defaultArgs
+        )
+    ).toEqual([
+        [
+            CardType.SingleLineBasic,
+            "\t- ps: 注意一个细节，这4个feature应该是上层包含下一层，比如packages包含众多crates, crates包含众多modules， modules包含众多paths :: #p",
+            2,
+            "p",
+        ],
+        [
+            CardType.MultiLineBasic,
+            "- module system, include: 4个点 #p\n   ?\n\t- ps: 注意一个细节，这4个feature应该是上层包含下一层，比如packages包含众多crates, crates包含众多modules， modules包含众多paths :: #p\n\t- ps: module应该和C++中的namespace有点像",
+            1,
+            "p",
+        ],
+    ]);
+    expect(
+        parse(
+            "- module system, include: 4个点 #p \n   ?\n\t- ps: 注意一个细节，这4个feature应该是上层包含下一层，比如packages包含众多crates, crates包含众多modules， modules包含众多paths #p\n\t  ?\n\t\t- this is close \n\t- ps: module应该和C++中的namespace有点像",
+            ...defaultArgs
+        )
+    ).toEqual([
+        [
+            CardType.MultiLineBasic,
+            "\t- ps: 注意一个细节，这4个feature应该是上层包含下一层，比如packages包含众多crates, crates包含众多modules， modules包含众多paths #p\n\t  ?\n\t\t- this is close ",
+            3,
+            "p",
+        ],
+        [
+            CardType.MultiLineBasic,
+            "- module system, include: 4个点 #p \n   ?\n\t- ps: 注意一个细节，这4个feature应该是上层包含下一层，比如packages包含众多crates, crates包含众多modules， modules包含众多paths #p\n\t  ?\n\t\t- this is close \n\t- ps: module应该和C++中的namespace有点像",
+            1,
+            "p",
+        ],
+    ]);
 });
 
 // test("Test parsing of multi line reversed cards", () => {
