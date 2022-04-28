@@ -23,6 +23,7 @@ import {
 } from "src/constants";
 import { escapeRegexString, cyrb53 } from "src/utils";
 import { t } from "src/lang/helpers";
+import { escapeRegex } from "./parser";
 
 export enum FlashcardModalMode {
     DecksList,
@@ -331,33 +332,65 @@ export class FlashcardModal extends Modal {
 
         // check if we're adding scheduling information to the flashcard
         // for the first time
-        if (this.currentCard.cardText.lastIndexOf("<!--SR:") === -1) {
-            this.currentCard.cardText =
-                this.currentCard.cardText + sep + `<!--SR:!${dueString},${interval},${ease}-->`;
-        } else {
-            let scheduling: RegExpMatchArray[] = [
-                ...this.currentCard.cardText.matchAll(MULTI_SCHEDULING_EXTRACTOR),
-            ];
-            if (scheduling.length === 0) {
-                scheduling = [...this.currentCard.cardText.matchAll(LEGACY_SCHEDULING_EXTRACTOR)];
-            }
-
-            const currCardSched: string[] = ["0", dueString, interval.toString(), ease.toString()];
-            if (this.currentCard.isDue) {
-                scheduling[this.currentCard.siblingIdx] = currCardSched;
+        if (this.currentCard.cardType === CardType.MultiLineBasic) {
+            const multilineRegex = new RegExp(
+                `^[\\t ]*${escapeRegex(this.plugin.data.settings.multilineCardSeparator)}`,
+                "gm"
+            );
+            const questionLastIdx = this.currentCard.cardText.search(multilineRegex) - 1;
+            const question = this.currentCard.cardText.substring(0, questionLastIdx);
+            let questionNew = question;
+            if (question.indexOf("<!--SR:") === -1) {
+                questionNew = question + sep + `<!--SR:!${dueString},${interval},${ease}-->`;
+                this.currentCard.cardText = this.currentCard.cardText.replace(
+                    question,
+                    questionNew
+                );
             } else {
-                scheduling.push(currCardSched);
+                const questionWithoutSchedule = question.replace(/<!--SR:.+-->/gm, "");
+                questionNew =
+                    questionWithoutSchedule + sep + `<!--SR:!${dueString},${interval},${ease}-->`;
+                this.currentCard.cardText = this.currentCard.cardText.replace(
+                    question,
+                    questionNew
+                );
             }
+            fileText = fileText.replace(new RegExp(escapeRegexString(question)), () => questionNew);
+        } else {
+            if (this.currentCard.cardText.indexOf("<!--SR:") === -1) {
+                this.currentCard.cardText =
+                    this.currentCard.cardText + sep + `<!--SR:!${dueString},${interval},${ease}-->`;
+            } else {
+                let scheduling: RegExpMatchArray[] = [
+                    ...this.currentCard.cardText.matchAll(MULTI_SCHEDULING_EXTRACTOR),
+                ];
+                if (scheduling.length === 0) {
+                    scheduling = [
+                        ...this.currentCard.cardText.matchAll(LEGACY_SCHEDULING_EXTRACTOR),
+                    ];
+                }
 
-            this.currentCard.cardText = this.currentCard.cardText.replace(/<!--SR:.+-->/gm, "");
-            this.currentCard.cardText += "<!--SR:";
-            for (let i = 0; i < scheduling.length; i++) {
-                this.currentCard.cardText += `!${scheduling[i][1]},${scheduling[i][2]},${scheduling[i][3]}`;
+                const currCardSched: string[] = [
+                    "0",
+                    dueString,
+                    interval.toString(),
+                    ease.toString(),
+                ];
+                if (this.currentCard.isDue) {
+                    scheduling[this.currentCard.siblingIdx] = currCardSched;
+                } else {
+                    scheduling.push(currCardSched);
+                }
+
+                this.currentCard.cardText = this.currentCard.cardText.replace(/<!--SR:.+-->/gm, "");
+                this.currentCard.cardText += "<!--SR:";
+                for (let i = 0; i < scheduling.length; i++) {
+                    this.currentCard.cardText += `!${scheduling[i][1]},${scheduling[i][2]},${scheduling[i][3]}`;
+                }
+                this.currentCard.cardText += "-->";
             }
-            this.currentCard.cardText += "-->";
+            fileText = fileText.replace(replacementRegex, () => this.currentCard.cardText);
         }
-
-        fileText = fileText.replace(replacementRegex, () => this.currentCard.cardText);
         for (const sibling of this.currentCard.siblings) {
             sibling.cardText = this.currentCard.cardText;
         }

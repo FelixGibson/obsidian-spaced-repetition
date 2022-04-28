@@ -772,18 +772,18 @@ export default class SRPlugin extends Plugin {
             if (scheduling.length === 0)
                 scheduling = [...cardText.matchAll(LEGACY_SCHEDULING_EXTRACTOR)];
 
-            // we have some extra scheduling dates to delete
-            if (scheduling.length > siblingMatches.length) {
-                const idxSched: number = cardText.lastIndexOf("<!--SR:") + 7;
-                let newCardText: string = cardText.substring(0, idxSched);
-                for (let i = 0; i < siblingMatches.length; i++)
-                    newCardText += `!${scheduling[i][1]},${scheduling[i][2]},${scheduling[i][3]}`;
-                newCardText += "-->";
+            // // we have some extra scheduling dates to delete
+            // if (scheduling.length > siblingMatches.length) {
+            //     const idxSched: number = cardText.lastIndexOf("<!--SR:") + 7;
+            //     let newCardText: string = cardText.substring(0, idxSched);
+            //     for (let i = 0; i < siblingMatches.length; i++)
+            //         newCardText += `!${scheduling[i][1]},${scheduling[i][2]},${scheduling[i][3]}`;
+            //     newCardText += "-->";
 
-                const replacementRegex = new RegExp(escapeRegexString(cardText), "gm");
-                fileText = fileText.replace(replacementRegex, () => newCardText);
-                fileChanged = true;
-            }
+            //     const replacementRegex = new RegExp(escapeRegexString(cardText), "gm");
+            //     fileText = fileText.replace(replacementRegex, () => newCardText);
+            //     fileChanged = true;
+            // }
 
             const context: string = settings.showContextInCards
                 ? getCardContext(lineNo, headings)
