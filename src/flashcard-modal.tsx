@@ -249,7 +249,7 @@ export class FlashcardModal extends Modal {
             this.flashcardView.innerHTML = "";
         }
 
-        this.renderMarkdownWrapper(this.currentCard.back, this.flashcardView);
+        this.renderMarkdownWrapper("- A:\n" + this.currentCard.back, this.flashcardView);
     }
 
     async processReview(response: ReviewResponse): Promise<void> {
@@ -799,7 +799,7 @@ export class Deck {
             }
 
             modal.currentCard = this.newFlashcards[modal.currentCardIdx];
-            modal.renderMarkdownWrapper(modal.currentCard.front, modal.flashcardView);
+            modal.renderMarkdownWrapper("- Q:\n" + modal.currentCard.front, modal.flashcardView);
 
             if (
                 Object.prototype.hasOwnProperty.call(
@@ -816,7 +816,7 @@ export class Deck {
                 modal.currentCardIdx = 0;
             }
             modal.currentCard = this.dueFlashcards[modal.currentCardIdx];
-            modal.renderMarkdownWrapper(modal.currentCard.front, modal.flashcardView);
+            modal.renderMarkdownWrapper("- Q:\n" + modal.currentCard.front, modal.flashcardView);
 
             interval = modal.currentCard.interval;
             ease = modal.currentCard.ease;
