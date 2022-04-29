@@ -390,6 +390,7 @@ export default class SRPlugin extends Plugin {
 
         // sort the deck names
         this.deckTree.sortSubdecksList();
+        this.deckTree.sortDueFlashcards();
         if (this.data.settings.showDebugMessages) {
             console.log(`SR: ${t("EASES")}`, this.easeByPath);
             console.log(`SR: ${t("DECKS")}`, this.deckTree);
@@ -767,23 +768,20 @@ export default class SRPlugin extends Plugin {
                     siblingMatches.push([side2, side1]);
                 }
             }
-
-            let scheduling: RegExpMatchArray[] = [...cardText.matchAll(MULTI_SCHEDULING_EXTRACTOR)];
-            if (scheduling.length === 0)
-                scheduling = [...cardText.matchAll(LEGACY_SCHEDULING_EXTRACTOR)];
-
-            // // we have some extra scheduling dates to delete
-            // if (scheduling.length > siblingMatches.length) {
-            //     const idxSched: number = cardText.lastIndexOf("<!--SR:") + 7;
-            //     let newCardText: string = cardText.substring(0, idxSched);
-            //     for (let i = 0; i < siblingMatches.length; i++)
-            //         newCardText += `!${scheduling[i][1]},${scheduling[i][2]},${scheduling[i][3]}`;
-            //     newCardText += "-->";
-
-            //     const replacementRegex = new RegExp(escapeRegexString(cardText), "gm");
-            //     fileText = fileText.replace(replacementRegex, () => newCardText);
-            //     fileChanged = true;
-            // }
+            let scheduling: RegExpMatchArray[] = [];
+            if (cardType === CardType.MultiLineBasic) {
+                const multilineRegex = new RegExp(
+                    `^[\\t ]*${escapeRegex(settings.multilineCardSeparator)}`,
+                    "gm"
+                );
+                const questionLastIdx = cardText.search(multilineRegex) - 1;
+                const question = cardText.substring(0, questionLastIdx);
+                scheduling = [...question.matchAll(MULTI_SCHEDULING_EXTRACTOR)];
+            } else {
+                scheduling = [...cardText.matchAll(MULTI_SCHEDULING_EXTRACTOR)];
+                if (scheduling.length === 0)
+                    scheduling = [...cardText.matchAll(LEGACY_SCHEDULING_EXTRACTOR)];
+            }
 
             const context: string = settings.showContextInCards
                 ? getCardContext(lineNo, headings)
