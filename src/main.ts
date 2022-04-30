@@ -655,7 +655,7 @@ export default class SRPlugin extends Plugin {
         );
 
         const now: number = Date.now();
-        const parsedCards: [CardType, string, number, string][] = parse(
+        const parsedCards: [CardType, string, number, string[]][] = parse(
             fileText,
             settings.singlelineCardSeparator,
             settings.singlelineReversedCardSeparator,
@@ -670,7 +670,7 @@ export default class SRPlugin extends Plugin {
             const cardType: CardType = parsedCard[0],
                 lineNo: number = parsedCard[2];
             let cardText: string = parsedCard[1];
-            const cardTag: string = parsedCard[3];
+            const cardTags: string[] = parsedCard[3];
 
             if (!settings.convertFoldersToDecks) {
                 const tagInCardRegEx = /^#[^\s#]+/gi;
@@ -686,10 +686,12 @@ export default class SRPlugin extends Plugin {
             }
 
             this.deckTree.createDeck([...deckPath]);
-            if (cardTag) {
-                this.deckTree.createDeck([...cardTag]);
+            for (const carTag of cardTags) {
+                this.deckTree.createDeck([carTag]);
             }
-
+            // if (cardTags) {
+            //     this.deckTree.createDeck([cardTags]);
+            // }
             const cardTextHash: string = cyrb53(cardText);
 
             if (buryOnly) {
@@ -808,10 +810,12 @@ export default class SRPlugin extends Plugin {
                 if (ignoreStats) {
                     this.cardStats.newCount++;
                     cardObj.isDue = true;
-                    if (cardTag) {
-                        this.deckTree.insertFlashcard([...cardTag], cardObj);
-                    } else {
-                        this.deckTree.insertFlashcard([...deckPath], cardObj);
+                    for (const cardTag of cardTags) {
+                        if (cardTag) {
+                            this.deckTree.insertFlashcard([cardTag], cardObj);
+                        } else {
+                            this.deckTree.insertFlashcard([...deckPath], cardObj);
+                        }
                     }
                 } else if (i < scheduling.length) {
                     const dueUnix: number = window
@@ -851,10 +855,12 @@ export default class SRPlugin extends Plugin {
                         cardObj.interval = interval;
                         cardObj.ease = ease;
                         cardObj.delayBeforeReview = now - dueUnix;
-                        if (cardTag) {
-                            this.deckTree.insertFlashcard([...cardTag], cardObj);
-                        } else {
-                            this.deckTree.insertFlashcard([...deckPath], cardObj);
+                        for (const cardTag of cardTags) {
+                            if (cardTag) {
+                                this.deckTree.insertFlashcard([cardTag], cardObj);
+                            } else {
+                                this.deckTree.insertFlashcard([...deckPath], cardObj);
+                            }
                         }
                     } else {
                         this.deckTree.countFlashcard([...deckPath]);
@@ -866,10 +872,12 @@ export default class SRPlugin extends Plugin {
                         this.deckTree.countFlashcard([...deckPath]);
                         continue;
                     }
-                    if (cardTag) {
-                        this.deckTree.insertFlashcard([...cardTag], cardObj);
-                    } else {
-                        this.deckTree.insertFlashcard([...deckPath], cardObj);
+                    for (const cardTag of cardTags) {
+                        if (cardTag) {
+                            this.deckTree.insertFlashcard([cardTag], cardObj);
+                        } else {
+                            this.deckTree.insertFlashcard([...deckPath], cardObj);
+                        }
                     }
                 }
 

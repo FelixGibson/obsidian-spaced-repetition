@@ -1,5 +1,6 @@
 import { min } from "moment";
 import { CardType } from "src/scheduling";
+const NO_TAG = "no_tag";
 
 /**
  * Returns flashcards found in `text`
@@ -20,13 +21,13 @@ export function parse(
     convertHighlightsToClozes: boolean,
     convertBoldTextToClozes: boolean,
     flashcardTags: string[]
-): [CardType, string, number, string][] {
-    const cards: [CardType, string, number, string][] = [];
+): [CardType, string, number, string[]][] {
+    const cards: [CardType, string, number, string[]][] = [];
     const stack: {
         cardType: CardType | null;
         cardText: string;
         lineNo: number;
-        cardTag: string;
+        cardTag: string[];
         indentOnCardSeparatorLineNumber: number | null;
     }[] = [];
     const multilineRegex = new RegExp(`^[\\t ]*${escapeRegex(multilineCardSeparator)}`, "gm");
@@ -39,7 +40,7 @@ export function parse(
             cardType: null,
             cardText: "",
             lineNo: 0,
-            cardTag: "",
+            cardTag: [],
             indentOnCardSeparatorLineNumber: null,
         });
     }
@@ -54,13 +55,11 @@ export function parse(
         ) {
             if (stack.length > 0 && stack[stack.length - 1].cardType !== null) {
                 if (stack[stack.length - 1].cardType === CardType.MultiLineBasic) {
-                    const idx =
-                        stack[stack.length - 1].cardText.search(
-                            new RegExp(
-                                `\\n[^\\n]*\\n^[\\t ]*${escapeRegex(multilineCardSeparator)}`,
-                                "gm"
-                            )
-                        ) + 1;
+                    const regexp = new RegExp(
+                        `\\n[^\\n]*\\n^[\\t ]*${escapeRegex(multilineCardSeparator)}`,
+                        "gm"
+                    );
+                    const idx = stack[stack.length - 1].cardText.search(regexp) + 1;
                     stack[stack.length - 1].cardText =
                         stack[stack.length - 1].cardText.substring(idx);
                 }
@@ -76,7 +75,7 @@ export function parse(
                         cardType: null,
                         cardText: "",
                         lineNo: 0,
-                        cardTag: "",
+                        cardTag: [],
                         indentOnCardSeparatorLineNumber: null,
                     });
                 }
@@ -101,7 +100,7 @@ export function parse(
                     cardType: null,
                     cardText: "",
                     lineNo: 0,
-                    cardTag: "",
+                    cardTag: [],
                     indentOnCardSeparatorLineNumber: null,
                 });
             }
@@ -115,15 +114,14 @@ export function parse(
                 i++;
             }
             for (const tag of flashcardTags) {
-                if (
-                    stack[stack.length - 1].cardText.search(
-                        new RegExp(` #${escapeRegex(tag)}[\\s$]`, "gm")
-                    )
-                ) {
+                const regexp = new RegExp(` ${escapeRegex(tag)}`, "gm");
+                if (stack[stack.length - 1].cardText.search(regexp) !== -1) {
                     const reg = new RegExp("[#\\[\\[\\]\\]]", "g");
-                    stack[stack.length - 1].cardTag = tag.replaceAll(reg, "");
-                    break;
+                    stack[stack.length - 1].cardTag.push(tag.replaceAll(reg, ""));
                 }
+            }
+            if (stack[stack.length - 1].cardTag.length === 0) {
+                stack[stack.length - 1].cardTag.push(NO_TAG);
             }
             cards.push([
                 stack[stack.length - 1].cardType,
@@ -137,7 +135,7 @@ export function parse(
                     cardType: null,
                     cardText: "",
                     lineNo: 0,
-                    cardTag: "",
+                    cardTag: [],
                     indentOnCardSeparatorLineNumber: null,
                 });
             }
@@ -148,10 +146,14 @@ export function parse(
         ) {
             stack[stack.length - 1].cardType = CardType.Cloze;
             for (const tag of flashcardTags) {
-                if (stack[stack.length - 1].cardText.includes(tag)) {
-                    stack[stack.length - 1].cardTag = tag.replace(/^#/, "");
-                    break;
+                const regexp = new RegExp(` ${escapeRegex(tag)}`, "gm");
+                if (stack[stack.length - 1].cardText.search(regexp) !== -1) {
+                    const reg = new RegExp("[#\\[\\[\\]\\]]", "g");
+                    stack[stack.length - 1].cardTag.push(tag.replaceAll(reg, ""));
                 }
+            }
+            if (stack[stack.length - 1].cardTag.length === 0) {
+                stack[stack.length - 1].cardTag.push(NO_TAG);
             }
             stack[stack.length - 1].lineNo = i;
         } else if (multilineRegex.test(lines[i])) {
@@ -160,7 +162,7 @@ export function parse(
                     cardType: null,
                     cardText: "",
                     lineNo: 0,
-                    cardTag: "",
+                    cardTag: [],
                     indentOnCardSeparatorLineNumber: null,
                 });
                 if (i > 0) {
@@ -170,15 +172,14 @@ export function parse(
             stack[stack.length - 1].indentOnCardSeparatorLineNumber = i;
             stack[stack.length - 1].cardType = CardType.MultiLineBasic;
             for (const tag of flashcardTags) {
-                if (
-                    stack[stack.length - 1].cardText.search(
-                        new RegExp(` #${escapeRegex(tag)}[\\s$]`, "gm")
-                    )
-                ) {
+                const regexp = new RegExp(` ${escapeRegex(tag)}`, "gm");
+                if (stack[stack.length - 1].cardText.search(regexp) != -1) {
                     const reg = new RegExp("[#\\[\\[\\]\\]]", "g");
-                    stack[stack.length - 1].cardTag = tag.replaceAll(reg, "");
-                    break;
+                    stack[stack.length - 1].cardTag.push(tag.replaceAll(reg, ""));
                 }
+            }
+            if (stack[stack.length - 1].cardTag.length === 0) {
+                stack[stack.length - 1].cardTag.push(NO_TAG);
             }
             stack[stack.length - 1].lineNo = i;
         } else if (multilineRegexReversed.test(lines[i])) {
@@ -187,17 +188,21 @@ export function parse(
                     cardType: null,
                     cardText: "",
                     lineNo: 0,
-                    cardTag: "",
+                    cardTag: [],
                     indentOnCardSeparatorLineNumber: null,
                 });
             }
             stack[stack.length - 1].indentOnCardSeparatorLineNumber = i;
             stack[stack.length - 1].cardType = CardType.MultiLineReversed;
             for (const tag of flashcardTags) {
-                if (stack[stack.length - 1].cardText.includes(tag)) {
-                    stack[stack.length - 1].cardTag = tag.replace(/^#/, "");
-                    break;
+                const regexp = new RegExp(` ${escapeRegex(tag)}`, "gm");
+                if (stack[stack.length - 1].cardText.search(regexp) != -1) {
+                    const reg = new RegExp("[#\\[\\[\\]\\]]", "g");
+                    stack[stack.length - 1].cardTag.push(tag.replaceAll(reg, ""));
                 }
+            }
+            if (stack[stack.length - 1].cardTag.length === 0) {
+                stack[stack.length - 1].cardTag.push(NO_TAG);
             }
             stack[stack.length - 1].lineNo = i;
         } else if (lines[i].startsWith("```") || lines[i].startsWith("~~~")) {
@@ -217,10 +222,11 @@ export function parse(
         stack[stack.length - 1].cardText
     ) {
         if (stack[stack.length - 1].cardType === CardType.MultiLineBasic) {
-            const idx =
-                stack[stack.length - 1].cardText.search(
-                    new RegExp(`\\n[^\\n]*\\n^[\\t ]*${escapeRegex(multilineCardSeparator)}`, "gm")
-                ) + 1;
+            const regexp = new RegExp(
+                `\\n[^\\n]*\\n^[\\t ]*${escapeRegex(multilineCardSeparator)}`,
+                "gm"
+            );
+            const idx = stack[stack.length - 1].cardText.search(regexp) + 1;
             stack[stack.length - 1].cardText = stack[stack.length - 1].cardText.substring(idx);
         }
         cards.push([
