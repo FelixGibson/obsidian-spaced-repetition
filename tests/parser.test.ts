@@ -11,6 +11,16 @@ const defaultArgs: [string, string, string, string, boolean, boolean, string[]] 
     ["#p"],
 ];
 
+const yetAnotherConfig: [string, string, string, string, boolean, boolean, string[]] = [
+    ";;",
+    ";;;",
+    "?",
+    "??",
+    true,
+    true,
+    ["#[[b]]"],
+];
+
 test("Test parsing of single line basic cards", () => {
     expect(parse("Question::Answer #p", ...defaultArgs)).toEqual([
         [CardType.SingleLineBasic, "Question::Answer #p", 0, "p"],
@@ -26,7 +36,10 @@ test("Test parsing of single line basic cards", () => {
     ]);
     expect(parse("#Title\n\nQ1::A1 #p\nQ2:: A2 #c", ...defaultArgs)).toEqual([
         [CardType.SingleLineBasic, "Q1::A1 #p", 2, "p"],
-        [CardType.SingleLineBasic, "Q2:: A2 #c", 3, ""],
+        [CardType.SingleLineBasic, "Q2:: A2 #c", 3, "p"],
+    ]);
+    expect(parse("- This is My First Head #[[b]] ;; ANswer", ...yetAnotherConfig)).toEqual([
+        [CardType.SingleLineBasic, "- This is My First Head #[[b]] ;; ANswer", 0, "b"],
     ]);
 });
 
@@ -167,6 +180,25 @@ test("Test parsing of multi line basic cards", () => {
             "- This is Head One  #p \n   ?\n\t- This is Head Two #p\n\t  ?\n\t\t- This is Content",
             1,
             "p",
+        ],
+    ]);
+    expect(
+        parse(
+            "- This is Head One  #[[b]] \n   ?\n\t- This is Head Two #[[b]]\n\t  ?\n\t\t- This is Content",
+            ...yetAnotherConfig
+        )
+    ).toEqual([
+        [
+            CardType.MultiLineBasic,
+            "\t- This is Head Two #[[b]]\n\t  ?\n\t\t- This is Content",
+            3,
+            "b",
+        ],
+        [
+            CardType.MultiLineBasic,
+            "- This is Head One  #[[b]] \n   ?\n\t- This is Head Two #[[b]]\n\t  ?\n\t\t- This is Content",
+            1,
+            "b",
         ],
     ]);
 });

@@ -115,8 +115,13 @@ export function parse(
                 i++;
             }
             for (const tag of flashcardTags) {
-                if (stack[stack.length - 1].cardText.includes(tag)) {
-                    stack[stack.length - 1].cardTag = tag.replace(/^#/, "");
+                if (
+                    stack[stack.length - 1].cardText.search(
+                        new RegExp(` #${escapeRegex(tag)}[\\s$]`, "gm")
+                    )
+                ) {
+                    const reg = new RegExp("[#\\[\\[\\]\\]]", "g");
+                    stack[stack.length - 1].cardTag = tag.replaceAll(reg, "");
                     break;
                 }
             }
@@ -165,8 +170,13 @@ export function parse(
             stack[stack.length - 1].indentOnCardSeparatorLineNumber = i;
             stack[stack.length - 1].cardType = CardType.MultiLineBasic;
             for (const tag of flashcardTags) {
-                if (stack[stack.length - 1].cardText.includes(tag)) {
-                    stack[stack.length - 1].cardTag = tag.replace(/^#/, "");
+                if (
+                    stack[stack.length - 1].cardText.search(
+                        new RegExp(` #${escapeRegex(tag)}[\\s$]`, "gm")
+                    )
+                ) {
+                    const reg = new RegExp("[#\\[\\[\\]\\]]", "g");
+                    stack[stack.length - 1].cardTag = tag.replaceAll(reg, "");
                     break;
                 }
             }
