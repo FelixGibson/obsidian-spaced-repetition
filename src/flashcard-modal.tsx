@@ -111,7 +111,7 @@ export class FlashcardModal extends Modal {
         this.titleEl.setText(t("DECKS"));
         this.titleEl.innerHTML += (
             <p style="margin:0px;line-height:12px;">
-                <span
+                {/* <span
                     style="background-color:#4caf50;color:#ffffff;"
                     aria-label={t("DUE_CARDS")}
                     class="tag-pane-tag-count tree-item-flair"
@@ -131,7 +131,7 @@ export class FlashcardModal extends Modal {
                     class="tag-pane-tag-count tree-item-flair sr-deck-counts"
                 >
                     {this.plugin.deckTree.totalFlashcards.toString()}
-                </span>
+                </span> */}
             </p>
         );
         this.contentEl.innerHTML = "";
@@ -723,7 +723,7 @@ export class Deck {
         const deckViewOuter: HTMLElement = deckViewSelf.createDiv("tree-item-flair-outer");
         deckViewOuter.innerHTML += (
             <span>
-                <span
+                {/* <span
                     style="background-color:#4caf50;"
                     class="tag-pane-tag-count tree-item-flair sr-deck-counts"
                 >
@@ -740,7 +740,7 @@ export class Deck {
                     class="tag-pane-tag-count tree-item-flair sr-deck-counts"
                 >
                     {this.totalFlashcards.toString()}
-                </span>
+                </span> */}
             </span>
         );
 
@@ -786,9 +786,9 @@ export class Deck {
 
         modal.responseDiv.style.display = "none";
         modal.resetLinkView.style.display = "none";
-        modal.titleEl.setText(
-            `${this.deckName}: ${this.dueFlashcardsCount + this.newFlashcardsCount}`
-        );
+        // modal.titleEl.setText(
+        //     `${this.deckName}: ${this.dueFlashcardsCount + this.newFlashcardsCount}`
+        // );
 
         modal.answerBtn.style.display = "initial";
         modal.flashcardView.innerHTML = "";
