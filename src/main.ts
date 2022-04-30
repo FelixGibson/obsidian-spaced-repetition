@@ -215,16 +215,16 @@ export default class SRPlugin extends Plugin {
             },
         });
 
-        this.addCommand({
-            id: "srs-view-stats",
-            name: t("VIEW_STATS"),
-            callback: async () => {
-                if (!this.syncLock) {
-                    await this.sync();
-                    new StatsModal(this.app, this).open();
-                }
-            },
-        });
+        // this.addCommand({
+        //     id: "srs-view-stats",
+        //     name: t("VIEW_STATS"),
+        //     callback: async () => {
+        //         if (!this.syncLock) {
+        //             await this.sync();
+        //             new StatsModal(this.app, this).open();
+        //         }
+        //     },
+        // });
 
         this.addSettingTab(new SRSettingTab(this.app, this));
 
