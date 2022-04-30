@@ -324,11 +324,11 @@ export class FlashcardModal extends Modal {
         let fileText: string = await this.app.vault.read(this.currentCard.note);
         const replacementRegex = new RegExp(escapeRegexString(this.currentCard.cardText), "gm");
 
-        let sep: string = this.plugin.data.settings.cardCommentOnSameLine ? " " : "\n";
-        // Override separator if last block is a codeblock
-        if (this.currentCard.cardText.endsWith("```") && sep !== "\n") {
-            sep = "\n";
-        }
+        const sep: string = this.plugin.data.settings.cardCommentOnSameLine ? " " : "\n";
+        // // Override separator if last block is a codeblock
+        // if (this.currentCard.cardText.endsWith("```") && sep !== "\n") {
+        //     sep = "\n";
+        // }
 
         // check if we're adding scheduling information to the flashcard
         // for the first time

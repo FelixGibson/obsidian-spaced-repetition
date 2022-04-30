@@ -201,7 +201,11 @@ export function parse(
         }
     }
 
-    if (stack[stack.length - 1].cardType && stack[stack.length - 1].cardText) {
+    while (
+        stack.length > 0 &&
+        stack[stack.length - 1].cardType &&
+        stack[stack.length - 1].cardText
+    ) {
         if (stack[stack.length - 1].cardType === CardType.MultiLineBasic) {
             const idx =
                 stack[stack.length - 1].cardText.search(
@@ -216,15 +220,6 @@ export function parse(
             stack[stack.length - 1].cardTag,
         ]);
         stack.pop();
-        if (stack.length === 0) {
-            stack.push({
-                cardType: null,
-                cardText: "",
-                lineNo: 0,
-                cardTag: "",
-                indentOnCardSeparatorLineNumber: null,
-            });
-        }
     }
 
     return cards;

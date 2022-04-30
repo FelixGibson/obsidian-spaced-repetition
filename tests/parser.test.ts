@@ -155,6 +155,20 @@ test("Test parsing of multi line basic cards", () => {
             "p",
         ],
     ]);
+    expect(
+        parse(
+            "- This is Head One  #p \n   ?\n\t- This is Head Two #p\n\t  ?\n\t\t- This is Content",
+            ...defaultArgs
+        )
+    ).toEqual([
+        [CardType.MultiLineBasic, "\t- This is Head Two #p\n\t  ?\n\t\t- This is Content", 3, "p"],
+        [
+            CardType.MultiLineBasic,
+            "- This is Head One  #p \n   ?\n\t- This is Head Two #p\n\t  ?\n\t\t- This is Content",
+            1,
+            "p",
+        ],
+    ]);
 });
 
 // test("Test parsing of multi line reversed cards", () => {
