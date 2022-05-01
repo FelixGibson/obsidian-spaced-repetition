@@ -21,6 +21,16 @@ const yetAnotherConfig: [string, string, string, string, boolean, boolean, strin
     ["#[[b]]"],
 ];
 
+const yetAnotherConfig2: [string, string, string, string, boolean, boolean, string[]] = [
+    ";;",
+    ";;;",
+    "?",
+    "??",
+    true,
+    true,
+    ["#[[coding]]"],
+];
+
 const multiTagConfig: [string, string, string, string, boolean, boolean, string[]] = [
     ";;",
     ";;;",
@@ -34,6 +44,9 @@ const multiTagConfig: [string, string, string, string, boolean, boolean, string[
 test("Test parsing of single line basic cards", () => {
     expect(parse("Question::Answer #p", ...defaultArgs)).toEqual([
         [CardType.SingleLineBasic, "Question::Answer #p", 0, ["p"]],
+    ]);
+    expect(parse("- Head1   #[[coding]] ;;", ...yetAnotherConfig2)).toEqual([
+        [CardType.SingleLineBasic, "- Head1   #[[coding]] ;;", 0, ["coding"]],
     ]);
     expect(parse("Question::Answer #p \n<!--SR:!2021-08-11,4,270-->", ...defaultArgs)).toEqual([
         [CardType.SingleLineBasic, "Question::Answer #p \n<!--SR:!2021-08-11,4,270-->", 0, ["p"]],
@@ -237,6 +250,9 @@ test("Test parsing of multi line basic cards", () => {
             1,
             ["a", "b"],
         ],
+    ]);
+    expect(parse("- Head1  #a\n- Head2  #b \n  ?\n\t- content", ...multiTagConfig)).toEqual([
+        [CardType.MultiLineBasic, "- Head2  #b \n  ?\n\t- content", 2, ["b"]],
     ]);
 });
 

@@ -171,9 +171,13 @@ export function parse(
             }
             stack[stack.length - 1].indentOnCardSeparatorLineNumber = i;
             stack[stack.length - 1].cardType = CardType.MultiLineBasic;
+            let question = "";
+            if (i > 0) {
+                question = lines[i - 1];
+            }
             for (const tag of flashcardTags) {
                 const regexp = new RegExp(` ${escapeRegex(tag)}`, "gm");
-                if (stack[stack.length - 1].cardText.search(regexp) != -1) {
+                if (question.search(regexp) != -1) {
                     const reg = new RegExp("[#\\[\\[\\]\\]]", "g");
                     stack[stack.length - 1].cardTag.push(tag.replaceAll(reg, ""));
                 }
@@ -194,9 +198,13 @@ export function parse(
             }
             stack[stack.length - 1].indentOnCardSeparatorLineNumber = i;
             stack[stack.length - 1].cardType = CardType.MultiLineReversed;
+            let question = "";
+            if (i > 0) {
+                question = lines[i - 1];
+            }
             for (const tag of flashcardTags) {
                 const regexp = new RegExp(` ${escapeRegex(tag)}`, "gm");
-                if (stack[stack.length - 1].cardText.search(regexp) != -1) {
+                if (question.search(regexp) != -1) {
                     const reg = new RegExp("[#\\[\\[\\]\\]]", "g");
                     stack[stack.length - 1].cardTag.push(tag.replaceAll(reg, ""));
                 }
