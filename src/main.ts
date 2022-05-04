@@ -608,10 +608,16 @@ export default class SRPlugin extends Plugin {
             }
         } else {
             const fileCachedData = this.app.metadataCache.getFileCache(note) || {};
-            const tags = getAllTags(fileCachedData) || [];
+            let tags = getAllTags(fileCachedData) || [];
+            if (fileCachedData.links) {
+                for (const link of fileCachedData.links) {
+                    tags.push("#" + link.link);
+                }
+            }
 
-            outer: for (const tagToReview of this.data.settings.flashcardTags) {
+            outer: for (let tagToReview of this.data.settings.flashcardTags) {
                 for (const tag of tags) {
+                    tagToReview = tagToReview.replaceAll(new RegExp("[\\[\\[\\]\\]]", "g"), "");
                     if (tag === tagToReview || tag.startsWith(tagToReview + "/")) {
                         deckPath = tag.substring(1).split("/");
                         break outer;
