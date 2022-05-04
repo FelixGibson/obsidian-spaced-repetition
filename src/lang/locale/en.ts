@@ -50,8 +50,11 @@ export default {
     FOLDERS_TO_IGNORE_DESC: "Enter folder paths separated by newlines i.e. Templates Meta/Scripts",
     FLASHCARDS: "Flashcards",
     FLASHCARD_TAGS: "Flashcard tags",
+    FLASHCARD_EXCLUDE_TAGS: "Exclude flashcard tags",
     FLASHCARD_TAGS_DESC:
         "Enter tags separated by spaces or newlines i.e. #flashcards #deck2 #deck3.",
+    FLASHCARD_EXCLUDE_TAGS_DESC:
+        "Enter tags separated by spaces or newlines to exclude this kind of cards to be shown i.e. #flashcards #deck2 #deck3.",
     CONVERT_FOLDERS_TO_DECKS: "Convert folders to decks and subdecks?",
     CONVERT_FOLDERS_TO_DECKS_DESC: "This is an alternative to the Flashcard tags option above.",
     INLINE_SCHEDULING_COMMENTS:

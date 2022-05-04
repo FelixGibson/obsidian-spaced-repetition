@@ -698,6 +698,16 @@ export class Deck {
     }
 
     render(containerEl: HTMLElement, modal: FlashcardModal): void {
+        if (modal.plugin.data.settings.excludeFlashcardTags.length > 0) {
+            const tag = "#[" + this.deckName + "]";
+            const tagOldStyle = "#" + this.deckName;
+            if (
+                modal.plugin.data.settings.excludeFlashcardTags.includes(tag) ||
+                modal.plugin.data.settings.excludeFlashcardTags.includes(tagOldStyle)
+            ) {
+                return;
+            }
+        }
         const deckView: HTMLElement = containerEl.createDiv("tree-item");
 
         const deckViewSelf: HTMLElement = deckView.createDiv(

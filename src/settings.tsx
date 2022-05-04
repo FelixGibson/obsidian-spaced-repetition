@@ -8,6 +8,7 @@ import { t } from "src/lang/helpers";
 export interface SRSettings {
     // flashcards
     flashcardTags: string[];
+    excludeFlashcardTags: string[];
     convertFoldersToDecks: boolean;
     cardCommentOnSameLine: boolean;
     burySiblingCards: boolean;
@@ -42,6 +43,7 @@ export interface SRSettings {
 export const DEFAULT_SETTINGS: SRSettings = {
     // flashcards
     flashcardTags: ["#flashcards"],
+    excludeFlashcardTags: ["#ignore"],
     convertFoldersToDecks: false,
     cardCommentOnSameLine: false,
     burySiblingCards: false,
@@ -127,6 +129,20 @@ export class SRSettingTab extends PluginSettingTab {
                     .onChange((value) => {
                         applySettingsUpdate(async () => {
                             this.plugin.data.settings.flashcardTags = value.split(/\s+/);
+                            await this.plugin.savePluginData();
+                        });
+                    })
+            );
+
+        new Setting(containerEl)
+            .setName(t("FLASHCARD_EXCLUDE_TAGS"))
+            .setDesc(t("FLASHCARD_EXCLUDE_TAGS_DESC"))
+            .addTextArea((text) =>
+                text
+                    .setValue(this.plugin.data.settings.excludeFlashcardTags.join(" "))
+                    .onChange((value) => {
+                        applySettingsUpdate(async () => {
+                            this.plugin.data.settings.excludeFlashcardTags = value.split(/\s+/);
                             await this.plugin.savePluginData();
                         });
                     })
