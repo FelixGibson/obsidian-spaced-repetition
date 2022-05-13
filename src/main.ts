@@ -390,7 +390,7 @@ export default class SRPlugin extends Plugin {
 
         // sort the deck names
         this.deckTree.sortSubdecksList();
-        this.deckTree.sortDueFlashcards();
+        this.deckTree.sortFlashcards();
         if (this.data.settings.showDebugMessages) {
             console.log(`SR: ${t("EASES")}`, this.easeByPath);
             console.log(`SR: ${t("DECKS")}`, this.deckTree);

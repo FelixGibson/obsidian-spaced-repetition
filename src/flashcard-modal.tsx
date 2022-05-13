@@ -587,10 +587,16 @@ export class Deck {
         this.parent = parent;
     }
 
-    sortDueFlashcards(): void {
+    sortFlashcards(): void {
         this.dueFlashcards.sort(function (a: Card, b: Card) {
             if (a.delayBeforeReview && b.delayBeforeReview) {
-                return b.delayBeforeReview - a.delayBeforeReview;
+                const delta = b.delayBeforeReview - a.delayBeforeReview;
+                if (delta !== 0) return delta;
+                if (a.front > b.front) {
+                    return 1;
+                } else {
+                    return -1;
+                }
             } else {
                 if (a.delayBeforeReview) {
                     return 1;
@@ -599,8 +605,15 @@ export class Deck {
                 }
             }
         });
+        this.newFlashcards.sort(function (a: Card, b: Card) {
+            if (a.front > b.front) {
+                return 1;
+            } else {
+                return -1;
+            }
+        });
         for (const deck of this.subdecks) {
-            deck.sortDueFlashcards();
+            deck.sortFlashcards();
         }
     }
 
