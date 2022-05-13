@@ -49,7 +49,7 @@ export function schedule(
     settingsObj: SRSettings,
     dueDates?: Record<number, number>
 ): Record<string, number> {
-    delayBeforeReview = Math.max(0, Math.floor(delayBeforeReview / (24 * 3600 * 1000)));
+    delayBeforeReview = Math.log(Math.max(1, Math.floor(delayBeforeReview / (24 * 3600 * 1000))));
 
     if (response === ReviewResponse.Easy) {
         ease += 20;
