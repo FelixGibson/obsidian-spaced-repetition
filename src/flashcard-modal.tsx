@@ -590,7 +590,15 @@ export class Deck {
     sortFlashcards(): void {
         this.dueFlashcards.sort(function (a: Card, b: Card) {
             if (a.delayBeforeReview && b.delayBeforeReview) {
-                const delta = b.delayBeforeReview - a.delayBeforeReview;
+                const aDelayDays = Math.max(
+                    0,
+                    Math.floor(a.delayBeforeReview / (24 * 3600 * 1000))
+                );
+                const bDelayDays = Math.max(
+                    0,
+                    Math.floor(b.delayBeforeReview / (24 * 3600 * 1000))
+                );
+                const delta = bDelayDays - aDelayDays;
                 if (delta !== 0) return delta;
                 if (a.front > b.front) {
                     return 1;
