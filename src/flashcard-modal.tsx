@@ -720,7 +720,7 @@ export class Deck {
 
     render(containerEl: HTMLElement, modal: FlashcardModal): void {
         if (modal.plugin.data.settings.excludeFlashcardTags.length > 0) {
-            const tag = "#[" + this.deckName + "]";
+            const tag = "#[[" + this.deckName + "]]";
             const tagOldStyle = "#" + this.deckName;
             if (
                 modal.plugin.data.settings.excludeFlashcardTags.includes(tag) ||
