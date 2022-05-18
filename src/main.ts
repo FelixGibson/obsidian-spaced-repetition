@@ -276,6 +276,10 @@ export default class SRPlugin extends Plugin {
             this.data.buryList = [];
         }
 
+        for (const tag of this.data.settings.flashcardTags) {
+            this.deckTree.createDeck([tag]);
+        }
+
         const notes: TFile[] = this.app.vault.getMarkdownFiles();
         for (const note of notes) {
             if (
@@ -389,7 +393,7 @@ export default class SRPlugin extends Plugin {
         });
 
         // sort the deck names
-        this.deckTree.sortSubdecksList();
+        this.deckTree.sortSubdecksList(this.data.settings.flashcardTags);
         this.deckTree.sortFlashcards();
         if (this.data.settings.showDebugMessages) {
             console.log(`SR: ${t("EASES")}`, this.easeByPath);
@@ -611,13 +615,12 @@ export default class SRPlugin extends Plugin {
             let tags = getAllTags(fileCachedData) || [];
             if (fileCachedData.links) {
                 for (const link of fileCachedData.links) {
-                    tags.push("#" + link.link);
+                    tags.push("#" + link.original);
                 }
             }
 
             outer: for (let tagToReview of this.data.settings.flashcardTags) {
                 for (const tag of tags) {
-                    tagToReview = tagToReview.replaceAll(new RegExp("[\\[\\[\\]\\]]", "g"), "");
                     if (tag === tagToReview || tag.startsWith(tagToReview + "/")) {
                         deckPath = tag.substring(1).split("/");
                         break outer;
@@ -661,6 +664,7 @@ export default class SRPlugin extends Plugin {
         );
 
         const now: number = Date.now();
+        const tagsSet = [...settings.flashcardTags, ...settings.excludeFlashcardTags];
         const parsedCards: [CardType, string, number, string[]][] = parse(
             fileText,
             settings.singlelineCardSeparator,
@@ -669,7 +673,7 @@ export default class SRPlugin extends Plugin {
             settings.multilineReversedCardSeparator,
             settings.convertHighlightsToClozes,
             settings.convertBoldTextToClozes,
-            settings.flashcardTags
+            tagsSet
         );
         for (const parsedCard of parsedCards) {
             deckPath = noteDeckPath;
@@ -691,7 +695,7 @@ export default class SRPlugin extends Plugin {
                 }
             }
 
-            this.deckTree.createDeck([...deckPath]);
+            // this.deckTree.createDeck([...deckPath]);
             for (const carTag of cardTags) {
                 this.deckTree.createDeck([carTag]);
             }

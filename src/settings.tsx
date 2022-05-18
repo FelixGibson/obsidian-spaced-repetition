@@ -77,7 +77,7 @@ export const DEFAULT_SETTINGS: SRSettings = {
 
 // https://github.com/mgmeyers/obsidian-kanban/blob/main/src/Settings.ts
 let applyDebounceTimer = 0;
-function applySettingsUpdate(callback: () => void): void {
+export function applySettingsUpdate(callback: () => void): void {
     clearTimeout(applyDebounceTimer);
     applyDebounceTimer = window.setTimeout(callback, 512);
 }
@@ -128,7 +128,7 @@ export class SRSettingTab extends PluginSettingTab {
                     .setValue(this.plugin.data.settings.flashcardTags.join(" "))
                     .onChange((value) => {
                         applySettingsUpdate(async () => {
-                            this.plugin.data.settings.flashcardTags = value.split(/\s+/);
+                            this.plugin.data.settings.flashcardTags = value.trim().split(/\s+/);
                             await this.plugin.savePluginData();
                         });
                     })
@@ -142,7 +142,9 @@ export class SRSettingTab extends PluginSettingTab {
                     .setValue(this.plugin.data.settings.excludeFlashcardTags.join(" "))
                     .onChange((value) => {
                         applySettingsUpdate(async () => {
-                            this.plugin.data.settings.excludeFlashcardTags = value.split(/\s+/);
+                            this.plugin.data.settings.excludeFlashcardTags = value
+                                .trim()
+                                .split(/\s+/);
                             await this.plugin.savePluginData();
                         });
                     })

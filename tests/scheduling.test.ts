@@ -30,14 +30,14 @@ test("Test reviewing with default settings & delay", () => {
         schedule(ReviewResponse.Easy, 10, DEFAULT_SETTINGS.baseEase, delay, DEFAULT_SETTINGS, {})
     ).toEqual({
         ease: DEFAULT_SETTINGS.baseEase + 20,
-        interval: 42,
+        interval: 38,
     });
 
     expect(
         schedule(ReviewResponse.Good, 10, DEFAULT_SETTINGS.baseEase, delay, DEFAULT_SETTINGS, {})
     ).toEqual({
         ease: DEFAULT_SETTINGS.baseEase,
-        interval: 28,
+        interval: 26,
     });
 
     expect(

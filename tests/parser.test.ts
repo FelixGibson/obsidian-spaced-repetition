@@ -43,29 +43,35 @@ const multiTagConfig: [string, string, string, string, boolean, boolean, string[
 
 test("Test parsing of single line basic cards", () => {
     expect(parse("Question::Answer #p", ...defaultArgs)).toEqual([
-        [CardType.SingleLineBasic, "Question::Answer #p", 0, ["p"]],
+        [CardType.SingleLineBasic, "Question::Answer #p", 0, ["#p"]],
     ]);
     expect(parse("- Head1   #[[coding]] ;;", ...yetAnotherConfig2)).toEqual([
-        [CardType.SingleLineBasic, "- Head1   #[[coding]] ;;", 0, ["coding"]],
+        [CardType.SingleLineBasic, "- Head1   #[[coding]] ;;", 0, ["#[[coding]]"]],
     ]);
     expect(parse("Question::Answer #p \n<!--SR:!2021-08-11,4,270-->", ...defaultArgs)).toEqual([
-        [CardType.SingleLineBasic, "Question::Answer #p \n<!--SR:!2021-08-11,4,270-->", 0, ["p"]],
+        [CardType.SingleLineBasic, "Question::Answer #p \n<!--SR:!2021-08-11,4,270-->", 0, ["#p"]],
     ]);
     expect(parse("Question::Answer #p <!--SR:2021-08-11,4,270-->", ...defaultArgs)).toEqual([
-        [CardType.SingleLineBasic, "Question::Answer #p <!--SR:2021-08-11,4,270-->", 0, ["p"]],
+        [CardType.SingleLineBasic, "Question::Answer #p <!--SR:2021-08-11,4,270-->", 0, ["#p"]],
     ]);
     expect(parse("Some text before\nQuestion ::Answer #p", ...defaultArgs)).toEqual([
-        [CardType.SingleLineBasic, "Question ::Answer #p", 1, ["p"]],
+        [CardType.SingleLineBasic, "Question ::Answer #p", 1, ["#p"]],
     ]);
     expect(parse("#Title\n\nQ1::A1 #p\nQ2:: A2 #c", ...defaultArgs)).toEqual([
-        [CardType.SingleLineBasic, "Q1::A1 #p", 2, ["p"]],
-        [CardType.SingleLineBasic, "Q2:: A2 #c", 3, ["no_tag"]],
+        [CardType.SingleLineBasic, "Q1::A1 #p", 2, ["#p"]],
+        [CardType.SingleLineBasic, "Q2:: A2 #c", 3, ["#no_tag"]],
     ]);
     expect(parse("- This is My First Head #[[b]] ;; ANswer", ...yetAnotherConfig)).toEqual([
-        [CardType.SingleLineBasic, "- This is My First Head #[[b]] ;; ANswer", 0, ["b"]],
+        [CardType.SingleLineBasic, "- This is My First Head #[[b]] ;; ANswer", 0, ["#[[b]]"]],
     ]);
     expect(parse("- This is My First Head #a #b ;; ANswer", ...multiTagConfig)).toEqual([
-        [CardType.SingleLineBasic, "- This is My First Head #a #b ;; ANswer", 0, ["a", "b"]],
+        [CardType.SingleLineBasic, "- This is My First Head #a #b ;; ANswer", 0, ["#a", "#b"]],
+    ]);
+    expect(parse("- This is My First Head #c #d ;; ANswer", ...multiTagConfig)).toEqual([
+        [CardType.SingleLineBasic, "- This is My First Head #c #d ;; ANswer", 0, ["#no_tag"]],
+    ]);
+    expect(parse("- ;; #a <!--SR:!2022-04-28,3,250-->", ...multiTagConfig)).toEqual([
+        [CardType.SingleLineBasic, "- ;; #a <!--SR:!2022-04-28,3,250-->", 0, ["#a"]],
     ]);
 });
 
@@ -84,34 +90,34 @@ test("Test parsing of single line basic cards", () => {
 
 test("Test parsing of multi line basic cards", () => {
     expect(parse("Question #p\n?\nAnswer", ...defaultArgs)).toEqual([
-        [CardType.MultiLineBasic, "Question #p\n?\nAnswer", 1, ["p"]],
+        [CardType.MultiLineBasic, "Question #p\n?\nAnswer", 1, ["#p"]],
     ]);
     expect(parse("Question #p\n?\nAnswer <!--SR:!2021-08-11,4,270-->", ...defaultArgs)).toEqual([
-        [CardType.MultiLineBasic, "Question #p\n?\nAnswer <!--SR:!2021-08-11,4,270-->", 1, ["p"]],
+        [CardType.MultiLineBasic, "Question #p\n?\nAnswer <!--SR:!2021-08-11,4,270-->", 1, ["#p"]],
     ]);
     expect(parse("Question #p\n?\nAnswer\n<!--SR:2021-08-11,4,270-->", ...defaultArgs)).toEqual([
-        [CardType.MultiLineBasic, "Question #p\n?\nAnswer\n<!--SR:2021-08-11,4,270-->", 1, ["p"]],
+        [CardType.MultiLineBasic, "Question #p\n?\nAnswer\n<!--SR:2021-08-11,4,270-->", 1, ["#p"]],
     ]);
     expect(parse("Some text before\nQuestion #p\n?\nAnswer", ...defaultArgs)).toEqual([
-        [CardType.MultiLineBasic, "Question #p\n?\nAnswer", 2, ["p"]],
+        [CardType.MultiLineBasic, "Question #p\n?\nAnswer", 2, ["#p"]],
     ]);
     expect(parse("Question #p\n?\nAnswer\nSome text after!", ...defaultArgs)).toEqual([
-        [CardType.MultiLineBasic, "Question #p\n?\nAnswer\nSome text after!", 1, ["p"]],
+        [CardType.MultiLineBasic, "Question #p\n?\nAnswer\nSome text after!", 1, ["#p"]],
     ]);
     expect(
         parse("#Title\n\nLine0\nQ1 #p\n?\nA1\nAnswerExtra\n\nQ2 #p\n?\nA2", ...defaultArgs)
     ).toEqual([
-        [CardType.MultiLineBasic, "Q1 #p\n?\nA1\nAnswerExtra", 4, ["p"]],
-        [CardType.MultiLineBasic, "Q2 #p\n?\nA2", 9, ["p"]],
+        [CardType.MultiLineBasic, "Q1 #p\n?\nA1\nAnswerExtra", 4, ["#p"]],
+        [CardType.MultiLineBasic, "Q2 #p\n?\nA2", 9, ["#p"]],
     ]);
     expect(parse("Some text before\nQuestion #p\n\t?\n\tAnswer", ...defaultArgs)).toEqual([
-        [CardType.MultiLineBasic, "Question #p\n\t?\n\tAnswer", 2, ["p"]],
+        [CardType.MultiLineBasic, "Question #p\n\t?\n\tAnswer", 2, ["#p"]],
     ]);
     expect(parse("Some text before\nQuestion #p\n ?\n Answer", ...defaultArgs)).toEqual([
-        [CardType.MultiLineBasic, "Question #p\n ?\n Answer", 2, ["p"]],
+        [CardType.MultiLineBasic, "Question #p\n ?\n Answer", 2, ["#p"]],
     ]);
     expect(parse("Some text before\nQuestion #p\n\t ?\n\t Answer", ...defaultArgs)).toEqual([
-        [CardType.MultiLineBasic, "Question #p\n\t ?\n\t Answer", 2, ["p"]],
+        [CardType.MultiLineBasic, "Question #p\n\t ?\n\t Answer", 2, ["#p"]],
     ]);
     expect(
         parse(
@@ -119,17 +125,17 @@ test("Test parsing of multi line basic cards", () => {
             ...defaultArgs
         )
     ).toEqual([
-        [CardType.MultiLineBasic, "Question #p\n\t ?\n\t Answer\n\t  Ans2\n\t Ans3", 2, ["p"]],
+        [CardType.MultiLineBasic, "Question #p\n\t ?\n\t Answer\n\t  Ans2\n\t Ans3", 2, ["#p"]],
     ]);
     expect(
         parse(
             "Some text before\nQuestion #p\n\t ?\n\tAnswer\n\t  Ans2\n\t Ans3\n\tNot4\nNot5",
             ...defaultArgs
         )
-    ).toEqual([[CardType.MultiLineBasic, "Question #p\n\t ?", 2, ["p"]]]);
+    ).toEqual([[CardType.MultiLineBasic, "Question #p\n\t ?", 2, ["#p"]]]);
     expect(
         parse("Question #p\n\t ?\n\tAnswer\n\t  Ans2\n\t Ans3\n\tNot4\nNot5", ...defaultArgs)
-    ).toEqual([[CardType.MultiLineBasic, "Question #p\n\t ?", 1, ["p"]]]);
+    ).toEqual([[CardType.MultiLineBasic, "Question #p\n\t ?", 1, ["#p"]]]);
     expect(
         parse(
             "- [[Option-doc]]\n- str-[doc](https://doc.rust-lang.org/std/primitive.str.html)  #p\n ?\n tip: 和Java常量池一样",
@@ -140,7 +146,7 @@ test("Test parsing of multi line basic cards", () => {
             CardType.MultiLineBasic,
             "- str-[doc](https://doc.rust-lang.org/std/primitive.str.html)  #p\n ?\n tip: 和Java常量池一样",
             2,
-            ["p"],
+            ["#p"],
         ],
     ]);
     expect(
@@ -153,7 +159,7 @@ test("Test parsing of multi line basic cards", () => {
             CardType.MultiLineBasic,
             "- JavaScript Modules-[doc](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) #p\n  ?\n\t- ps: 可以看那个example，已经讲得很明白了，就是浏览器原生支持module.那么这和standard的script有什么不同？？",
             4,
-            ["p"],
+            ["#p"],
         ],
     ]);
     expect(
@@ -166,13 +172,13 @@ test("Test parsing of multi line basic cards", () => {
             CardType.SingleLineBasic,
             "\t- ps: 注意一个细节，这4个feature应该是上层包含下一层，比如packages包含众多crates, crates包含众多modules， modules包含众多paths :: #p",
             2,
-            ["p"],
+            ["#p"],
         ],
         [
             CardType.MultiLineBasic,
             "- module system, include: 4个点 #p\n   ?\n\t- ps: 注意一个细节，这4个feature应该是上层包含下一层，比如packages包含众多crates, crates包含众多modules， modules包含众多paths :: #p\n\t- ps: module应该和C++中的namespace有点像",
             1,
-            ["p"],
+            ["#p"],
         ],
     ]);
     expect(
@@ -185,13 +191,13 @@ test("Test parsing of multi line basic cards", () => {
             CardType.MultiLineBasic,
             "\t- ps: 注意一个细节，这4个feature应该是上层包含下一层，比如packages包含众多crates, crates包含众多modules， modules包含众多paths #p\n\t  ?\n\t\t- this is close ",
             3,
-            ["p"],
+            ["#p"],
         ],
         [
             CardType.MultiLineBasic,
             "- module system, include: 4个点 #p \n   ?\n\t- ps: 注意一个细节，这4个feature应该是上层包含下一层，比如packages包含众多crates, crates包含众多modules， modules包含众多paths #p\n\t  ?\n\t\t- this is close \n\t- ps: module应该和C++中的namespace有点像",
             1,
-            ["p"],
+            ["#p"],
         ],
     ]);
     expect(
@@ -204,13 +210,13 @@ test("Test parsing of multi line basic cards", () => {
             CardType.MultiLineBasic,
             "\t- This is Head Two #p\n\t  ?\n\t\t- This is Content",
             3,
-            ["p"],
+            ["#p"],
         ],
         [
             CardType.MultiLineBasic,
             "- This is Head One  #p \n   ?\n\t- This is Head Two #p\n\t  ?\n\t\t- This is Content",
             1,
-            ["p"],
+            ["#p"],
         ],
     ]);
     expect(
@@ -223,13 +229,13 @@ test("Test parsing of multi line basic cards", () => {
             CardType.MultiLineBasic,
             "\t- This is Head Two #[[b]]\n\t  ?\n\t\t- This is Content",
             3,
-            ["b"],
+            ["#[[b]]"],
         ],
         [
             CardType.MultiLineBasic,
             "- This is Head One  #[[b]] \n   ?\n\t- This is Head Two #[[b]]\n\t  ?\n\t\t- This is Content",
             1,
-            ["b"],
+            ["#[[b]]"],
         ],
     ]);
     expect(
@@ -242,17 +248,17 @@ test("Test parsing of multi line basic cards", () => {
             CardType.MultiLineBasic,
             "\t- This is Head Two #a #c\n\t  ?\n\t\t- This is Content",
             3,
-            ["a"],
+            ["#a"],
         ],
         [
             CardType.MultiLineBasic,
             "- This is Head One  #a #b \n   ?\n\t- This is Head Two #a #c\n\t  ?\n\t\t- This is Content",
             1,
-            ["a", "b"],
+            ["#a", "#b"],
         ],
     ]);
     expect(parse("- Head1  #a\n- Head2  #b \n  ?\n\t- content", ...multiTagConfig)).toEqual([
-        [CardType.MultiLineBasic, "- Head2  #b \n  ?\n\t- content", 2, ["b"]],
+        [CardType.MultiLineBasic, "- Head2  #b \n  ?\n\t- content", 2, ["#b"]],
     ]);
 });
 

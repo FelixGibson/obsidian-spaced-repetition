@@ -25,6 +25,10 @@ import { escapeRegexString, cyrb53 } from "src/utils";
 import { t } from "src/lang/helpers";
 import { escapeRegex } from "./parser";
 
+import { applySettingsUpdate } from "src/settings";
+
+import { default as sortable } from "html5sortable/dist/html5sortable.es.js";
+
 export enum FlashcardModalMode {
     DecksList,
     Front,
@@ -109,37 +113,51 @@ export class FlashcardModal extends Modal {
     decksList(): void {
         this.mode = FlashcardModalMode.DecksList;
         this.titleEl.setText(t("DECKS"));
-        this.titleEl.innerHTML += (
-            <p style="margin:0px;line-height:12px;">
-                {/* <span
-                    style="background-color:#4caf50;color:#ffffff;"
-                    aria-label={t("DUE_CARDS")}
-                    class="tag-pane-tag-count tree-item-flair"
-                >
-                    {this.plugin.deckTree.dueFlashcardsCount.toString()}
-                </span>
-                <span
-                    style="background-color:#2196f3;"
-                    aria-label={t("NEW_CARDS")}
-                    class="tag-pane-tag-count tree-item-flair sr-deck-counts"
-                >
-                    {this.plugin.deckTree.newFlashcardsCount.toString()}
-                </span>
-                <span
-                    style="background-color:#ff7043;"
-                    aria-label={t("TOTAL_CARDS")}
-                    class="tag-pane-tag-count tree-item-flair sr-deck-counts"
-                >
-                    {this.plugin.deckTree.totalFlashcards.toString()}
-                </span> */}
-            </p>
-        );
+        // this.titleEl.innerHTML += (
+        //     <p style="margin:0px;line-height:12px;">
+        //         {/* <span
+        //             style="background-color:#4caf50;color:#ffffff;"
+        //             aria-label={t("DUE_CARDS")}
+        //             class="tag-pane-tag-count tree-item-flair"
+        //         >
+        //             {this.plugin.deckTree.dueFlashcardsCount.toString()}
+        //         </span>
+        //         <span
+        //             style="background-color:#2196f3;"
+        //             aria-label={t("NEW_CARDS")}
+        //             class="tag-pane-tag-count tree-item-flair sr-deck-counts"
+        //         >
+        //             {this.plugin.deckTree.newFlashcardsCount.toString()}
+        //         </span>
+        //         <span
+        //             style="background-color:#ff7043;"
+        //             aria-label={t("TOTAL_CARDS")}
+        //             class="tag-pane-tag-count tree-item-flair sr-deck-counts"
+        //         >
+        //             {this.plugin.deckTree.totalFlashcards.toString()}
+        //         </span> */}
+        //     </p>
+        // );
         this.contentEl.innerHTML = "";
         this.contentEl.setAttribute("id", "sr-flashcard-view");
 
         for (const deck of this.plugin.deckTree.subdecks) {
             deck.render(this.contentEl, this);
         }
+        const so = this;
+        sortable(this.contentEl, {
+            itemSerializer: (serializedItem: any, sortableContainer: any) => {
+                return sortableContainer.children[serializedItem.index].querySelector(
+                    ".tag-pane-tag-self"
+                ).innerHTML;
+            },
+        })[0].addEventListener("sortupdate", function (e: any) {
+            const tags: Array<string> = sortable(so.contentEl, "serialize")[0].items;
+            applySettingsUpdate(async () => {
+                so.plugin.data.settings.flashcardTags = tags;
+                await so.plugin.savePluginData();
+            });
+        });
     }
 
     setupCardsView(): void {
@@ -567,7 +585,7 @@ export class FlashcardModal extends Modal {
 }
 
 export class Deck {
-    public deckName: string;
+    public deckTag: string;
     public newFlashcards: Card[];
     public newFlashcardsCount = 0; // counts those in subdecks too
     public dueFlashcards: Card[];
@@ -577,7 +595,7 @@ export class Deck {
     public parent: Deck | null;
 
     constructor(deckName: string, parent: Deck | null) {
-        this.deckName = deckName;
+        this.deckTag = deckName;
         this.newFlashcards = [];
         this.newFlashcardsCount = 0;
         this.dueFlashcards = [];
@@ -632,7 +650,7 @@ export class Deck {
 
         const deckName: string = deckPath.shift();
         for (const deck of this.subdecks) {
-            if (deckName === deck.deckName) {
+            if (deckName === deck.deckTag) {
                 deck.createDeck(deckPath);
                 return;
             }
@@ -662,7 +680,7 @@ export class Deck {
 
         const deckName: string = deckPath.shift();
         for (const deck of this.subdecks) {
-            if (deckName === deck.deckName) {
+            if (deckName === deck.deckTag) {
                 deck.insertFlashcard(deckPath, cardObj);
                 return;
             }
@@ -676,7 +694,7 @@ export class Deck {
 
         const deckName: string = deckPath.shift();
         for (const deck of this.subdecks) {
-            if (deckName === deck.deckName) {
+            if (deckName === deck.deckTag) {
                 deck.countFlashcard(deckPath, n);
                 return;
             }
@@ -703,33 +721,36 @@ export class Deck {
         }
     }
 
-    sortSubdecksList(): void {
+    sortSubdecksList(tags: string[]): void {
         this.subdecks.sort((a, b) => {
-            if (a.deckName < b.deckName) {
+            const aIndex = tags.indexOf(a.deckTag);
+            const bIndex = tags.indexOf(b.deckTag);
+            if (aIndex < bIndex) {
                 return -1;
-            } else if (a.deckName > b.deckName) {
+            } else if (aIndex > bIndex) {
                 return 1;
             }
             return 0;
         });
 
         for (const deck of this.subdecks) {
-            deck.sortSubdecksList();
+            deck.sortSubdecksList(tags);
         }
     }
 
     render(containerEl: HTMLElement, modal: FlashcardModal): void {
         if (modal.plugin.data.settings.excludeFlashcardTags.length > 0) {
-            const tag = "#[[" + this.deckName + "]]";
-            const tagOldStyle = "#" + this.deckName;
-            if (
-                modal.plugin.data.settings.excludeFlashcardTags.includes(tag) ||
-                modal.plugin.data.settings.excludeFlashcardTags.includes(tagOldStyle)
-            ) {
+            if (modal.plugin.data.settings.excludeFlashcardTags.includes(this.deckTag)) {
                 return;
             }
         }
         const deckView: HTMLElement = containerEl.createDiv("tree-item");
+        if (/\|\S+\|/g.test(this.deckTag)) {
+            deckView.createDiv("tree-item-name").innerHTML = (
+                <h3 class="tag-pane-tag-self">{this.deckTag}</h3>
+            );
+            return;
+        }
 
         const deckViewSelf: HTMLElement = deckView.createDiv(
             "tree-item-self tag-pane-tag is-clickable"
@@ -750,31 +771,7 @@ export class Deck {
             this.nextCard(modal);
         });
         const deckViewInnerText: HTMLElement = deckViewInner.createDiv("tag-pane-tag-text");
-        deckViewInnerText.innerHTML += <span class="tag-pane-tag-self">{this.deckName}</span>;
-        const deckViewOuter: HTMLElement = deckViewSelf.createDiv("tree-item-flair-outer");
-        deckViewOuter.innerHTML += (
-            <span>
-                {/* <span
-                    style="background-color:#4caf50;"
-                    class="tag-pane-tag-count tree-item-flair sr-deck-counts"
-                >
-                    {this.dueFlashcardsCount.toString()}
-                </span>
-                <span
-                    style="background-color:#2196f3;"
-                    class="tag-pane-tag-count tree-item-flair sr-deck-counts"
-                >
-                    {this.newFlashcardsCount.toString()}
-                </span>
-                <span
-                    style="background-color:#ff7043;"
-                    class="tag-pane-tag-count tree-item-flair sr-deck-counts"
-                >
-                    {this.totalFlashcards.toString()}
-                </span> */}
-            </span>
-        );
-
+        deckViewInnerText.innerHTML += <span class="tag-pane-tag-self">{this.deckTag}</span>;
         const deckViewChildren: HTMLElement = deckView.createDiv("tree-item-children");
         deckViewChildren.style.display = "none";
         if (this.subdecks.length > 0) {

@@ -1,6 +1,6 @@
 import { min } from "moment";
 import { CardType } from "src/scheduling";
-const NO_TAG = "no_tag";
+const NO_TAG = "#no_tag";
 
 /**
  * Returns flashcards found in `text`
@@ -116,8 +116,7 @@ export function parse(
             for (const tag of flashcardTags) {
                 const regexp = new RegExp(` ${escapeRegex(tag)}`, "gm");
                 if (stack[stack.length - 1].cardText.search(regexp) !== -1) {
-                    const reg = new RegExp("[#\\[\\[\\]\\]]", "g");
-                    stack[stack.length - 1].cardTag.push(tag.replaceAll(reg, ""));
+                    stack[stack.length - 1].cardTag.push(tag);
                 }
             }
             if (stack[stack.length - 1].cardTag.length === 0) {
@@ -148,8 +147,7 @@ export function parse(
             for (const tag of flashcardTags) {
                 const regexp = new RegExp(` ${escapeRegex(tag)}`, "gm");
                 if (stack[stack.length - 1].cardText.search(regexp) !== -1) {
-                    const reg = new RegExp("[#\\[\\[\\]\\]]", "g");
-                    stack[stack.length - 1].cardTag.push(tag.replaceAll(reg, ""));
+                    stack[stack.length - 1].cardTag.push(tag);
                 }
             }
             if (stack[stack.length - 1].cardTag.length === 0) {
@@ -178,8 +176,7 @@ export function parse(
             for (const tag of flashcardTags) {
                 const regexp = new RegExp(` ${escapeRegex(tag)}`, "gm");
                 if (question.search(regexp) != -1) {
-                    const reg = new RegExp("[#\\[\\[\\]\\]]", "g");
-                    stack[stack.length - 1].cardTag.push(tag.replaceAll(reg, ""));
+                    stack[stack.length - 1].cardTag.push(tag);
                 }
             }
             if (stack[stack.length - 1].cardTag.length === 0) {
@@ -205,8 +202,7 @@ export function parse(
             for (const tag of flashcardTags) {
                 const regexp = new RegExp(` ${escapeRegex(tag)}`, "gm");
                 if (question.search(regexp) != -1) {
-                    const reg = new RegExp("[#\\[\\[\\]\\]]", "g");
-                    stack[stack.length - 1].cardTag.push(tag.replaceAll(reg, ""));
+                    stack[stack.length - 1].cardTag.push(tag);
                 }
             }
             if (stack[stack.length - 1].cardTag.length === 0) {
