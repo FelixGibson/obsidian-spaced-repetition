@@ -111,33 +111,20 @@ export class FlashcardModal extends Modal {
     }
 
     decksList(): void {
+        const aimDeck = this.plugin.deckTree.subdecks.filter(
+            (deck) => deck.deckTag === this.plugin.data.historyDeck
+        );
+        if (this.plugin.data.historyDeck && aimDeck.length > 0) {
+            const deck = aimDeck[0];
+            this.currentDeck = deck;
+            this.checkDeck = deck.parent;
+            this.setupCardsView();
+            deck.nextCard(this);
+            return;
+        }
+
         this.mode = FlashcardModalMode.DecksList;
         this.titleEl.setText(t("DECKS"));
-        // this.titleEl.innerHTML += (
-        //     <p style="margin:0px;line-height:12px;">
-        //         {/* <span
-        //             style="background-color:#4caf50;color:#ffffff;"
-        //             aria-label={t("DUE_CARDS")}
-        //             class="tag-pane-tag-count tree-item-flair"
-        //         >
-        //             {this.plugin.deckTree.dueFlashcardsCount.toString()}
-        //         </span>
-        //         <span
-        //             style="background-color:#2196f3;"
-        //             aria-label={t("NEW_CARDS")}
-        //             class="tag-pane-tag-count tree-item-flair sr-deck-counts"
-        //         >
-        //             {this.plugin.deckTree.newFlashcardsCount.toString()}
-        //         </span>
-        //         <span
-        //             style="background-color:#ff7043;"
-        //             aria-label={t("TOTAL_CARDS")}
-        //             class="tag-pane-tag-count tree-item-flair sr-deck-counts"
-        //         >
-        //             {this.plugin.deckTree.totalFlashcards.toString()}
-        //         </span> */}
-        //     </p>
-        // );
         this.contentEl.innerHTML = "";
         this.contentEl.setAttribute("id", "sr-flashcard-view");
 
@@ -162,6 +149,13 @@ export class FlashcardModal extends Modal {
 
     setupCardsView(): void {
         this.contentEl.innerHTML = "";
+        const historyLinkView = this.contentEl.createEl("button");
+
+        historyLinkView.setText("〈");
+        historyLinkView.addEventListener("click", () => {
+            this.plugin.data.historyDeck = "";
+            this.decksList();
+        });
 
         this.fileLinkView = this.contentEl.createDiv("sr-link");
         this.fileLinkView.setText(t("EDIT_LATER"));
@@ -765,6 +759,7 @@ export class Deck {
 
         const deckViewInner: HTMLElement = deckViewSelf.createDiv("tree-item-inner");
         deckViewInner.addEventListener("click", () => {
+            modal.plugin.data.historyDeck = this.deckTag;
             modal.currentDeck = this;
             modal.checkDeck = this.parent;
             modal.setupCardsView();
@@ -805,6 +800,7 @@ export class Deck {
             }
 
             if (this.parent == modal.checkDeck) {
+                modal.plugin.data.historyDeck = "";
                 modal.decksList();
             } else {
                 this.parent.nextCard(modal);
