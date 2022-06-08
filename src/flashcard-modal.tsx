@@ -152,9 +152,11 @@ export class FlashcardModal extends Modal {
         const historyLinkView = this.contentEl.createEl("button");
 
         historyLinkView.setText("〈");
-        historyLinkView.addEventListener("click", () => {
-            this.plugin.data.historyDeck = "";
-            this.decksList();
+        historyLinkView.addEventListener("click", (e: PointerEvent) => {
+            if (e.pointerType === "mouse") {
+                this.plugin.data.historyDeck = "";
+                this.decksList();
+            }
         });
 
         this.fileLinkView = this.contentEl.createDiv("sr-link");
