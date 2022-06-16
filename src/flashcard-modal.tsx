@@ -153,7 +153,7 @@ export class FlashcardModal extends Modal {
 
         historyLinkView.setText("〈");
         historyLinkView.addEventListener("click", (e: PointerEvent) => {
-            if (e.pointerType === "mouse") {
+            if (e.pointerType.length > 0) {
                 this.plugin.data.historyDeck = "";
                 this.decksList();
             }
