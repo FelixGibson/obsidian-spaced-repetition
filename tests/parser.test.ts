@@ -75,18 +75,18 @@ test("Test parsing of single line basic cards", () => {
     ]);
 });
 
-// test("Test parsing of single line reversed cards", () => {
-//     expect(parse("Question:::Answer", ...defaultArgs)).toEqual([
-//         [CardType.SingleLineReversed, "Question:::Answer", 0],
-//     ]);
-//     expect(parse("Some text before\nQuestion :::Answer", ...defaultArgs)).toEqual([
-//         [CardType.SingleLineReversed, "Question :::Answer", 1],
-//     ]);
-//     expect(parse("#Title\n\nQ1:::A1\nQ2::: A2", ...defaultArgs)).toEqual([
-//         [CardType.SingleLineReversed, "Q1:::A1", 2],
-//         [CardType.SingleLineReversed, "Q2::: A2", 3],
-//     ]);
-// });
+test("Test parsing of single line reversed cards", () => {
+    expect(parse("Question:::Answer #p", ...defaultArgs)).toEqual([
+        [CardType.SingleLineReversed, "Question:::Answer #p", 0, ["#p"]],
+    ]);
+    expect(parse("Some text before\nQuestion :::Answer #p", ...defaultArgs)).toEqual([
+        [CardType.SingleLineReversed, "Question :::Answer #p", 1, ["#p"]],
+    ]);
+    expect(parse("#Title\n\nQ1:::A1 #p\nQ2::: A2 #a #p", ...defaultArgs)).toEqual([
+        [CardType.SingleLineReversed, "Q1:::A1 #p", 2, ["#p"]],
+        [CardType.SingleLineReversed, "Q2::: A2 #a #p", 3, ["#p"]],
+    ]);
+});
 
 test("Test parsing of multi line basic cards", () => {
     expect(parse("Question #p\n?\nAnswer", ...defaultArgs)).toEqual([

@@ -762,7 +762,6 @@ export default class SRPlugin extends Plugin {
                         side2: string = cardText.substring(
                             idx + settings.singlelineReversedCardSeparator.length
                         );
-                    siblingMatches.push([side1, side2]);
                     siblingMatches.push([side2, side1]);
                 } else if (cardType === CardType.MultiLineBasic) {
                     idx = cardText.search(multilineRegex) - 1;
@@ -778,7 +777,6 @@ export default class SRPlugin extends Plugin {
                         side2: string = cardText.substring(
                             answerIdx + settings.multilineReversedCardSeparator.length
                         );
-                    siblingMatches.push([side1, side2]);
                     siblingMatches.push([side2, side1]);
                 }
             }
