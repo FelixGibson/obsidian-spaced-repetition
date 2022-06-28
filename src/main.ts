@@ -96,6 +96,18 @@ export default class SRPlugin extends Plugin {
                 new FlashcardModal(this.app, this).open();
             }
         });
+        document.addEventListener(
+            "keydown",
+            async (e) => {
+                if (e.code === "KeyR" && e.ctrlKey) {
+                    if (!this.syncLock) {
+                        await this.sync();
+                        new FlashcardModal(this.app, this).open();
+                    }
+                }
+            },
+            true
+        );
 
         this.registerView(
             REVIEW_QUEUE_VIEW_TYPE,
