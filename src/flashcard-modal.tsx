@@ -94,7 +94,7 @@ export class FlashcardModal extends Modal {
                         this.processReview(ReviewResponse.Good);
                     } else if (e.code === "Numpad3" || e.code === "Digit3") {
                         this.processReview(ReviewResponse.Easy);
-                    } else if (e.code === "Numpad0" || e.code === "Digit0") {
+                    } else if (e.code === "Numpad4" || e.code === "Digit4") {
                         this.processReview(ReviewResponse.Reset);
                     }
                 }
@@ -320,17 +320,19 @@ export class FlashcardModal extends Modal {
             ease = schedObj.ease;
             due = window.moment(Date.now() + interval * 24 * 3600 * 1000);
         } else {
-            this.currentCard.interval = 1.0;
-            this.currentCard.ease = this.plugin.data.settings.baseEase;
-            if (this.currentCard.isDue) {
-                this.currentDeck.dueFlashcards.push(this.currentCard);
-            } else {
-                this.currentDeck.newFlashcards.push(this.currentCard);
-            }
-            due = window.moment(Date.now());
+            const schedObj: Record<string, number> = schedule(
+                ReviewResponse.Hard,
+                1.0,
+                this.plugin.data.settings.baseEase,
+                0,
+                this.plugin.data.settings,
+                this.plugin.dueDatesFlashcards
+            );
+
+            interval = schedObj.interval;
+            ease = schedObj.ease;
+            due = window.moment(Date.now() + interval * 24 * 3600 * 1000);
             new Notice(t("CARD_PROGRESS_RESET"));
-            this.currentDeck.nextCard(this);
-            return;
         }
 
         const dueString: string = due.format("YYYY-MM-DD");
