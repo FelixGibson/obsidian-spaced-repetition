@@ -28,6 +28,7 @@ import { escapeRegex } from "./parser";
 import { applySettingsUpdate } from "src/settings";
 
 import { default as sortable } from "html5sortable/dist/html5sortable.es.js";
+import { start } from "repl";
 
 export enum FlashcardModalMode {
     DecksList,
@@ -166,25 +167,41 @@ export class FlashcardModal extends Modal {
         }
         this.fileLinkView.addEventListener("click", async () => {
             const activeLeaf: WorkspaceLeaf = this.plugin.app.workspace.activeLeaf;
-            // if (this.plugin.app.workspace.getActiveFile() === null)
-            await activeLeaf.openFile(this.currentCard.note);
-            // else {
-            //     const newLeaf = this.plugin.app.workspace.createLeafBySplit(
-            //         activeLeaf,
-            //         "vertical",
-            //         false
-            //     );
-            //     await newLeaf.openFile(this.currentCard.note, { active: true });
-            // }
-            const activeView: MarkdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-            activeView.editor.setCursor({
-                line: this.currentCard.lineNo,
-                ch: 0,
-            });
-            activeView.editor.scrollTo(this.currentCard.lineNo, 0);
-            // this.currentDeck.deleteFlashcardAtIndex(this.currentCardIdx, this.currentCard.isDue);
-            // this.burySiblingCards(false);
-            // this.currentDeck.nextCard(this);
+            // const n = {
+            //     "match": {
+            //         "content": "Card1 #p ;;     <!--SR:!2022-07-16,3,250-->\nCard2 #p ;; #[[dLove]]\n\n",
+            //         "matches": [
+            //             [
+            //                 57,
+            //                 66
+            //             ]
+            //         ]
+            //     }
+            // };
+            const fileText: string = await this.app.vault.read(this.currentCard.note);
+            //find start index of card
+            const startIndex = fileText.search(escapeRegex(this.currentCard.cardText));
+            if (startIndex != -1) {
+                const n = {
+                    match: {
+                        content: fileText,
+                        matches: [[startIndex, startIndex + this.currentCard.cardText.length]],
+                    },
+                };
+                activeLeaf.openFile(this.currentCard.note, {
+                    active: true,
+                    eState: n,
+                });
+            } else {
+                await activeLeaf.openFile(this.currentCard.note);
+                const activeView: MarkdownView =
+                    this.app.workspace.getActiveViewOfType(MarkdownView);
+                activeView.editor.setCursor({
+                    line: this.currentCard.lineNo,
+                    ch: 0,
+                });
+                activeView.editor.scrollTo(this.currentCard.lineNo, 0);
+            }
         });
 
         this.resetLinkView = this.contentEl.createDiv("sr-link");
