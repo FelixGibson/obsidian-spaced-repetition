@@ -43,6 +43,11 @@ const DEFAULT_DATA: PluginData = {
     historyDeck: null,
 };
 
+type MultiTagsObj = {
+    name: string;
+    tags: string[];
+};
+
 export interface SchedNote {
     note: TFile;
     dueUnix: number;
@@ -827,7 +832,11 @@ export default class SRPlugin extends Plugin {
                     siblingIdx: i,
                     siblings,
                 };
-
+                const multiTagsArray: MultiTagsObj[] = this.data.settings.flashcardTags
+                    .filter((tag) => tag.split(":").length > 1)
+                    .map((tag) => {
+                        return { name: tag, tags: tag.split(":") };
+                    });
                 // card scheduled
                 if (ignoreStats) {
                     this.cardStats.newCount++;
@@ -884,6 +893,12 @@ export default class SRPlugin extends Plugin {
                                 this.deckTree.insertFlashcard([...deckPath], cardObj);
                             }
                         }
+                        for (const multiTag of multiTagsArray) {
+                            // cardTags include all multiTag.tags
+                            if (multiTag.tags.every((tag) => cardTags.includes(tag))) {
+                                this.deckTree.insertFlashcard([multiTag.name], cardObj);
+                            }
+                        }
                     } else {
                         this.deckTree.countFlashcard([...deckPath]);
                         continue;
@@ -899,6 +914,12 @@ export default class SRPlugin extends Plugin {
                             this.deckTree.insertFlashcard([cardTag], cardObj);
                         } else {
                             this.deckTree.insertFlashcard([...deckPath], cardObj);
+                        }
+                    }
+                    for (const multiTag of multiTagsArray) {
+                        // cardTags include all multiTag.tags
+                        if (multiTag.tags.every((tag) => cardTags.includes(tag))) {
+                            this.deckTree.insertFlashcard([multiTag.name], cardObj);
                         }
                     }
                 }
