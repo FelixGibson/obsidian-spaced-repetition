@@ -97,6 +97,8 @@ export class FlashcardModal extends Modal {
                         this.processReview(ReviewResponse.Easy);
                     } else if (e.code === "Numpad4" || e.code === "Digit4") {
                         this.processReview(ReviewResponse.Reset);
+                    } else if (e.code === "Numpad5" || e.code === "Digit5") {
+                        this.processReview(ReviewResponse.Skip);
                     }
                 }
             }
@@ -151,7 +153,7 @@ export class FlashcardModal extends Modal {
     setupCardsView(): void {
         this.contentEl.innerHTML = "";
         const historyLinkView = this.contentEl.createEl("button");
-
+        historyLinkView.setAttribute("id", "sr-history-link");
         historyLinkView.setText("〈");
         historyLinkView.addEventListener("click", (e: PointerEvent) => {
             if (e.pointerType.length > 0) {
@@ -298,7 +300,7 @@ export class FlashcardModal extends Modal {
         let interval: number, ease: number, due;
 
         this.currentDeck.deleteFlashcardAtIndex(this.currentCardIdx, this.currentCard.isDue);
-        if (response !== ReviewResponse.Reset) {
+        if (response !== ReviewResponse.Reset && response !== ReviewResponse.Skip) {
             let schedObj: Record<string, number>;
             // scheduled card
             if (this.currentCard.isDue) {
@@ -336,7 +338,7 @@ export class FlashcardModal extends Modal {
             interval = schedObj.interval;
             ease = schedObj.ease;
             due = window.moment(Date.now() + interval * 24 * 3600 * 1000);
-        } else {
+        } else if (response === ReviewResponse.Reset) {
             const schedObj: Record<string, number> = schedule(
                 ReviewResponse.Hard,
                 1.0,
@@ -350,6 +352,9 @@ export class FlashcardModal extends Modal {
             ease = schedObj.ease;
             due = window.moment(Date.now() + interval * 24 * 3600 * 1000);
             new Notice(t("CARD_PROGRESS_RESET"));
+        } else if (response === ReviewResponse.Skip) {
+            this.currentDeck.nextCard(this);
+            return;
         }
 
         const dueString: string = due.format("YYYY-MM-DD");

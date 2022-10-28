@@ -8,6 +8,7 @@ export enum ReviewResponse {
     Good,
     Hard,
     Reset,
+    Skip,
 }
 
 // Flashcards
