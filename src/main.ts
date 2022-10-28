@@ -34,6 +34,7 @@ interface PluginData {
     // which covers most of the cases
     buryList: string[];
     historyDeck: string | null;
+    deckTree: Deck | null;
 }
 
 const DEFAULT_DATA: PluginData = {
@@ -276,6 +277,13 @@ export default class SRPlugin extends Plugin {
         this.dueDatesNotes = {};
         this.reviewDecks = {};
 
+        // if the history is not null, just restore deckTree and return
+        if (this.data.deckTree !== undefined) {
+            this.deckTree = this.data.deckTree;
+            this.syncLock = false;
+            return;
+        }
+
         // reset flashcards stuff
         this.deckTree = new Deck("root", null);
         this.dueDatesFlashcards = {};
@@ -431,6 +439,7 @@ export default class SRPlugin extends Plugin {
                     })
             );
         }
+        this.data.deckTree = this.deckTree;
 
         // this.statusBar.setText(
         //     t("STATUS_BAR", {
