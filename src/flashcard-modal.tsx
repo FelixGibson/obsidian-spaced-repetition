@@ -11,7 +11,7 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import h from "vhtml";
 
-import type SRPlugin from "src/main";
+import SRPlugin from "src/main";
 import { Card, CardType, schedule, textInterval, ReviewResponse } from "src/scheduling";
 import {
     COLLAPSE_ICON,
@@ -114,7 +114,7 @@ export class FlashcardModal extends Modal {
     }
 
     decksList(): void {
-        const aimDeck = this.plugin.deckTree.subdecks.filter(
+        const aimDeck = SRPlugin.deckTree.subdecks.filter(
             (deck) => deck.deckTag === this.plugin.data.historyDeck
         );
         if (this.plugin.data.historyDeck && aimDeck.length > 0) {
@@ -131,7 +131,7 @@ export class FlashcardModal extends Modal {
         this.contentEl.innerHTML = "";
         this.contentEl.setAttribute("id", "sr-flashcard-view");
 
-        for (const deck of this.plugin.deckTree.subdecks) {
+        for (const deck of SRPlugin.deckTree.subdecks) {
             deck.render(this.contentEl, this);
         }
         const so = this;
@@ -756,6 +756,19 @@ export class Deck {
         for (const deck of this.subdecks) {
             deck.sortSubdecksList(tags);
         }
+    }
+
+    getSubdecksList(excludeFlashcardTags: string[]): string[] {
+        const tags: string[] = [];
+        for (const deck of this.subdecks) {
+            if (excludeFlashcardTags.length > 0) {
+                if (excludeFlashcardTags.includes(deck.deckTag)) {
+                    continue;
+                }
+            }
+            tags.push(deck.deckTag);
+        }
+        return tags;
     }
 
     render(containerEl: HTMLElement, modal: FlashcardModal): void {

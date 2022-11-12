@@ -34,7 +34,6 @@ interface PluginData {
     // which covers most of the cases
     buryList: string[];
     historyDeck: string | null;
-    deckTree: Deck | null;
 }
 
 const DEFAULT_DATA: PluginData = {
@@ -76,7 +75,7 @@ export default class SRPlugin extends Plugin {
     private dueNotesCount = 0;
     public dueDatesNotes: Record<number, number> = {}; // Record<# of days in future, due count>
 
-    public deckTree: Deck = new Deck("root", null);
+    public static deckTree: Deck | null;
     public dueDatesFlashcards: Record<number, number> = {}; // Record<# of days in future, due count>
     public cardStats: Stats;
 
@@ -213,7 +212,7 @@ export default class SRPlugin extends Plugin {
             callback: async () => {
                 const openFile: TFile | null = this.app.workspace.getActiveFile();
                 if (openFile && openFile.extension === "md") {
-                    this.deckTree = new Deck("root", null);
+                    SRPlugin.deckTree = new Deck("root", null);
                     const deckPath: string[] = this.findDeckPath(openFile);
                     await this.findFlashcardsInNote(openFile, deckPath);
                     new FlashcardModal(this.app, this).open();
@@ -222,12 +221,12 @@ export default class SRPlugin extends Plugin {
         });
 
         this.addCommand({
-            id: "srs-cram-flashcards-in-note",
+            id: "   srs-cram-flashcards-in-note",
             name: t("CRAM_CARDS_IN_NOTE"),
             callback: async () => {
                 const openFile: TFile | null = this.app.workspace.getActiveFile();
                 if (openFile && openFile.extension === "md") {
-                    this.deckTree = new Deck("root", null);
+                    SRPlugin.deckTree = new Deck("root", null);
                     const deckPath: string[] = this.findDeckPath(openFile);
                     await this.findFlashcardsInNote(openFile, deckPath, false, true);
                     new FlashcardModal(this.app, this, true).open();
@@ -278,14 +277,22 @@ export default class SRPlugin extends Plugin {
         this.reviewDecks = {};
 
         // if the history is not null, just restore deckTree and return
-        if (this.data.deckTree !== undefined) {
-            this.deckTree = this.data.deckTree;
-            this.syncLock = false;
-            return;
+        if (SRPlugin.deckTree !== undefined) {
+            const arrayOld = SRPlugin.deckTree.getSubdecksList(
+                this.data.settings.excludeFlashcardTags
+            );
+            const arrayNew = this.data.settings.flashcardTags;
+            const isSame =
+                arrayOld.length === arrayNew.length &&
+                arrayOld.every((value, index) => value === arrayNew[index]);
+            if (isSame) {
+                this.syncLock = false;
+                return;
+            }
         }
 
         // reset flashcards stuff
-        this.deckTree = new Deck("root", null);
+        SRPlugin.deckTree = new Deck("root", null);
         this.dueDatesFlashcards = {};
         this.cardStats = {
             eases: {},
@@ -304,7 +311,7 @@ export default class SRPlugin extends Plugin {
         }
 
         for (const tag of this.data.settings.flashcardTags) {
-            this.deckTree.createDeck([tag]);
+            SRPlugin.deckTree.createDeck([tag]);
         }
 
         const notes: TFile[] = this.app.vault.getMarkdownFiles();
@@ -420,11 +427,11 @@ export default class SRPlugin extends Plugin {
         });
 
         // sort the deck names
-        this.deckTree.sortSubdecksList(this.data.settings.flashcardTags);
-        this.deckTree.sortFlashcards();
+        SRPlugin.deckTree.sortSubdecksList(this.data.settings.flashcardTags);
+        SRPlugin.deckTree.sortFlashcards();
         if (this.data.settings.showDebugMessages) {
             console.log(`SR: ${t("EASES")}`, this.easeByPath);
-            console.log(`SR: ${t("DECKS")}`, this.deckTree);
+            console.log(`SR: ${t("DECKS")}`, SRPlugin.deckTree);
         }
 
         for (const deckKey in this.reviewDecks) {
@@ -439,12 +446,11 @@ export default class SRPlugin extends Plugin {
                     })
             );
         }
-        this.data.deckTree = this.deckTree;
 
         // this.statusBar.setText(
         //     t("STATUS_BAR", {
         //         dueNotesCount: this.dueNotesCount,
-        //         dueFlashcardsCount: this.deckTree.dueFlashcardsCount,
+        //         dueFlashcardsCount: SRPlugin.deckTree.dueFlashcardsCount,
         //     })
         // );
         this.reviewQueueView.redraw();
@@ -723,12 +729,12 @@ export default class SRPlugin extends Plugin {
                 }
             }
 
-            // this.deckTree.createDeck([...deckPath]);
+            // SRPlugin.deckTree.createDeck([...deckPath]);
             for (const carTag of cardTags) {
-                this.deckTree.createDeck([carTag]);
+                SRPlugin.deckTree.createDeck([carTag]);
             }
             // if (cardTags) {
-            //     this.deckTree.createDeck([cardTags]);
+            //     SRPlugin.deckTree.createDeck([cardTags]);
             // }
             const cardTextHash: string = cyrb53(cardText);
 
@@ -852,9 +858,9 @@ export default class SRPlugin extends Plugin {
                     cardObj.isDue = true;
                     for (const cardTag of cardTags) {
                         if (cardTag) {
-                            this.deckTree.insertFlashcard([cardTag], cardObj);
+                            SRPlugin.deckTree.insertFlashcard([cardTag], cardObj);
                         } else {
-                            this.deckTree.insertFlashcard([...deckPath], cardObj);
+                            SRPlugin.deckTree.insertFlashcard([...deckPath], cardObj);
                         }
                     }
                 } else if (i < scheduling.length) {
@@ -887,7 +893,7 @@ export default class SRPlugin extends Plugin {
                     }
 
                     if (this.data.buryList.includes(cardTextHash)) {
-                        this.deckTree.countFlashcard([...deckPath]);
+                        SRPlugin.deckTree.countFlashcard([...deckPath]);
                         continue;
                     }
 
@@ -897,38 +903,38 @@ export default class SRPlugin extends Plugin {
                         cardObj.delayBeforeReview = now - dueUnix;
                         for (const cardTag of cardTags) {
                             if (cardTag) {
-                                this.deckTree.insertFlashcard([cardTag], cardObj);
+                                SRPlugin.deckTree.insertFlashcard([cardTag], cardObj);
                             } else {
-                                this.deckTree.insertFlashcard([...deckPath], cardObj);
+                                SRPlugin.deckTree.insertFlashcard([...deckPath], cardObj);
                             }
                         }
                         for (const multiTag of multiTagsArray) {
                             // cardTags include all multiTag.tags
                             if (multiTag.tags.every((tag) => cardTags.includes(tag))) {
-                                this.deckTree.insertFlashcard([multiTag.name], cardObj);
+                                SRPlugin.deckTree.insertFlashcard([multiTag.name], cardObj);
                             }
                         }
                     } else {
-                        this.deckTree.countFlashcard([...deckPath]);
+                        SRPlugin.deckTree.countFlashcard([...deckPath]);
                         continue;
                     }
                 } else {
                     this.cardStats.newCount++;
                     if (this.data.buryList.includes(cyrb53(cardText))) {
-                        this.deckTree.countFlashcard([...deckPath]);
+                        SRPlugin.deckTree.countFlashcard([...deckPath]);
                         continue;
                     }
                     for (const cardTag of cardTags) {
                         if (cardTag) {
-                            this.deckTree.insertFlashcard([cardTag], cardObj);
+                            SRPlugin.deckTree.insertFlashcard([cardTag], cardObj);
                         } else {
-                            this.deckTree.insertFlashcard([...deckPath], cardObj);
+                            SRPlugin.deckTree.insertFlashcard([...deckPath], cardObj);
                         }
                     }
                     for (const multiTag of multiTagsArray) {
                         // cardTags include all multiTag.tags
                         if (multiTag.tags.every((tag) => cardTags.includes(tag))) {
-                            this.deckTree.insertFlashcard([multiTag.name], cardObj);
+                            SRPlugin.deckTree.insertFlashcard([multiTag.name], cardObj);
                         }
                     }
                 }
