@@ -797,7 +797,7 @@ export class Deck {
         }
 
         const deckViewInner: HTMLElement = deckViewSelf.createDiv("tree-item-inner");
-        deckViewInner.addEventListener("click", () => {
+        deckViewSelf.addEventListener("click", () => {
             modal.plugin.data.historyDeck = this.deckTag;
             modal.currentDeck = this;
             modal.checkDeck = this.parent;
