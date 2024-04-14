@@ -79,6 +79,58 @@ export default class SRPlugin extends Plugin {
     public dueDatesFlashcards: Record<number, number> = {}; // Record<# of days in future, due count>
     public cardStats: Stats;
 
+    jsonToCard(json: any): Card {
+        const tmp: TAbstractFile = this.app.vault.getAbstractFileByPath(json.note);
+        if (tmp instanceof TFile) {
+            tmp as TFile;
+            return {
+                isDue: json.isDue,
+                interval: json.interval,
+                ease: json.ease,
+                delayBeforeReview: json.delayBeforeReview,
+                note: tmp,
+                lineNo: json.lineNo,
+                front: json.front,
+                back: json.back,
+                cardText: json.cardText,
+                context: json.context,
+                cardType: json.cardType,
+                siblingIdx: 0,
+                siblings: [],
+            };
+        } else {
+            // const res = new TFile(json.note, "");
+            // return {
+            //     isDue: json.isDue,
+            //     interval: json.interval,
+            //     ease: json.ease,
+            //     delayBeforeReview: json.delayBeforeReview,
+            //     note: res,
+            //     lineNo: json.lineNo,
+            //     front: json.front,
+            //     back: json.back,
+            //     cardText: json.cardText,
+            //     context: json.context,
+            //     cardType: json.cardType,
+            //     siblingIdx: 0,
+            //     siblings: [],
+            // };
+        }
+    }
+
+    jsonToDeck(obj: any, parent: Deck | null = null): Deck {
+        const deck = new Deck(obj.deckTag, parent);
+        deck.newFlashcards = obj.newFlashcards.map(this.jsonToCard.bind(this));
+        deck.newFlashcardsCount = obj.newFlashcardsCount;
+        deck.dueFlashcards = obj.dueFlashcards.map(this.jsonToCard.bind(this)); // Corrected line
+        deck.dueFlashcardsCount = obj.dueFlashcardsCount;
+        deck.totalFlashcards = obj.totalFlashcards;
+        deck.subdecks = (obj.subdecks || []).map((subdeckObj: any) =>
+            this.jsonToDeck(subdeckObj, deck)
+        );
+        return deck;
+    }
+
     async onload(): Promise<void> {
         await this.loadPluginData();
 
@@ -291,6 +343,19 @@ export default class SRPlugin extends Plugin {
             }
         }
 
+        // load deckTree from cache && > 8h
+        if (
+            this.data.settings.cacheDeckString &&
+            Date.now() - this.data.settings.lastCacheTime < 28800000
+        ) {
+            SRPlugin.deckTree = this.jsonToDeck(JSON.parse(this.data.settings.cacheDeckString));
+            if (this.data.settings.showDebugMessages) {
+                console.log(`SR: ${t("DECKS")}`, SRPlugin.deckTree);
+            }
+            this.syncLock = false;
+            return;
+        }
+
         // reset flashcards stuff
         SRPlugin.deckTree = new Deck("root", null);
         this.dueDatesFlashcards = {};
@@ -432,6 +497,14 @@ export default class SRPlugin extends Plugin {
         if (this.data.settings.showDebugMessages) {
             console.log(`SR: ${t("EASES")}`, this.easeByPath);
             console.log(`SR: ${t("DECKS")}`, SRPlugin.deckTree);
+        }
+
+        if (SRPlugin.deckTree !== null) {
+            // store the deckTree to local files
+            const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSON());
+            this.data.settings.cacheDeckString = cacheDeckString;
+            this.data.settings.lastCacheTime = Date.now();
+            this.savePluginData();
         }
 
         for (const deckKey in this.reviewDecks) {
@@ -967,7 +1040,7 @@ export default class SRPlugin extends Plugin {
         this.data.settings = Object.assign({}, DEFAULT_SETTINGS, this.data.settings);
     }
 
-    async savePluginData(): Promise<void> {
+    public async savePluginData(): Promise<void> {
         await this.saveData(this.data);
     }
 

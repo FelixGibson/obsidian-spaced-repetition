@@ -2,6 +2,7 @@ import { TFile } from "obsidian";
 
 import { SRSettings } from "src/settings";
 import { t } from "src/lang/helpers";
+import exp from "constants";
 
 export enum ReviewResponse {
     Easy,
@@ -32,6 +33,22 @@ export interface Card {
     // information for sibling cards
     siblingIdx: number;
     siblings: Card[];
+}
+
+export function cardToJSON(card: Card): any {
+    return {
+        isDue: card.isDue,
+        interval: card.interval,
+        ease: card.ease,
+        delayBeforeReview: card.delayBeforeReview,
+        note: card.note.path, // Assuming TFile has a path property
+        lineNo: card.lineNo,
+        front: card.front,
+        back: card.back,
+        cardText: card.cardText,
+        context: card.context,
+        cardType: card.cardType,
+    };
 }
 
 export enum CardType {

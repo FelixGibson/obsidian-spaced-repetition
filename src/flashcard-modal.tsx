@@ -12,7 +12,7 @@ import {
 import h from "vhtml";
 
 import SRPlugin from "src/main";
-import { Card, CardType, schedule, textInterval, ReviewResponse } from "src/scheduling";
+import { Card, CardType, schedule, textInterval, ReviewResponse, cardToJSON } from "src/scheduling";
 import {
     COLLAPSE_ICON,
     MULTI_SCHEDULING_EXTRACTOR,
@@ -437,6 +437,15 @@ export class FlashcardModal extends Modal {
         }
 
         await this.app.vault.modify(this.currentCard.note, fileText);
+
+        const thresholdWidth = 800; // Width threshold to distinguish devices
+        const isPhone = window.innerWidth < thresholdWidth;
+        // phone not update
+        if (!isPhone) {
+            // refresh cache
+            this.plugin.data.settings.lastCacheTime = 0;
+            this.plugin.savePluginData();
+        }
         this.currentDeck.nextCard(this);
     }
 
@@ -613,6 +622,19 @@ export class Deck {
     public totalFlashcards = 0; // counts those in subdecks too
     public subdecks: Deck[];
     public parent: Deck | null;
+
+    toJSON(): Record<string, any> {
+        return {
+            deckTag: this.deckTag,
+            newFlashcards: this.newFlashcards.map(cardToJSON),
+            newFlashcardsCount: this.newFlashcardsCount,
+            dueFlashcards: this.dueFlashcards.map(cardToJSON),
+            dueFlashcardsCount: this.dueFlashcardsCount,
+            totalFlashcards: this.totalFlashcards,
+            subdecks: this.subdecks.map((subdeck) => subdeck.toJSON()),
+            // do not include the parent property to avoid circular references
+        };
+    }
 
     constructor(deckName: string, parent: Deck | null) {
         this.deckTag = deckName;

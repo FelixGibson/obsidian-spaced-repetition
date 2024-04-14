@@ -22,6 +22,8 @@ export interface SRSettings {
     singlelineCardSeparator: string;
     singlelineReversedCardSeparator: string;
     multilineCardSeparator: string;
+    cacheDeckString: string;
+    lastCacheTime: number;
     multilineReversedCardSeparator: string;
     // notes
     tagsToReview: string[];
@@ -57,6 +59,8 @@ export const DEFAULT_SETTINGS: SRSettings = {
     singlelineCardSeparator: "::",
     singlelineReversedCardSeparator: ":::",
     multilineCardSeparator: "?",
+    cacheDeckString: "",
+    lastCacheTime: 0,
     multilineReversedCardSeparator: "??",
     // notes
     tagsToReview: ["#review"],
