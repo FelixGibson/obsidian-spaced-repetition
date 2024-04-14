@@ -443,7 +443,9 @@ export class FlashcardModal extends Modal {
         // phone not update
         if (!isPhone) {
             // refresh cache
-            this.plugin.data.settings.lastCacheTime = 0;
+            const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSON());
+            this.plugin.data.settings.cacheDeckString = cacheDeckString;
+            this.plugin.data.settings.lastCacheTime = Date.now();
             this.plugin.savePluginData();
         }
         this.currentDeck.nextCard(this);
