@@ -353,7 +353,7 @@ export class FlashcardModal extends Modal {
             due = window.moment(Date.now() + interval * 24 * 3600 * 1000);
             new Notice(t("CARD_PROGRESS_RESET"));
         } else if (response === ReviewResponse.Skip) {
-            this.currentDeck.nextCard(this);
+            this.nextCard();
             return;
         }
 
@@ -438,6 +438,10 @@ export class FlashcardModal extends Modal {
 
         await this.app.vault.modify(this.currentCard.note, fileText);
 
+        this.nextCard();
+    }
+
+    nextCard(): void {
         const thresholdWidth = 800; // Width threshold to distinguish devices
         const isPhone = window.innerWidth < thresholdWidth;
         // phone not update
