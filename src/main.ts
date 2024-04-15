@@ -6,6 +6,7 @@ import {
     HeadingCache,
     getAllTags,
     FrontMatterCache,
+    Platform,
 } from "obsidian";
 import * as graph from "pagerank.js";
 
@@ -346,7 +347,7 @@ export default class SRPlugin extends Plugin {
         // load deckTree from cache && > 8h
         if (
             this.data.settings.cacheDeckString &&
-            Date.now() - this.data.settings.lastCacheTime < 28800000
+            (Date.now() - this.data.settings.lastCacheTime < 28800000 || Platform.isMobile)
         ) {
             SRPlugin.deckTree = this.jsonToDeck(JSON.parse(this.data.settings.cacheDeckString));
             if (this.data.settings.showDebugMessages) {

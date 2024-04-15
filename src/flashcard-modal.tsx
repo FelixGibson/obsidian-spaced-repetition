@@ -442,10 +442,8 @@ export class FlashcardModal extends Modal {
     }
 
     nextCard(): void {
-        const thresholdWidth = 800; // Width threshold to distinguish devices
-        const isPhone = window.innerWidth < thresholdWidth;
         // phone not update
-        if (!isPhone) {
+        if (!Platform.isMobile) {
             // refresh cache
             const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSON());
             this.plugin.data.settings.cacheDeckString = cacheDeckString;
