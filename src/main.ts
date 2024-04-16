@@ -344,10 +344,10 @@ export default class SRPlugin extends Plugin {
             }
         }
 
-        // load deckTree from cache && > 8h
+        // load deckTree from cache && > 23h
         if (
             this.data.settings.cacheDeckString &&
-            (Date.now() - this.data.settings.lastCacheTime < 28800000 || Platform.isMobile)
+            (Date.now() - this.data.settings.lastCacheTime < 82800000 || Platform.isMobile)
         ) {
             SRPlugin.deckTree = this.jsonToDeck(JSON.parse(this.data.settings.cacheDeckString));
             if (this.data.settings.showDebugMessages) {
