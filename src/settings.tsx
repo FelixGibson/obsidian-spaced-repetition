@@ -2,7 +2,7 @@ import { Notice, PluginSettingTab, Setting, App, Platform } from "obsidian";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import h from "vhtml";
 
-import type SRPlugin from "src/main";
+import SRPlugin from "src/main";
 import { t } from "src/lang/helpers";
 
 export interface SRSettings {
@@ -153,6 +153,20 @@ export class SRSettingTab extends PluginSettingTab {
                         });
                     })
             );
+
+        new Setting(containerEl)
+            .setName("Reset cache")
+            .setDesc("Reset cache")
+            .addExtraButton((button) => {
+                button
+                    .setIcon("reset")
+                    .setTooltip(t("RESET_DEFAULT"))
+                    .onClick(async () => {
+                        this.plugin.data.settings.lastCacheTime = 0;
+                        await this.plugin.savePluginData();
+                        this.display();
+                    });
+            });
 
         new Setting(containerEl)
             .setName(t("CONVERT_FOLDERS_TO_DECKS"))
