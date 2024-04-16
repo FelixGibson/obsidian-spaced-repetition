@@ -163,6 +163,7 @@ export class SRSettingTab extends PluginSettingTab {
                     .setTooltip(t("RESET_DEFAULT"))
                     .onClick(async () => {
                         this.plugin.data.settings.lastCacheTime = 0;
+                        SRPlugin.deckTree = undefined;
                         await this.plugin.savePluginData();
                         this.display();
                     });
