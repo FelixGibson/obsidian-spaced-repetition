@@ -116,14 +116,32 @@ export default class SRPlugin extends Plugin {
             //     siblingIdx: 0,
             //     siblings: [],
             // };
+            console.log("SR: Error loading card", json);
         }
     }
 
     jsonToDeck(obj: any, parent: Deck | null = null): Deck {
         const deck = new Deck(obj.deckTag, parent);
-        deck.newFlashcards = obj.newFlashcards.map(this.jsonToCard.bind(this));
+        let newFlashcards = [];
+        let dueFlashcards = [];
+
+        for (let i = 0; i < obj.newFlashcards.length; i++) {
+            let card = this.jsonToCard(obj.newFlashcards[i]);
+            if (card !== undefined) {
+                newFlashcards.push(card);
+            }
+        }
+
+        for (let i = 0; i < obj.dueFlashcards.length; i++) {
+            let card = this.jsonToCard(obj.dueFlashcards[i]);
+            if (card !== undefined) {
+                dueFlashcards.push(card);
+            }
+        }
+
+        deck.newFlashcards = newFlashcards;
         deck.newFlashcardsCount = obj.newFlashcardsCount;
-        deck.dueFlashcards = obj.dueFlashcards.map(this.jsonToCard.bind(this)); // Corrected line
+        deck.dueFlashcards = dueFlashcards;
         deck.dueFlashcardsCount = obj.dueFlashcardsCount;
         deck.totalFlashcards = obj.totalFlashcards;
         deck.subdecks = (obj.subdecks || []).map((subdeckObj: any) =>

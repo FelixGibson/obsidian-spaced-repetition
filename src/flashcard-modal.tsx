@@ -628,14 +628,36 @@ export class Deck {
     public parent: Deck | null;
 
     toJSON(): Record<string, any> {
+        let dueFlashcardsJSON = [];
+        for (let i = 0; i < this.dueFlashcards.length; i++) {
+            let card = cardToJSON(this.dueFlashcards[i]);
+            if (card !== undefined) {
+                dueFlashcardsJSON.push(card);
+            }
+        }
+
+        let newFlashcardsJSON = [];
+        for (let i = 0; i < this.newFlashcards.length; i++) {
+            let card = cardToJSON(this.newFlashcards[i]);
+            if (card !== undefined) {
+                newFlashcardsJSON.push(card);
+            }
+        }
+        let subdecksJSON = [];
+        for (let i = 0; i < this.subdecks.length; i++) {
+            let subdeck = this.subdecks[i].toJSON();
+            if (subdeck !== undefined) {
+                subdecksJSON.push(subdeck);
+            }
+        }
         return {
             deckTag: this.deckTag,
-            newFlashcards: this.newFlashcards.map(cardToJSON),
-            newFlashcardsCount: this.newFlashcardsCount,
-            dueFlashcards: this.dueFlashcards.map(cardToJSON),
-            dueFlashcardsCount: this.dueFlashcardsCount,
+            newFlashcards: newFlashcardsJSON,
+            newFlashcardsCount: newFlashcardsJSON.length, // Updated line
+            dueFlashcards: dueFlashcardsJSON,
+            dueFlashcardsCount: dueFlashcardsJSON.length, // Updated line
             totalFlashcards: this.totalFlashcards,
-            subdecks: this.subdecks.map((subdeck) => subdeck.toJSON()),
+            subdecks: subdecksJSON,
             // do not include the parent property to avoid circular references
         };
     }
