@@ -438,7 +438,73 @@ export class FlashcardModal extends Modal {
 
         await this.app.vault.modify(this.currentCard.note, fileText);
 
+        // random score
+        await this.ding("Good Job" + " " + 0.3);
+
         this.nextCard();
+    }
+
+    private async ding(name: string) {
+        const parts = name.trim().split(/\s+/);
+        const lastPart = parts.reverse().find((part) => !isNaN(parseFloat(part)));
+
+        const input = lastPart ? parseFloat(lastPart) : 0;
+        const settings = this.plugin.data.settings;
+        const value = settings.profit || 0;
+
+        if (input > 0) {
+            const triple = this.scaleInteger(input);
+            let star = "";
+            for (let i = 0; i < triple[1]; i++) {
+                star += "*";
+            }
+            if (triple[1] > 0) {
+                new Notice(` ${triple[0].toFixed(8)}% \n ${star}   ${triple[2]} points`);
+                console.log(`chance: ${triple[0].toFixed(2)} of ${triple[1]}X : ${triple[2]}`);
+                settings.profit = value + triple[2];
+            }
+        } else {
+            new Notice(`diminish : ${input}`);
+            settings.profit = value + input;
+        }
+        await this.plugin.saveData(settings);
+    }
+
+    private scaleInteger(input: number): [number, number, number] {
+        const randomValue = Math.random();
+        const factorsAndMultipliers = [
+            [100000, 0],
+            // [120000, 1], [60000, 2], [32000, 4], [16000, 8], [8000, 10],
+            [4000, 20],
+            [2000, 30],
+            [1600, 50],
+            [800, 100],
+            [400, 200],
+            [200, 400],
+            [100, 800],
+            [64, 1600],
+            [32, 3200],
+            [16, 6300],
+            [8, 10000],
+            [4, 50000],
+            [2, 100000],
+            [1, 1000000],
+        ];
+
+        const scaleFactorSum = factorsAndMultipliers.reduce((a, b) => a + b[0], 0);
+
+        let cumulativeProbability = 0.0;
+        for (let [scaleFactor, multiplier] of factorsAndMultipliers) {
+            const scaleFactorPercentage = scaleFactor / scaleFactorSum;
+            cumulativeProbability += scaleFactorPercentage;
+            if (randomValue < cumulativeProbability) {
+                return [scaleFactorPercentage, multiplier, input * multiplier];
+            }
+        }
+
+        // If we get here, return the last pair
+        const [scaleFactor, multiplier] = factorsAndMultipliers[factorsAndMultipliers.length - 1];
+        return [scaleFactor / scaleFactorSum, multiplier, input * multiplier];
     }
 
     nextCard(): void {

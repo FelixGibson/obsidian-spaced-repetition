@@ -8,6 +8,7 @@ import { t } from "src/lang/helpers";
 export interface SRSettings {
     // flashcards
     flashcardTags: string[];
+    profit: number;
     excludeFlashcardTags: string[];
     convertFoldersToDecks: boolean;
     cardCommentOnSameLine: boolean;
@@ -45,6 +46,7 @@ export interface SRSettings {
 export const DEFAULT_SETTINGS: SRSettings = {
     // flashcards
     flashcardTags: ["#flashcards"],
+    profit: 0,
     excludeFlashcardTags: ["#ignore"],
     convertFoldersToDecks: false,
     cardCommentOnSameLine: false,
