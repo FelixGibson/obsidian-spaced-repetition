@@ -437,9 +437,10 @@ export class FlashcardModal extends Modal {
         }
 
         await this.app.vault.modify(this.currentCard.note, fileText);
-
-        // random score
-        await this.ding("Good Job" + " " + 0.3);
+        if (!Platform.isMobile) {
+            // random score
+            this.ding("Good Job" + " " + 0.3);
+        }
 
         this.nextCard();
     }
