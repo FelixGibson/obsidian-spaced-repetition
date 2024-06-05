@@ -351,7 +351,7 @@ export class FlashcardModal extends Modal {
             interval = schedObj.interval;
             ease = schedObj.ease;
             due = window.moment(Date.now() + interval * 24 * 3600 * 1000);
-            new Notice(t("CARD_PROGRESS_RESET"));
+            // new Notice(t("CARD_PROGRESS_RESET"));
         } else if (response === ReviewResponse.Skip) {
             this.nextCard();
             return;
@@ -462,6 +462,7 @@ export class FlashcardModal extends Modal {
                 new Notice(` ${triple[0].toFixed(8)}% \n ${star}   ${triple[2]} points`);
                 console.log(`chance: ${triple[0].toFixed(2)} of ${triple[1]}X : ${triple[2]}`);
                 settings.profit = value + triple[2];
+                this.plugin.statusBar.setText(`profit: ${settings.profit}`);
             }
         } else {
             new Notice(`diminish : ${input}`);

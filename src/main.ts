@@ -60,7 +60,7 @@ export interface LinkStat {
 }
 
 export default class SRPlugin extends Plugin {
-    // private statusBar: HTMLElement;
+    public statusBar: HTMLElement;
     private reviewQueueView: ReviewQueueListView;
     public data: PluginData;
     public syncLock = false;
@@ -155,7 +155,8 @@ export default class SRPlugin extends Plugin {
 
         appIcon();
 
-        // this.statusBar = this.addStatusBarItem();
+        this.statusBar = this.addStatusBarItem();
+        this.statusBar.setText(`profit: ${this.data.settings.profit}`);
         // this.statusBar.classList.add("mod-clickable");
         // this.statusBar.setAttribute("aria-label", t("OPEN_NOTE_FOR_REVIEW"));
         // this.statusBar.setAttribute("aria-label-position", "top");
