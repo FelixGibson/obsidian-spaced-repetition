@@ -475,8 +475,12 @@ export class FlashcardModal extends Modal {
     private scaleInteger(input: number): [number, number, number] {
         const randomValue = Math.random();
         const factorsAndMultipliers = [
-            [100000, 0],
-            // [120000, 1], [60000, 2], [32000, 4], [16000, 8], [8000, 10],
+            [1000000, 0],
+            // [120000, 1],
+            // [60000, 2],
+            [320000, 4],
+            [32000, 8],
+            [16000, 10],
             [4000, 20],
             [2000, 30],
             [1600, 50],
