@@ -519,7 +519,6 @@ export class FlashcardModal extends Modal {
             // refresh cache
             const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSON());
             this.plugin.data.settings.cacheDeckString = cacheDeckString;
-            this.plugin.data.settings.lastCacheTime = Date.now();
             this.plugin.savePluginData();
         }
         this.currentDeck.nextCard(this);
