@@ -897,7 +897,7 @@ export class Deck {
             }
         }
         const deckView: HTMLElement = containerEl.createDiv("tree-item");
-        if (/\|\S+\|/g.test(this.deckTag)) {
+        if (/^\|\S+\|$/.test(this.deckTag)) {
             deckView.createDiv("tree-item-name").innerHTML = (
                 <h3 class="tag-pane-tag-self">{this.deckTag}</h3>
             );
