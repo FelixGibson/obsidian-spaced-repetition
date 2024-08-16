@@ -946,6 +946,12 @@ export default class SRPlugin extends Plugin {
                     .map((tag) => {
                         return { name: tag, tags: tag.split(":") };
                     });
+
+                const unionTagsArray: MultiTagsObj[] = this.data.settings.flashcardTags
+                    .filter((tag) => tag.split("|").length > 1)
+                    .map((tag) => {
+                        return { name: tag, tags: tag.split("|") };
+                    });
                 // card scheduled
                 if (ignoreStats) {
                     this.cardStats.newCount++;
@@ -1003,9 +1009,17 @@ export default class SRPlugin extends Plugin {
                             }
                         }
                         for (const multiTag of multiTagsArray) {
-                            // cardTags include all multiTag.tags
-                            if (multiTag.tags.every((tag) => cardTags.includes(tag))) {
+                            // 检查当前卡片标签是否包含所有多标签的标签
+                            if (cardTags.every((tag) => multiTag.tags.includes(tag))) {
+                                // 如果包含，则将卡片插入到多标签的名称中
                                 SRPlugin.deckTree.insertFlashcard([multiTag.name], cardObj);
+                            }
+                        }
+                        for (const unionTag of unionTagsArray) {
+                            // 检查当前卡片标签是否包含任意联合标签的标签
+                            if (cardTags.some((tag) => unionTag.tags.includes(tag))) {
+                                // 如果包含，则将卡片插入到联合标签的名称中
+                                SRPlugin.deckTree.insertFlashcard([unionTag.name], cardObj);
                             }
                         }
                     } else {
@@ -1026,9 +1040,17 @@ export default class SRPlugin extends Plugin {
                         }
                     }
                     for (const multiTag of multiTagsArray) {
-                        // cardTags include all multiTag.tags
-                        if (multiTag.tags.every((tag) => cardTags.includes(tag))) {
+                        // 检查当前卡片标签是否包含所有多标签的标签
+                        if (cardTags.every((tag) => multiTag.tags.includes(tag))) {
+                            // 如果包含，则将卡片插入到多标签的名称中
                             SRPlugin.deckTree.insertFlashcard([multiTag.name], cardObj);
+                        }
+                    }
+                    for (const unionTag of unionTagsArray) {
+                        // 检查当前卡片标签是否包含任意联合标签的标签
+                        if (cardTags.some((tag) => unionTag.tags.includes(tag))) {
+                            // 如果包含，则将卡片插入到联合标签的名称中
+                            SRPlugin.deckTree.insertFlashcard([unionTag.name], cardObj);
                         }
                     }
                 }
