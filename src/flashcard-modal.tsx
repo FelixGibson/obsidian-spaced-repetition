@@ -408,12 +408,12 @@ export class FlashcardModal extends Modal {
                     ];
                 }
 
-                const currCardSched: string[] = [
+                const currCardSched: RegExpMatchArray = [
                     "0",
                     dueString,
                     interval.toString(),
                     ease.toString(),
-                ];
+                ] as RegExpMatchArray;
                 if (this.currentCard.isDue) {
                     scheduling[this.currentCard.siblingIdx] = currCardSched;
                 } else {

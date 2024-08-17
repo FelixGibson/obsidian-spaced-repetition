@@ -792,7 +792,30 @@ export default class SRPlugin extends Plugin {
         );
 
         const now: number = Date.now();
-        const tagsSet = [...settings.flashcardTags, ...settings.excludeFlashcardTags];
+        const tagsSet = new Set([...settings.flashcardTags, ...settings.excludeFlashcardTags]);
+        const multiTagsArray: MultiTagsObj[] = this.data.settings.flashcardTags
+            .filter((tag) => tag.split("&").length > 1)
+            .map((tag) => {
+                return { name: tag, tags: tag.split("&") };
+            });
+
+        const unionTagsArray: MultiTagsObj[] = this.data.settings.flashcardTags
+            .filter((tag) => tag.split("|").length > 1)
+            .map((tag) => {
+                return { name: tag, tags: tag.split("|") };
+            });
+        // tagsSet need to be set, and add multiTagsArray's each tiny part and unionTagsArray's each tiny part to tagsSet
+        for (const multiTagsObj of multiTagsArray) {
+            for (const tag of multiTagsObj.tags) {
+                tagsSet.add(tag);
+            }
+        }
+        for (const unionTagsObj of unionTagsArray) {
+            for (const tag of unionTagsObj.tags) {
+                tagsSet.add(tag);
+            }
+        }
+
         const parsedCards: [CardType, string, number, string[]][] = parse(
             fileText,
             settings.singlelineCardSeparator,
@@ -801,7 +824,7 @@ export default class SRPlugin extends Plugin {
             settings.multilineReversedCardSeparator,
             settings.convertHighlightsToClozes,
             settings.convertBoldTextToClozes,
-            tagsSet
+            Array.from(tagsSet)
         );
         for (const parsedCard of parsedCards) {
             deckPath = noteDeckPath;
@@ -941,17 +964,7 @@ export default class SRPlugin extends Plugin {
                     siblingIdx: i,
                     siblings,
                 };
-                const multiTagsArray: MultiTagsObj[] = this.data.settings.flashcardTags
-                    .filter((tag) => tag.split("&").length > 1)
-                    .map((tag) => {
-                        return { name: tag, tags: tag.split("&") };
-                    });
 
-                const unionTagsArray: MultiTagsObj[] = this.data.settings.flashcardTags
-                    .filter((tag) => tag.split("|").length > 1)
-                    .map((tag) => {
-                        return { name: tag, tags: tag.split("|") };
-                    });
                 // card scheduled
                 if (ignoreStats) {
                     this.cardStats.newCount++;
