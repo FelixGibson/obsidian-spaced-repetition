@@ -1,6 +1,6 @@
 import { min } from "moment";
 import { CardType } from "src/scheduling";
-const NO_TAG = "#no_tag";
+export const NO_TAG = "#no_tag";
 
 /**
  * Returns flashcards found in `text`

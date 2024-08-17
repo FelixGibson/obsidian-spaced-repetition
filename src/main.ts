@@ -24,7 +24,7 @@ import {
 import { escapeRegexString, cyrb53 } from "src/utils";
 import { ReviewDeck, ReviewDeckSelectionModal } from "src/review-deck";
 import { t } from "src/lang/helpers";
-import { parse, escapeRegex } from "src/parser";
+import { parse, escapeRegex, NO_TAG } from "src/parser";
 import { appIcon } from "src/icons/appicon";
 
 interface PluginData {
@@ -853,6 +853,9 @@ export default class SRPlugin extends Plugin {
             // if (cardTags) {
             //     SRPlugin.deckTree.createDeck([cardTags]);
             // }
+            if (cardTags.contains(NO_TAG)) {
+                SRPlugin.deckTree.createDeck([NO_TAG]);
+            }
             const cardTextHash: string = cyrb53(cardText);
 
             if (buryOnly) {
