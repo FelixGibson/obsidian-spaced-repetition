@@ -800,7 +800,7 @@ export default class SRPlugin extends Plugin {
             });
 
         const unionTagsArray: MultiTagsObj[] = this.data.settings.flashcardTags
-            .filter((tag) => tag.split("|").length > 1)
+            .filter((tag) => tag.split("|").length > 1 && !tag.startsWith("|"))
             .map((tag) => {
                 return { name: tag, tags: tag.split("|") };
             });
@@ -846,10 +846,10 @@ export default class SRPlugin extends Plugin {
                 }
             }
 
-            // SRPlugin.deckTree.createDeck([...deckPath]);
-            for (const carTag of cardTags) {
-                SRPlugin.deckTree.createDeck([carTag]);
-            }
+            // // SRPlugin.deckTree.createDeck([...deckPath]);
+            // for (const carTag of cardTags) {
+            //     SRPlugin.deckTree.createDeck([carTag]);
+            // }
             // if (cardTags) {
             //     SRPlugin.deckTree.createDeck([cardTags]);
             // }
