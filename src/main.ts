@@ -431,15 +431,10 @@ export default class SRPlugin extends Plugin {
             }
 
             const deckPath: string[] = this.findDeckPath(note);
-            if (deckPath.length !== 0) {
-                const flashcardsInNoteAvgEase: number = await this.findFlashcardsInNote(
-                    note,
-                    deckPath
-                );
+            const flashcardsInNoteAvgEase: number = await this.findFlashcardsInNote(note, deckPath);
 
-                if (flashcardsInNoteAvgEase > 0) {
-                    this.easeByPath[note.path] = flashcardsInNoteAvgEase;
-                }
+            if (flashcardsInNoteAvgEase > 0) {
+                this.easeByPath[note.path] = flashcardsInNoteAvgEase;
             }
 
             const fileCachedData = this.app.metadataCache.getFileCache(note) || {};
