@@ -12,6 +12,14 @@ export const NO_TAG = "#no_tag";
  * @param multilineReversedCardSeparator - Separator for multiline basic card
  * @returns An array of [CardType, card text, line number, tag] tuples
  */
+function parseTag(tag: string): string {
+    // Remove the leading '#' and surrounding '[[]]' if present
+    const cleanTag = tag.replace(/^#?\[\[(.+?)\]\]$/, "$1");
+
+    // Return a string that can be used to create a regex
+    return `\\[\\[${escapeRegex(cleanTag)}(?:\\|[^\\]]+)?\\]\\]`;
+}
+
 export function parse(
     text: string,
     singlelineCardSeparator: string,
@@ -117,6 +125,12 @@ export function parse(
                 const regexp = new RegExp(` ${escapeRegex(tag)}`, "gm");
                 if (stack[stack.length - 1].cardText.search(regexp) !== -1) {
                     stack[stack.length - 1].cardTag.push(tag);
+                } else {
+                    const parsedTag = parseTag(tag);
+                    const regexp = new RegExp(`\\s#${parsedTag}`, "gm");
+                    if (stack[stack.length - 1].cardText.search(regexp) !== -1) {
+                        stack[stack.length - 1].cardTag.push(tag);
+                    }
                 }
             }
             if (stack[stack.length - 1].cardTag.length === 0) {
@@ -148,6 +162,12 @@ export function parse(
                 const regexp = new RegExp(` ${escapeRegex(tag)}`, "gm");
                 if (stack[stack.length - 1].cardText.search(regexp) !== -1) {
                     stack[stack.length - 1].cardTag.push(tag);
+                } else {
+                    const parsedTag = parseTag(tag);
+                    const regexp = new RegExp(`\\s#${parsedTag}`, "gm");
+                    if (stack[stack.length - 1].cardText.search(regexp) !== -1) {
+                        stack[stack.length - 1].cardTag.push(tag);
+                    }
                 }
             }
             if (stack[stack.length - 1].cardTag.length === 0) {
@@ -177,6 +197,12 @@ export function parse(
                 const regexp = new RegExp(` ${escapeRegex(tag)}`, "gm");
                 if (question.search(regexp) != -1) {
                     stack[stack.length - 1].cardTag.push(tag);
+                } else {
+                    const parsedTag = parseTag(tag);
+                    const regexp = new RegExp(` ${escapeRegex(parsedTag)}`, "gm");
+                    if (question.search(regexp) !== -1) {
+                        stack[stack.length - 1].cardTag.push(tag);
+                    }
                 }
             }
             if (stack[stack.length - 1].cardTag.length === 0) {
@@ -203,6 +229,12 @@ export function parse(
                 const regexp = new RegExp(` ${escapeRegex(tag)}`, "gm");
                 if (question.search(regexp) != -1) {
                     stack[stack.length - 1].cardTag.push(tag);
+                } else {
+                    const parsedTag = parseTag(tag);
+                    const regexp = new RegExp(`\\s${escapeRegex(parsedTag)}`, "gm");
+                    if (question.search(regexp) !== -1) {
+                        stack[stack.length - 1].cardTag.push(tag);
+                    }
                 }
             }
             if (stack[stack.length - 1].cardTag.length === 0) {

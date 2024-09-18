@@ -450,3 +450,67 @@ test("Test parsing of multi line basic cards", () => {
 //     expect(parse("<!--cloze ==deletion== test-->", ...defaultArgs)).toEqual([]);
 //     expect(parse("<!--cloze **deletion** test-->", ...defaultArgs)).toEqual([]);
 // });
+
+const tagConfig: [string, string, string, string, boolean, boolean, string[]] = [
+    "::",
+    ":::",
+    "?",
+    "??",
+    true,
+    true,
+    ["#[[tag]]", "#[[alias]]"],
+];
+
+// ... existing tests ...
+
+test("Test parsing of cards with aliased tags", () => {
+    expect(parse("Question::Answer #[[alias|tag]]", ...tagConfig)).toEqual([
+        [CardType.SingleLineBasic, "Question::Answer #[[alias|tag]]", 0, ["#[[alias]]"]],
+    ]);
+
+    expect(parse("Question::Answer #[[tag]]", ...tagConfig)).toEqual([
+        [CardType.SingleLineBasic, "Question::Answer #[[tag]]", 0, ["#[[tag]]"]],
+    ]);
+
+    expect(parse("Question #[[alias|tag]]\n?\nAnswer", ...tagConfig)).toEqual([
+        [CardType.MultiLineBasic, "Question #[[alias|tag]]\n?\nAnswer", 1, ["#[[alias]]"]],
+    ]);
+
+    expect(parse("Question #[[tag]]\n?\nAnswer", ...tagConfig)).toEqual([
+        [CardType.MultiLineBasic, "Question #[[tag]]\n?\nAnswer", 1, ["#[[tag]]"]],
+    ]);
+
+    expect(parse("Question:::Answer #[[alias|tag]] #[[another|tag]]", ...tagConfig)).toEqual([
+        [
+            CardType.SingleLineReversed,
+            "Question:::Answer #[[alias|tag]] #[[another|tag]]",
+            0,
+            ["#[[alias]]"],
+        ],
+    ]);
+
+    expect(parse("Cloze ==deletion== #[[alias|tag]]", ...tagConfig)).toEqual([
+        [CardType.Cloze, "Cloze ==deletion== #[[alias|tag]]", 0, ["#[[alias]]"]],
+    ]);
+});
+
+test("Test parsing of cards with mixed regular and aliased tags", () => {
+    const mixedTagConfig: [string, string, string, string, boolean, boolean, string[]] = [
+        "::",
+        ":::",
+        "?",
+        "??",
+        true,
+        true,
+        ["#[[tag1]]", "#[[regular]]", "#[[alias]]"],
+    ];
+
+    expect(parse("Question::Answer #[[regular]] #[[tag1|tag2]]", ...mixedTagConfig)).toEqual([
+        [
+            CardType.SingleLineBasic,
+            "Question::Answer #[[regular]] #[[tag1|tag2]]",
+            0,
+            ["#[[tag1]]", "#[[regular]]"],
+        ],
+    ]);
+});
