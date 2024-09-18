@@ -131,10 +131,11 @@ export class SRSettingTab extends PluginSettingTab {
             .setDesc(t("FLASHCARD_TAGS_DESC"))
             .addTextArea((text) =>
                 text
-                    .setValue(this.plugin.data.settings.flashcardTags.join(" "))
+                    .setValue(this.plugin.data.settings.flashcardTags.join(" \n"))
                     .onChange((value) => {
                         applySettingsUpdate(async () => {
-                            this.plugin.data.settings.flashcardTags = value.trim().split(/\s+/);
+                            const lines = value.trim().split(/\n/);
+                            this.plugin.data.settings.flashcardTags = lines;
                             await this.plugin.savePluginData();
                         });
                     })
@@ -145,12 +146,11 @@ export class SRSettingTab extends PluginSettingTab {
             .setDesc(t("FLASHCARD_EXCLUDE_TAGS_DESC"))
             .addTextArea((text) =>
                 text
-                    .setValue(this.plugin.data.settings.excludeFlashcardTags.join(" "))
+                    .setValue(this.plugin.data.settings.excludeFlashcardTags.join("\n"))
                     .onChange((value) => {
                         applySettingsUpdate(async () => {
-                            this.plugin.data.settings.excludeFlashcardTags = value
-                                .trim()
-                                .split(/\s+/);
+                            const lines = value.trim().split(/\n/);
+                            this.plugin.data.settings.excludeFlashcardTags = lines;
                             await this.plugin.savePluginData();
                         });
                     })
