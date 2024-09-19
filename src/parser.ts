@@ -199,7 +199,7 @@ export function parse(
                     stack[stack.length - 1].cardTag.push(tag);
                 } else {
                     const parsedTag = parseTag(tag);
-                    const regexp = new RegExp(` ${escapeRegex(parsedTag)}`, "gm");
+                    const regexp = new RegExp(`\\s#${parsedTag}`, "gm");
                     if (question.search(regexp) !== -1) {
                         stack[stack.length - 1].cardTag.push(tag);
                     }
@@ -231,7 +231,7 @@ export function parse(
                     stack[stack.length - 1].cardTag.push(tag);
                 } else {
                     const parsedTag = parseTag(tag);
-                    const regexp = new RegExp(`\\s${escapeRegex(parsedTag)}`, "gm");
+                    const regexp = new RegExp(`\\s#${parsedTag}`, "gm");
                     if (question.search(regexp) !== -1) {
                         stack[stack.length - 1].cardTag.push(tag);
                     }
