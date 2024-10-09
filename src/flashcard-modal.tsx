@@ -106,6 +106,9 @@ export class FlashcardModal extends Modal {
     }
 
     onOpen(): void {
+        if (Platform.isMobile) {
+            this.plugin.data.historyDeck = "";
+        }
         this.decksList();
     }
 
@@ -123,6 +126,12 @@ export class FlashcardModal extends Modal {
             this.checkDeck = deck.parent;
             this.setupCardsView();
             deck.nextCard(this);
+            if (Platform.isMobile) {
+                if (deck.parent.subdecks.length > 1) {
+                    // clear all the other useless deck
+                    deck.parent.subdecks = [deck];
+                }
+            }
             return;
         }
 
@@ -922,6 +931,10 @@ export class Deck {
             modal.checkDeck = this.parent;
             modal.setupCardsView();
             this.nextCard(modal);
+            if (Platform.isMobile) {
+                // clear all the other useless deck
+                this.parent.subdecks = [this];
+            }
         });
         const deckViewInnerText: HTMLElement = deckViewInner.createDiv("tag-pane-tag-text");
         deckViewInnerText.innerHTML += <span class="tag-pane-tag-self">{this.deckTag}</span>;
