@@ -459,8 +459,8 @@ export class FlashcardModal extends Modal {
             this.burySiblingCards(true);
         }
 
-        await this.app.vault.modify(this.currentCard.note, fileText);
         if (!Platform.isMobile) {
+            await this.app.vault.modify(this.currentCard.note, fileText);
             // random score
             this.ding("Good Job" + " " + 0.3);
         }
