@@ -105,7 +105,13 @@ export class FlashcardModal extends Modal {
         };
     }
 
+    private static initialized: boolean = false;
+
     onOpen(): void {
+        if (!FlashcardModal.initialized) {
+            this.plugin.data.historyDeck = "";
+            FlashcardModal.initialized = true;
+        }
         this.decksList();
     }
 
@@ -123,6 +129,10 @@ export class FlashcardModal extends Modal {
             this.checkDeck = deck.parent;
             this.setupCardsView();
             deck.nextCard(this);
+            if (deck.parent.subdecks.length > 1) {
+                // clear all the other useless deck
+                deck.parent.subdecks = [deck];
+            }
             return;
         }
 
@@ -922,6 +932,10 @@ export class Deck {
             modal.checkDeck = this.parent;
             modal.setupCardsView();
             this.nextCard(modal);
+            if (this.parent.subdecks.length > 1) {
+                // clear all the other useless deck
+                this.parent.subdecks = [this];
+            }
         });
         const deckViewInnerText: HTMLElement = deckViewInner.createDiv("tag-pane-tag-text");
         deckViewInnerText.innerHTML += <span class="tag-pane-tag-self">{this.deckTag}</span>;
