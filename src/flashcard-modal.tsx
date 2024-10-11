@@ -108,9 +108,11 @@ export class FlashcardModal extends Modal {
     private static initialized: boolean = false;
 
     onOpen(): void {
-        if (!FlashcardModal.initialized) {
-            this.plugin.data.historyDeck = "";
-            FlashcardModal.initialized = true;
+        if (Platform.isMobile) {
+            if (!FlashcardModal.initialized) {
+                this.plugin.data.historyDeck = "";
+                FlashcardModal.initialized = true;
+            }
         }
         this.decksList();
     }
@@ -127,17 +129,22 @@ export class FlashcardModal extends Modal {
         );
         if (this.plugin.data.historyDeck && aimDeck.length > 0) {
             let deck = aimDeck[0];
-            if (FlashcardModal.lastTimeDeck) {
-                deck = FlashcardModal.lastTimeDeck;
+            if (Platform.isMobile) {
+                if (FlashcardModal.lastTimeDeck) {
+                    deck = FlashcardModal.lastTimeDeck;
+                }
             }
+
             this.currentDeck = deck;
             this.checkDeck = deck.parent;
             this.setupCardsView();
             deck.nextCard(this);
-            if (deck.parent.subdecks.length > 1) {
-                // clear all the other useless deck
-                deck.parent.subdecks = [deck];
-                FlashcardModal.lastTimeDeck = deck;
+            if (Platform.isMobile) {
+                if (deck.parent.subdecks.length > 1) {
+                    // clear all the other useless deck
+                    deck.parent.subdecks = [deck];
+                    FlashcardModal.lastTimeDeck = deck;
+                }
             }
             return;
         }
@@ -938,9 +945,11 @@ export class Deck {
             modal.checkDeck = this.parent;
             modal.setupCardsView();
             this.nextCard(modal);
-            if (this.parent.subdecks.length > 1) {
-                // clear all the other useless deck
-                this.parent.subdecks = [this];
+            if (Platform.isMobile) {
+                if (this.parent.subdecks.length > 1) {
+                    // clear all the other useless deck
+                    this.parent.subdecks = [this];
+                }
             }
         });
         const deckViewInnerText: HTMLElement = deckViewInner.createDiv("tag-pane-tag-text");
