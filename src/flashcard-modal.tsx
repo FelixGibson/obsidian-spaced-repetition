@@ -108,7 +108,7 @@ export class FlashcardModal extends Modal {
     private static initialized: boolean = false;
 
     onOpen(): void {
-        if (Platform.isMobile) {
+        if (Platform.isMobile || 1) {
             if (!FlashcardModal.initialized) {
                 this.plugin.data.historyDeck = "";
                 FlashcardModal.initialized = true;
@@ -121,7 +121,7 @@ export class FlashcardModal extends Modal {
         this.mode = FlashcardModalMode.Closed;
     }
 
-    private static lastTimeDeck: Deck = null;
+    public static lastTimeDeck: Deck = null;
 
     decksList(): void {
         const aimDeck = SRPlugin.deckTree.subdecks.filter(
@@ -129,7 +129,7 @@ export class FlashcardModal extends Modal {
         );
         if (this.plugin.data.historyDeck && aimDeck.length > 0) {
             let deck = aimDeck[0];
-            if (Platform.isMobile) {
+            if (Platform.isMobile || 1) {
                 if (FlashcardModal.lastTimeDeck) {
                     deck = FlashcardModal.lastTimeDeck;
                 }
@@ -139,10 +139,10 @@ export class FlashcardModal extends Modal {
             this.checkDeck = deck.parent;
             this.setupCardsView();
             deck.nextCard(this);
-            if (Platform.isMobile) {
-                if (deck.parent.subdecks.length > 1) {
+            if (Platform.isMobile || 1) {
+                if (SRPlugin.deckTree.subdecks.length > 1) {
                     // clear all the other useless deck
-                    deck.parent.subdecks = [deck];
+                    SRPlugin.deckTree.subdecks = [deck];
                     FlashcardModal.lastTimeDeck = deck;
                 }
             }
@@ -459,7 +459,7 @@ export class FlashcardModal extends Modal {
             this.burySiblingCards(true);
         }
 
-        if (!Platform.isMobile) {
+        if (!(Platform.isMobile || 1)) {
             await this.app.vault.modify(this.currentCard.note, fileText);
             // random score
             this.ding("Good Job" + " " + 0.3);
@@ -538,7 +538,7 @@ export class FlashcardModal extends Modal {
 
     nextCard(): void {
         // phone not update
-        if (!Platform.isMobile) {
+        if (!(Platform.isMobile || 1)) {
             // refresh cache
             const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSON());
             this.plugin.data.settings.cacheDeckString = cacheDeckString;
@@ -945,10 +945,11 @@ export class Deck {
             modal.checkDeck = this.parent;
             modal.setupCardsView();
             this.nextCard(modal);
-            if (Platform.isMobile) {
-                if (this.parent.subdecks.length > 1) {
+            if (Platform.isMobile || 1) {
+                if (SRPlugin.deckTree.subdecks.length > 1) {
                     // clear all the other useless deck
-                    this.parent.subdecks = [this];
+                    SRPlugin.deckTree.subdecks = [this];
+                    FlashcardModal.lastTimeDeck = this;
                 }
             }
         });
