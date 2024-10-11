@@ -119,12 +119,17 @@ export class FlashcardModal extends Modal {
         this.mode = FlashcardModalMode.Closed;
     }
 
+    private static lastTimeDeck: Deck = null;
+
     decksList(): void {
         const aimDeck = SRPlugin.deckTree.subdecks.filter(
             (deck) => deck.deckTag === this.plugin.data.historyDeck
         );
         if (this.plugin.data.historyDeck && aimDeck.length > 0) {
-            const deck = aimDeck[0];
+            let deck = aimDeck[0];
+            if (FlashcardModal.lastTimeDeck) {
+                deck = FlashcardModal.lastTimeDeck;
+            }
             this.currentDeck = deck;
             this.checkDeck = deck.parent;
             this.setupCardsView();
@@ -132,6 +137,7 @@ export class FlashcardModal extends Modal {
             if (deck.parent.subdecks.length > 1) {
                 // clear all the other useless deck
                 deck.parent.subdecks = [deck];
+                FlashcardModal.lastTimeDeck = deck;
             }
             return;
         }
