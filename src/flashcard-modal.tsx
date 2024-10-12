@@ -108,7 +108,7 @@ export class FlashcardModal extends Modal {
     private static initialized: boolean = false;
 
     onOpen(): void {
-        if (Platform.isMobile || 1) {
+        if (Platform.isMobile && 1) {
             if (!FlashcardModal.initialized) {
                 this.plugin.data.historyDeck = "";
                 FlashcardModal.initialized = true;
@@ -129,7 +129,7 @@ export class FlashcardModal extends Modal {
         );
         if (this.plugin.data.historyDeck && aimDeck.length > 0) {
             let deck = aimDeck[0];
-            if (Platform.isMobile || 1) {
+            if (Platform.isMobile && 1) {
                 if (FlashcardModal.lastTimeDeck) {
                     deck = FlashcardModal.lastTimeDeck;
                 }
@@ -139,7 +139,7 @@ export class FlashcardModal extends Modal {
             this.checkDeck = deck.parent;
             this.setupCardsView();
             deck.nextCard(this);
-            if (Platform.isMobile || 1) {
+            if (Platform.isMobile && 1) {
                 if (SRPlugin.deckTree.subdecks.length > 1) {
                     // clear all the other useless deck
                     SRPlugin.deckTree.subdecks = [deck];
@@ -459,7 +459,7 @@ export class FlashcardModal extends Modal {
             this.burySiblingCards(true);
         }
 
-        if (!(Platform.isMobile || 1)) {
+        if (!(Platform.isMobile && 1)) {
             await this.app.vault.modify(this.currentCard.note, fileText);
             // random score
             this.ding("Good Job" + " " + 0.3);
@@ -538,7 +538,7 @@ export class FlashcardModal extends Modal {
 
     nextCard(): void {
         // phone not update
-        if (!(Platform.isMobile || 1)) {
+        if (!(Platform.isMobile && 1)) {
             // refresh cache
             const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSON());
             this.plugin.data.settings.cacheDeckString = cacheDeckString;
@@ -945,7 +945,7 @@ export class Deck {
             modal.checkDeck = this.parent;
             modal.setupCardsView();
             this.nextCard(modal);
-            if (Platform.isMobile || 1) {
+            if (Platform.isMobile && 1) {
                 if (SRPlugin.deckTree.subdecks.length > 1) {
                     // clear all the other useless deck
                     SRPlugin.deckTree.subdecks = [this];
