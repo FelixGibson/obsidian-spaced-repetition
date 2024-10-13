@@ -460,7 +460,7 @@ export class FlashcardModal extends Modal {
         }
 
         if (!(Platform.isMobile && 1)) {
-            await this.app.vault.modify(this.currentCard.note, fileText);
+            this.app.vault.modify(this.currentCard.note, fileText);
             // random score
             this.ding("Good Job" + " " + 0.3);
         }
