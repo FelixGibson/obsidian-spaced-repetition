@@ -788,17 +788,26 @@ export default class SRPlugin extends Plugin {
 
         const now: number = Date.now();
         const tagsSet = new Set([...settings.flashcardTags, ...settings.excludeFlashcardTags]);
-        const multiTagsArray: MultiTagsObj[] = this.data.settings.flashcardTags
+        let multiTagsArray: MultiTagsObj[] = this.data.settings.flashcardTags
             .filter((tag) => tag.split("&").length > 1)
             .map((tag) => {
                 return { name: tag, tags: tag.split("&") };
             });
 
-        const unionTagsArray: MultiTagsObj[] = this.data.settings.flashcardTags
+        multiTagsArray = Array.from(
+            new Map(multiTagsArray.map((item) => [item.name, item])).values()
+        ); // remove duplicate
+
+        let unionTagsArray: MultiTagsObj[] = this.data.settings.flashcardTags
             .filter((tag) => tag.split("|").length > 1 && !tag.startsWith("|"))
             .map((tag) => {
                 return { name: tag, tags: tag.split("|") };
             });
+
+        unionTagsArray = Array.from(
+            new Map(unionTagsArray.map((item) => [item.name, item])).values()
+        ); // remove duplicate
+
         // tagsSet need to be set, and add multiTagsArray's each tiny part and unionTagsArray's each tiny part to tagsSet
         for (const multiTagsObj of multiTagsArray) {
             for (const tag of multiTagsObj.tags) {
