@@ -723,7 +723,7 @@ export class Deck {
 
     toJSON(): Record<string, any> {
         let dueFlashcardsJSON = [];
-        for (let i = 0; i < this.dueFlashcards.length; i++) {
+        for (let i = 0; i < Math.min(this.dueFlashcards.length, 200); i++) {
             let card = cardToJSON(this.dueFlashcards[i]);
             if (card !== undefined) {
                 dueFlashcardsJSON.push(card);
@@ -731,7 +731,7 @@ export class Deck {
         }
 
         let newFlashcardsJSON = [];
-        for (let i = 0; i < this.newFlashcards.length; i++) {
+        for (let i = 0; i < Math.min(this.newFlashcards.length, 200); i++) {
             let card = cardToJSON(this.newFlashcards[i]);
             if (card !== undefined) {
                 newFlashcardsJSON.push(card);

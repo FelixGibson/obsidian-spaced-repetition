@@ -370,9 +370,9 @@ export default class SRPlugin extends Plugin {
                 Platform.isMobile)
         ) {
             SRPlugin.deckTree = this.jsonToDeck(JSON.parse(this.data.settings.cacheDeckString));
-            if (Platform.isMobile && 1) {
-                this.data.settings.cacheDeckString = "";
-            }
+            // if (Platform.isMobile && 1) {
+            //     this.data.settings.cacheDeckString = "";
+            // }
             if (this.data.settings.showDebugMessages) {
                 console.log(`SR: ${t("DECKS")}`, SRPlugin.deckTree);
             }
