@@ -545,7 +545,9 @@ export default class SRPlugin extends Plugin {
         //         dueFlashcardsCount: SRPlugin.deckTree.dueFlashcardsCount,
         //     })
         // );
-        this.reviewQueueView.redraw();
+        if (this.reviewQueueView !== undefined) {
+            this.reviewQueueView.redraw();
+        }
 
         this.syncLock = false;
     }
@@ -792,7 +794,7 @@ export default class SRPlugin extends Plugin {
         const now: number = Date.now();
         const tagsSet = new Set([...settings.flashcardTags, ...settings.excludeFlashcardTags]);
         let multiTagsArray: MultiTagsObj[] = this.data.settings.flashcardTags
-            .filter((tag) => tag.split("&").length > 1)
+            .filter((tag) => tag.split("&").length > 1 && !tag.startsWith("|"))
             .map((tag) => {
                 return { name: tag, tags: tag.split("&") };
             });
