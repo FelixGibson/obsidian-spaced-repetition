@@ -1028,7 +1028,6 @@ export class Deck {
             }
 
             modal.currentCard = this.newFlashcards[modal.currentCardIdx];
-            modal.renderMarkdownWrapper("- Q:\n" + modal.currentCard.front, modal.flashcardView);
 
             if (
                 Object.prototype.hasOwnProperty.call(
@@ -1045,7 +1044,6 @@ export class Deck {
                 modal.currentCardIdx = 0;
             }
             modal.currentCard = this.dueFlashcards[modal.currentCardIdx];
-            modal.renderMarkdownWrapper("- Q:\n" + modal.currentCard.front, modal.flashcardView);
 
             interval = modal.currentCard.interval;
             ease = modal.currentCard.ease;
@@ -1092,5 +1090,15 @@ export class Deck {
             modal.contextView.setText(modal.currentCard.context);
         if (modal.plugin.data.settings.showFileNameInFileLink)
             modal.fileLinkView.setText(modal.currentCard.note.basename);
+
+        if (
+            modal.currentCard.cardText !== undefined &&
+            (modal.currentCard.cardText.contains("#[[bt]]") ||
+                modal.currentCard.cardText.contains("x.com"))
+        ) {
+            modal.processReview(ReviewResponse.Hard);
+        } else {
+            modal.renderMarkdownWrapper("- Q:\n" + modal.currentCard.front, modal.flashcardView);
+        }
     }
 }
