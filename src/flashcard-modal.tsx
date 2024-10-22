@@ -1094,7 +1094,9 @@ export class Deck {
         if (
             modal.currentCard.cardText !== undefined &&
             (modal.currentCard.cardText.contains("#[[bt]]") ||
-                modal.currentCard.cardText.contains("x.com"))
+                modal.currentCard.cardText.contains("//x.com") ||
+                modal.currentCard.cardText.contains("#[[b]]") ||
+                modal.currentCard.cardText.contains("#[[bquest]]"))
         ) {
             modal.processReview(ReviewResponse.Hard);
         } else {
