@@ -13,8 +13,9 @@ def process_input():
     for line in input_lines:
         parts = line.split("|")
         for part in parts:
-            if part.startswith("#"):
-                elements.add(part)
+            trimmed_part = part.strip()
+            if trimmed_part.startswith("#"):
+                elements.add(trimmed_part)
     
     # Join the elements back together using "|"
     result = "|".join(elements)
