@@ -722,19 +722,23 @@ export class Deck {
     public parent: Deck | null;
 
     toJSON(): Record<string, any> {
+        const maxCount = 40;
         let dueFlashcardsJSON = [];
-        for (let i = 0; i < Math.min(this.dueFlashcards.length, 200); i++) {
-            let card = cardToJSON(this.dueFlashcards[i]);
-            if (card !== undefined) {
-                dueFlashcardsJSON.push(card);
-            }
-        }
-
         let newFlashcardsJSON = [];
-        for (let i = 0; i < Math.min(this.newFlashcards.length, 200); i++) {
+        for (let i = 0; i < Math.min(this.newFlashcards.length, maxCount); i++) {
             let card = cardToJSON(this.newFlashcards[i]);
             if (card !== undefined) {
                 newFlashcardsJSON.push(card);
+            }
+        }
+        for (
+            let i = 0;
+            i < Math.min(this.dueFlashcards.length, maxCount - newFlashcardsJSON.length);
+            i++
+        ) {
+            let card = cardToJSON(this.dueFlashcards[i]);
+            if (card !== undefined) {
+                dueFlashcardsJSON.push(card);
             }
         }
         let subdecksJSON = [];
