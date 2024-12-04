@@ -722,7 +722,7 @@ export class Deck {
     public parent: Deck | null;
 
     toJSON(): Record<string, any> {
-        const maxCount = 40;
+        const maxCount = 25;
         let dueFlashcardsJSON = [];
         let newFlashcardsJSON = [];
         for (let i = 0; i < Math.min(this.newFlashcards.length, maxCount); i++) {
