@@ -384,6 +384,7 @@ export class FlashcardModal extends Modal {
 
         let fileText: string = await this.app.vault.read(this.currentCard.note);
         const replacementRegex = new RegExp(escapeRegexString(this.currentCard.cardText), "gm");
+        const originalText = this.currentCard.cardText;
 
         const sep: string = this.plugin.data.settings.cardCommentOnSameLine ? " " : "\n";
         // // Override separator if last block is a codeblock
@@ -400,6 +401,7 @@ export class FlashcardModal extends Modal {
             );
             const questionLastIdx = this.currentCard.cardText.search(multilineRegex) - 1;
             const question = this.currentCard.cardText.substring(0, questionLastIdx);
+            const originQuestion = question;
             let questionNew = question;
             if (question.indexOf("<!--SR:") === -1) {
                 questionNew = question + sep + `<!--SR:!${dueString},${interval},${ease}-->`;
@@ -416,7 +418,12 @@ export class FlashcardModal extends Modal {
                     questionNew
                 );
             }
-            fileText = fileText.replace(new RegExp(escapeRegexString(question)), () => questionNew);
+            if (fileText.contains(originQuestion + "\n")) {
+                fileText = fileText.replace(
+                    new RegExp(escapeRegexString(question)),
+                    () => questionNew
+                );
+            }
         } else {
             if (this.currentCard.cardText.indexOf("<!--SR:") === -1) {
                 this.currentCard.cardText =
@@ -450,7 +457,9 @@ export class FlashcardModal extends Modal {
                 }
                 this.currentCard.cardText += "-->";
             }
-            fileText = fileText.replace(replacementRegex, () => this.currentCard.cardText);
+            if (fileText.contains(originalText + "\n")) {
+                fileText = fileText.replace(replacementRegex, () => this.currentCard.cardText);
+            } // else means something else already modify this card
         }
         for (const sibling of this.currentCard.siblings) {
             sibling.cardText = this.currentCard.cardText;
