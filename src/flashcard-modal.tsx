@@ -722,7 +722,18 @@ export class Deck {
     public parent: Deck | null;
 
     toJSON(): Record<string, any> {
-        const maxCount = 25;
+        let maxCount = 25;
+        if (this.deckTag.contains("read]]")) {
+            maxCount = 3;
+        } else if (this.deckTag.contains("#[[c]]")) {
+            maxCount = 50;
+        } else if (this.deckTag.contains("#[[p]]")) {
+            maxCount = 40;
+        } else if (this.deckTag.contains("#[[cquest]]") || this.deckTag.contains("#[[pquest]]")) {
+            maxCount = 15;
+        } else if (this.deckTag.contains("quest]]")) {
+            maxCount = 10;
+        }
         let dueFlashcardsJSON = [];
         let newFlashcardsJSON = [];
         for (let i = 0; i < Math.min(this.newFlashcards.length, maxCount); i++) {
