@@ -459,7 +459,9 @@ export class FlashcardModal extends Modal {
             }
             if (fileText.contains(originalText + "\n")) {
                 fileText = fileText.replace(replacementRegex, () => this.currentCard.cardText);
-            } // else means something else already modify this card
+            } else if (fileText.endsWith(originalText)) {
+                fileText = fileText.replace(replacementRegex, () => this.currentCard.cardText);
+            }
         }
         for (const sibling of this.currentCard.siblings) {
             sibling.cardText = this.currentCard.cardText;
