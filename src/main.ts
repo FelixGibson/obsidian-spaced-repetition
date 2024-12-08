@@ -549,7 +549,61 @@ export default class SRPlugin extends Plugin {
             this.reviewQueueView.redraw();
         }
 
+        this.printNoTag();
+
         this.syncLock = false;
+    }
+
+    printNoTag() {
+        const noTagDeckList: Deck[] = SRPlugin.deckTree.subdecks.filter(
+            (deck) => deck.deckTag === "#no_tag"
+        );
+
+        if (noTagDeckList.length === 0) {
+            return; // Exit early if no decks match
+        }
+
+        const noTagDeck = noTagDeckList[0];
+        const tagList: Set<string> = new Set(); // Use Set to ensure unique tags
+
+        for (const card of noTagDeck.newFlashcards) {
+            let text = card.cardText;
+
+            // For MultiLineBasic card type, use the 'front' property
+            if (card.cardType === CardType.MultiLineBasic) {
+                text = card.front;
+            }
+
+            // Find all tags using regex `#[[text]]`
+            const reg = /#\[\[([^\]]+)\]\]/g;
+            let match;
+
+            // Extract all matches and add them to the Set
+            while ((match = reg.exec(text)) !== null) {
+                tagList.add(match[1]); // Use `add` for Set
+            }
+        }
+        for (const card of noTagDeck.dueFlashcards) {
+            let text = card.cardText;
+
+            // For MultiLineBasic card type, use the 'front' property
+            if (card.cardType === CardType.MultiLineBasic) {
+                text = card.front;
+            }
+
+            // Find all tags using regex `#[[text]]`
+            const reg = /#\[\[([^\]]+)\]\]/g;
+            let match;
+
+            // Extract all matches and add them to the Set
+            while ((match = reg.exec(text)) !== null) {
+                tagList.add(match[1]); // Use `add` for Set
+            }
+        }
+
+        // Convert Set back to Array
+        const tagArray: string[] = Array.from(tagList);
+        console.log(Array.from(tagArray.map((tag) => `#[[${tag}]]`)).join("\n"));
     }
 
     async saveReviewResponse(note: TFile, response: ReviewResponse): Promise<void> {
