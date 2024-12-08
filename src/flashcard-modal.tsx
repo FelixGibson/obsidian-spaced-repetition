@@ -154,23 +154,28 @@ export class FlashcardModal extends Modal {
         this.contentEl.innerHTML = "";
         this.contentEl.setAttribute("id", "sr-flashcard-view");
 
+        const sidebarEl = this.contentEl.createDiv("sidebar");
+        sidebarEl.setAttribute("id", "title-sidebar");
+
+        const mainContentEl = this.contentEl.createDiv("main-content");
         for (const deck of SRPlugin.deckTree.subdecks) {
-            deck.render(this.contentEl, this);
+            deck.render(mainContentEl, this);
+
+            // If the deckTag matches the title pattern, add it to the sidebar
+            if (/^\|\S+\|$/.test(deck.deckTag)) {
+                const titleItem = sidebarEl.createDiv("sidebar-item");
+                titleItem.innerText = deck.deckTag.replace(/\|/g, ""); // Remove '|' characters for display
+                titleItem.addEventListener("click", () => {
+                    // Scroll to the corresponding deck in the main content
+                    const targetDeckEl = mainContentEl.querySelector(
+                        `[data-deck-tag="${deck.deckTag}"]`
+                    );
+                    if (targetDeckEl) {
+                        targetDeckEl.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
+                });
+            }
         }
-        const so = this;
-        sortable(this.contentEl, {
-            itemSerializer: (serializedItem: any, sortableContainer: any) => {
-                return sortableContainer.children[serializedItem.index].querySelector(
-                    ".tag-pane-tag-self"
-                ).innerHTML;
-            },
-        })[0].addEventListener("sortupdate", function (e: any) {
-            const tags: Array<string> = sortable(so.contentEl, "serialize")[0].items;
-            applySettingsUpdate(async () => {
-                so.plugin.data.settings.flashcardTags = tags;
-                await so.plugin.savePluginData();
-            });
-        });
     }
 
     setupCardsView(): void {
@@ -946,10 +951,12 @@ export class Deck {
             }
         }
         const deckView: HTMLElement = containerEl.createDiv("tree-item");
+        deckView.setAttribute("data-deck-tag", this.deckTag); // Add a data attribute for easy lookup
+
         if (/^\|\S+\|$/.test(this.deckTag)) {
-            deckView.createDiv("tree-item-name").innerHTML = (
-                <h3 class="tag-pane-tag-self">{this.deckTag}</h3>
-            );
+            deckView.createDiv(
+                "tree-item-name"
+            ).innerHTML = `<h3 class="tag-pane-tag-self">${this.deckTag}</h3>`;
             return;
         }
 
@@ -980,7 +987,7 @@ export class Deck {
             }
         });
         const deckViewInnerText: HTMLElement = deckViewInner.createDiv("tag-pane-tag-text");
-        deckViewInnerText.innerHTML += <span class="tag-pane-tag-self">{this.deckTag}</span>;
+        deckViewInnerText.innerHTML += `<span class="tag-pane-tag-self">${this.deckTag}</span>`;
         const deckViewChildren: HTMLElement = deckView.createDiv("tree-item-children");
         deckViewChildren.style.display = "none";
         if (this.subdecks.length > 0) {
