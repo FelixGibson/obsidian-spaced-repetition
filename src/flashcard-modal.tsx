@@ -180,6 +180,7 @@ export class FlashcardModal extends Modal {
 
     setupCardsView(): void {
         this.contentEl.innerHTML = "";
+        this.contentEl.setAttribute("id", "sr-flashcard-view-qa");
         const historyLinkView = this.contentEl.createEl("button");
         historyLinkView.setAttribute("id", "sr-history-link");
         historyLinkView.setText("〈");
@@ -247,7 +248,7 @@ export class FlashcardModal extends Modal {
         }
 
         this.flashcardView = this.contentEl.createDiv("div");
-        this.flashcardView.setAttribute("id", "sr-flashcard-view");
+        this.flashcardView.setAttribute("id", "sr-flashcard-view-qa");
 
         this.responseDiv = this.contentEl.createDiv("sr-response");
 
