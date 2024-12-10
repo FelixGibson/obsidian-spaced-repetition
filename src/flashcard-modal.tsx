@@ -747,9 +747,9 @@ export class Deck {
         } else if (this.deckTag.contains("#[[p]]")) {
             maxCount = 40;
         } else if (this.deckTag.contains("#[[cquest]]") || this.deckTag.contains("#[[pquest]]")) {
-            maxCount = 15;
-        } else if (this.deckTag.contains("quest]]")) {
             maxCount = 10;
+        } else if (this.deckTag.contains("quest]]")) {
+            maxCount = 5;
         }
         let dueFlashcardsJSON = [];
         let newFlashcardsJSON = [];
