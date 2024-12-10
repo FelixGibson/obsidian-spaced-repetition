@@ -511,15 +511,26 @@ export default class SRPlugin extends Plugin {
         });
 
         let parentDeckTag = "";
+        let parentDeck: Deck = null;
         for (const deckTag of this.data.settings.flashcardTags) {
             if (deckTag.startsWith("|")) {
+                // clear previous
+                if (parentDeckTag !== "" && parentDeck != null) {
+                    // remove duplicate of parentDeck.newFlashcards, it is Card[], how to self comparator
+                    const set: Set<Card> = new Set();
+                    for (const card of parentDeck.newFlashcards) {
+                        set.add(card);
+                    }
+                    parentDeck.newFlashcards = Array.from(set);
+                }
+
                 parentDeckTag = deckTag;
+                parentDeck = SRPlugin.deckTree.subdecks.filter(
+                    (deck) => deck.deckTag === parentDeckTag
+                )[0];
                 continue;
             }
             if (parentDeckTag !== "") {
-                const parentDeck = SRPlugin.deckTree.subdecks.filter(
-                    (deck) => deck.deckTag === parentDeckTag
-                )[0];
                 const tmp = SRPlugin.deckTree.subdecks.filter((deck) => deck.deckTag === deckTag);
                 if (tmp.length > 0) {
                     for (const deck of tmp) {
