@@ -512,30 +512,39 @@ export default class SRPlugin extends Plugin {
 
         let parentDeckTag = "";
         let parentDeck: Deck = null;
+
         for (const deckTag of this.data.settings.flashcardTags) {
             if (deckTag.startsWith("|")) {
-                // clear previous
+                // Clear previous deck
                 if (parentDeckTag !== "" && parentDeck != null) {
-                    // remove duplicate of parentDeck.newFlashcards, it is Card[], how to self comparator
-                    const set: Set<Card> = new Set();
+                    // Remove duplicates from parentDeck.newFlashcards based on note and cardText
+                    const uniqueCardsMap = new Map<string, Card>();
                     for (const card of parentDeck.newFlashcards) {
-                        set.add(card);
+                        const uniqueKey = `${card.note.path}-${card.cardText}`; // Use a combination of note and cardText as a unique key
+                        if (!uniqueCardsMap.has(uniqueKey)) {
+                            uniqueCardsMap.set(uniqueKey, card);
+                        }
                     }
-                    parentDeck.newFlashcards = Array.from(set);
+                    parentDeck.newFlashcards = Array.from(uniqueCardsMap.values());
                 }
 
+                // Set the new parent deck
                 parentDeckTag = deckTag;
-                parentDeck = SRPlugin.deckTree.subdecks.filter(
-                    (deck) => deck.deckTag === parentDeckTag
-                )[0];
+                parentDeck =
+                    SRPlugin.deckTree.subdecks.find((deck) => deck.deckTag === parentDeckTag) ||
+                    null;
                 continue;
             }
+
             if (parentDeckTag !== "") {
-                const tmp = SRPlugin.deckTree.subdecks.filter((deck) => deck.deckTag === deckTag);
-                if (tmp.length > 0) {
-                    for (const deck of tmp) {
-                        parentDeck.newFlashcards.push(...deck.newFlashcards);
-                        parentDeck.dueFlashcards.push(...deck.dueFlashcards);
+                const subDecks = SRPlugin.deckTree.subdecks.filter(
+                    (deck) => deck.deckTag === deckTag
+                );
+                if (subDecks.length > 0) {
+                    for (const subDeck of subDecks) {
+                        // Merge flashcards from subDeck into parentDeck
+                        parentDeck.newFlashcards.push(...subDeck.newFlashcards);
+                        parentDeck.dueFlashcards.push(...subDeck.dueFlashcards);
                     }
                 }
             }
