@@ -955,9 +955,22 @@ export class Deck {
         deckView.setAttribute("data-deck-tag", this.deckTag); // Add a data attribute for easy lookup
 
         if (/^\|\S+\|$/.test(this.deckTag)) {
-            deckView.createDiv(
-                "tree-item-name"
-            ).innerHTML = `<h3 class="tag-pane-tag-self">${this.deckTag}</h3>`;
+            let deckViewSelf = deckView.createDiv("tree-item-name");
+            deckViewSelf.innerHTML = `<h3 class="tag-pane-tag-self">${this.deckTag}</h3>`;
+            deckViewSelf.addEventListener("click", () => {
+                modal.plugin.data.historyDeck = this.deckTag;
+                modal.currentDeck = this;
+                modal.checkDeck = this.parent;
+                modal.setupCardsView();
+                this.nextCard(modal);
+                if (Platform.isMobile && 1) {
+                    if (SRPlugin.deckTree.subdecks.length > 1) {
+                        // clear all the other useless deck
+                        SRPlugin.deckTree.subdecks = [this];
+                        FlashcardModal.lastTimeDeck = this;
+                    }
+                }
+            });
             return;
         }
 

@@ -510,6 +510,26 @@ export default class SRPlugin extends Plugin {
             this.pageranks[node] = rank * 10000;
         });
 
+        let parentDeckTag = "";
+        for (const deckTag of this.data.settings.flashcardTags) {
+            if (deckTag.startsWith("|")) {
+                parentDeckTag = deckTag;
+                continue;
+            }
+            if (parentDeckTag !== "") {
+                const parentDeck = SRPlugin.deckTree.subdecks.filter(
+                    (deck) => deck.deckTag === parentDeckTag
+                )[0];
+                const tmp = SRPlugin.deckTree.subdecks.filter((deck) => deck.deckTag === deckTag);
+                if (tmp.length > 0) {
+                    for (const deck of tmp) {
+                        parentDeck.newFlashcards.push(...deck.newFlashcards);
+                        parentDeck.dueFlashcards.push(...deck.dueFlashcards);
+                    }
+                }
+            }
+        }
+
         // sort the deck names
         SRPlugin.deckTree.sortSubdecksList(this.data.settings.flashcardTags);
         SRPlugin.deckTree.sortFlashcards();
