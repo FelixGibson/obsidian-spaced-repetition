@@ -162,7 +162,19 @@ export class FlashcardModal extends Modal {
             deck.render(mainContentEl, this);
 
             // If the deckTag matches the title pattern, add it to the sidebar
-            if (/^\|\S+\|$/.test(deck.deckTag)) {
+            if (/^\||\S+\||$/.test(deck.deckTag)) {
+                const titleItem = sidebarEl.createDiv("sidebar-item");
+                titleItem.innerText = deck.deckTag.replace(/\|/g, ""); // Remove '|' characters for display
+                titleItem.addEventListener("click", () => {
+                    // Scroll to the corresponding deck in the main content
+                    const targetDeckEl = mainContentEl.querySelector(
+                        `[data-deck-tag="${deck.deckTag}"]`
+                    );
+                    if (targetDeckEl) {
+                        targetDeckEl.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
+                });
+            } else if (/^\|\S+\|$/.test(deck.deckTag)) {
                 const titleItem = sidebarEl.createDiv("sidebar-item");
                 titleItem.innerText = deck.deckTag.replace(/\|/g, ""); // Remove '|' characters for display
                 titleItem.addEventListener("click", () => {
