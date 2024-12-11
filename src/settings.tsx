@@ -133,13 +133,13 @@ export class SRSettingTab extends PluginSettingTab {
                 text
                     .setValue(this.plugin.data.settings.flashcardTags.join(" \n"))
                     .onChange((value) => {
-                        applySettingsUpdate(async () => {
-                            this.plugin.data.settings.flashcardTags = value
-                                .split(/\n+/)
-                                .map((v) => v.trim())
-                                .filter((v) => v);
-                            await this.plugin.savePluginData();
-                        });
+                        // applySettingsUpdate(async () => {
+                        //     this.plugin.data.settings.flashcardTags = value
+                        //         .split(/\n+/)
+                        //         .map((v) => v.trim())
+                        //         .filter((v) => v);
+                        //     await this.plugin.savePluginData();
+                        // });
                     })
             );
 

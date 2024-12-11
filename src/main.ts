@@ -10,7 +10,7 @@ import {
 } from "obsidian";
 import * as graph from "pagerank.js";
 
-import { SRSettingTab, SRSettings, DEFAULT_SETTINGS } from "src/settings";
+import { SRSettingTab, SRSettings, DEFAULT_SETTINGS, applySettingsUpdate } from "src/settings";
 import { FlashcardModal, Deck } from "src/flashcard-modal";
 import { StatsModal, Stats } from "src/stats-modal";
 import { ReviewQueueListView, REVIEW_QUEUE_VIEW_TYPE } from "src/sidebar";
@@ -398,6 +398,7 @@ export default class SRPlugin extends Plugin {
             this.data.buryDate = todayDate;
             this.data.buryList = [];
         }
+        await this.resetFlashcardTags();
 
         for (const tag of this.data.settings.flashcardTags) {
             SRPlugin.deckTree.createDeck([tag]);
@@ -592,6 +593,24 @@ export default class SRPlugin extends Plugin {
         this.printNoTag();
 
         this.syncLock = false;
+    }
+
+    async resetFlashcardTags() {
+        let flashcardTags: string[] = [];
+
+        for (const filePath of ["pages/flashcard.md", "pages/byte.md"]) {
+            const tmp: TAbstractFile = this.app.vault.getAbstractFileByPath(filePath);
+            if (tmp instanceof TFile) {
+                const fileText: string = await this.app.vault.read(tmp);
+                if (fileText) {
+                    const lines = fileText.split("\n");
+                    flashcardTags = flashcardTags.concat(lines);
+                }
+            }
+        }
+        this.data.settings.flashcardTags = flashcardTags;
+
+        await this.savePluginData();
     }
 
     printNoTag() {
