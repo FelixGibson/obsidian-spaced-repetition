@@ -514,8 +514,29 @@ export default class SRPlugin extends Plugin {
         let parentDeckTag = "";
         let parentDeck: Deck = null;
 
+        let parentDeckTa2 = "";
+        let parentDec2: Deck = null;
         for (const deckTag of this.data.settings.flashcardTags) {
-            if (deckTag.startsWith("|")) {
+            if (deckTag.startsWith("||")) {
+                // Clear previous deck
+                if (parentDeckTa2 !== "" && parentDec2 != null) {
+                    const uniqueCardsMap = new Map<string, Card>();
+                    for (const card of parentDec2.newFlashcards) {
+                        const uniqueKey = `${card.note.path}-${card.cardText}`; // Use a combination of note and cardText as a unique key
+                        if (!uniqueCardsMap.has(uniqueKey)) {
+                            uniqueCardsMap.set(uniqueKey, card);
+                        }
+                    }
+                    parentDec2.newFlashcards = Array.from(uniqueCardsMap.values());
+                }
+
+                // Set the new parent deck
+                parentDeckTa2 = deckTag;
+                parentDec2 =
+                    SRPlugin.deckTree.subdecks.find((deck) => deck.deckTag === parentDeckTa2) ||
+                    null;
+                continue;
+            } else if (deckTag.startsWith("|")) {
                 // Clear previous deck
                 if (parentDeckTag !== "" && parentDeck != null) {
                     // Remove duplicates from parentDeck.newFlashcards based on note and cardText
@@ -546,6 +567,18 @@ export default class SRPlugin extends Plugin {
                         // Merge flashcards from subDeck into parentDeck
                         parentDeck.newFlashcards.push(...subDeck.newFlashcards);
                         parentDeck.dueFlashcards.push(...subDeck.dueFlashcards);
+                    }
+                }
+            }
+            if (parentDeckTa2 !== "") {
+                const subDecks = SRPlugin.deckTree.subdecks.filter(
+                    (deck) => deck.deckTag === deckTag
+                );
+                if (subDecks.length > 0) {
+                    for (const subDeck of subDecks) {
+                        // Merge flashcards from subDeck into parentDeck
+                        parentDec2.newFlashcards.push(...subDeck.newFlashcards);
+                        parentDec2.dueFlashcards.push(...subDeck.dueFlashcards);
                     }
                 }
             }
