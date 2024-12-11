@@ -603,7 +603,10 @@ export default class SRPlugin extends Plugin {
             if (tmp instanceof TFile) {
                 const fileText: string = await this.app.vault.read(tmp);
                 if (fileText) {
-                    const lines = fileText.split("\n");
+                    const lines = fileText
+                        .split(/\n+/)
+                        .map((v) => v.trim())
+                        .filter((v) => v);
                     flashcardTags = flashcardTags.concat(lines);
                 }
             }
