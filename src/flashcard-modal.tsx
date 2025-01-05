@@ -753,17 +753,21 @@ export class Deck {
     public parent: Deck | null;
 
     toJSON(): Record<string, any> {
-        let maxCount = 25;
+        let maxCount = 150;
         if (this.deckTag.contains("read]]")) {
             maxCount = 3;
         } else if (this.deckTag.contains("#[[c]]")) {
-            maxCount = 50;
+            maxCount = 30;
         } else if (this.deckTag.contains("#[[p]]")) {
-            maxCount = 40;
+            maxCount = 30;
         } else if (this.deckTag.contains("#[[cquest]]") || this.deckTag.contains("#[[pquest]]")) {
-            maxCount = 10;
+            maxCount = 15;
         } else if (this.deckTag.contains("quest]]")) {
-            maxCount = 5;
+            maxCount = 15;
+        } else if (this.deckTag.startsWith("||")) {
+            maxCount = 30;
+        } else if (this.deckTag.startsWith("|")) {
+            maxCount = 30;
         }
         let dueFlashcardsJSON = [];
         let newFlashcardsJSON = [];
@@ -1154,10 +1158,11 @@ export class Deck {
 
         if (
             modal.currentCard.cardText !== undefined &&
-            (modal.currentCard.cardText.contains("#[[bt]]") ||
-                modal.currentCard.cardText.contains("//x.com") ||
-                modal.currentCard.cardText.contains("#[[b]]") ||
-                modal.currentCard.cardText.contains("#[[bquest]]"))
+            // modal.currentCard.cardText.contains("#[[bt]]") ||
+            // modal.currentCard.cardText.contains("//x.com") ||
+            // modal.currentCard.cardText.contains("#[[b]]") ||
+            // modal.currentCard.cardText.contains("#[[bquest]]") ||
+            false
         ) {
             modal.processReview(ReviewResponse.Hard);
         } else {
