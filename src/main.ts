@@ -631,6 +631,23 @@ export default class SRPlugin extends Plugin {
     async resetFlashcardTags() {
         let flashcardTags: string[] = [];
 
+        let excludeFlashcardTags: string[] = [];
+
+        for (const filePath of ["pages/b.md", "pages/excludeFlashcardTags.md"]) {
+            const tmp: TAbstractFile = this.app.vault.getAbstractFileByPath(filePath);
+            if (tmp instanceof TFile) {
+                const fileText: string = await this.app.vault.read(tmp);
+                if (fileText) {
+                    const lines = fileText
+                        .split(/\n+/)
+                        .map((v) => v.trim())
+                        .filter((v) => v);
+                    excludeFlashcardTags = excludeFlashcardTags.concat(lines);
+                    flashcardTags = flashcardTags.concat(lines);
+                }
+            }
+        }
+
         for (const filePath of ["pages/flashcard.md", "pages/byte.md"]) {
             const tmp: TAbstractFile = this.app.vault.getAbstractFileByPath(filePath);
             if (tmp instanceof TFile) {
@@ -645,22 +662,6 @@ export default class SRPlugin extends Plugin {
             }
         }
         this.data.settings.flashcardTags = flashcardTags;
-
-        let excludeFlashcardTags: string[] = [];
-
-        for (const filePath of ["pages/b.md", "pages/excludeFlashcardTags.md"]) {
-            const tmp: TAbstractFile = this.app.vault.getAbstractFileByPath(filePath);
-            if (tmp instanceof TFile) {
-                const fileText: string = await this.app.vault.read(tmp);
-                if (fileText) {
-                    const lines = fileText
-                        .split(/\n+/)
-                        .map((v) => v.trim())
-                        .filter((v) => v);
-                    excludeFlashcardTags = excludeFlashcardTags.concat(lines);
-                }
-            }
-        }
         this.data.settings.excludeFlashcardTags = excludeFlashcardTags;
 
         await this.savePluginData();
