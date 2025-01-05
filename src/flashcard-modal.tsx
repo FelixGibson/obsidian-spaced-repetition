@@ -159,6 +159,11 @@ export class FlashcardModal extends Modal {
 
         const mainContentEl = this.contentEl.createDiv("main-content");
         for (const deck of SRPlugin.deckTree.subdecks) {
+            if (this.plugin.data.settings.excludeFlashcardTags.length > 0) {
+                if (this.plugin.data.settings.excludeFlashcardTags.includes(deck.deckTag)) {
+                    continue;
+                }
+            }
             deck.render(mainContentEl, this);
 
             // If the deckTag matches the title pattern, add it to the sidebar
@@ -964,11 +969,6 @@ export class Deck {
     }
 
     render(containerEl: HTMLElement, modal: FlashcardModal): void {
-        if (modal.plugin.data.settings.excludeFlashcardTags.length > 0) {
-            if (modal.plugin.data.settings.excludeFlashcardTags.includes(this.deckTag)) {
-                return;
-            }
-        }
         const deckView: HTMLElement = containerEl.createDiv("tree-item");
         deckView.setAttribute("data-deck-tag", this.deckTag); // Add a data attribute for easy lookup
 

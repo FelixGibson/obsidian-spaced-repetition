@@ -664,7 +664,7 @@ export default class SRPlugin extends Plugin {
         this.data.settings.flashcardTags = flashcardTags;
         this.data.settings.excludeFlashcardTags = excludeFlashcardTags;
 
-        await this.savePluginData();
+        // await this.savePluginData();
     }
 
     printNoTag() {

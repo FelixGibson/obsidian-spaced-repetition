@@ -126,39 +126,39 @@ export class SRSettingTab extends PluginSettingTab {
 
         containerEl.createDiv().innerHTML = <h3>{t("FLASHCARDS")}</h3>;
 
-        new Setting(containerEl)
-            .setName(t("FLASHCARD_TAGS"))
-            .setDesc(t("FLASHCARD_TAGS_DESC"))
-            .addTextArea((text) =>
-                text
-                    .setValue(this.plugin.data.settings.flashcardTags.join(" \n"))
-                    .onChange((value) => {
-                        // applySettingsUpdate(async () => {
-                        //     this.plugin.data.settings.flashcardTags = value
-                        //         .split(/\n+/)
-                        //         .map((v) => v.trim())
-                        //         .filter((v) => v);
-                        //     await this.plugin.savePluginData();
-                        // });
-                    })
-            );
+        // new Setting(containerEl)
+        //     .setName(t("FLASHCARD_TAGS"))
+        //     .setDesc(t("FLASHCARD_TAGS_DESC"))
+        //     .addTextArea((text) =>
+        //         text
+        //             .setValue(this.plugin.data.settings.flashcardTags.join(" \n"))
+        //             .onChange((value) => {
+        //                 // applySettingsUpdate(async () => {
+        //                 //     this.plugin.data.settings.flashcardTags = value
+        //                 //         .split(/\n+/)
+        //                 //         .map((v) => v.trim())
+        //                 //         .filter((v) => v);
+        //                 //     await this.plugin.savePluginData();
+        //                 // });
+        //             })
+        //     );
 
-        new Setting(containerEl)
-            .setName(t("FLASHCARD_EXCLUDE_TAGS"))
-            .setDesc(t("FLASHCARD_EXCLUDE_TAGS_DESC"))
-            .addTextArea((text) =>
-                text
-                    .setValue(this.plugin.data.settings.excludeFlashcardTags.join("\n"))
-                    .onChange((value) => {
-                        applySettingsUpdate(async () => {
-                            this.plugin.data.settings.excludeFlashcardTags = value
-                                .split(/\n+/)
-                                .map((v) => v.trim())
-                                .filter((v) => v);
-                            await this.plugin.savePluginData();
-                        });
-                    })
-            );
+        // new Setting(containerEl)
+        //     .setName(t("FLASHCARD_EXCLUDE_TAGS"))
+        //     .setDesc(t("FLASHCARD_EXCLUDE_TAGS_DESC"))
+        //     .addTextArea((text) =>
+        //         text
+        //             .setValue(this.plugin.data.settings.excludeFlashcardTags.join("\n"))
+        //             .onChange((value) => {
+        //                 applySettingsUpdate(async () => {
+        //                     this.plugin.data.settings.excludeFlashcardTags = value
+        //                         .split(/\n+/)
+        //                         .map((v) => v.trim())
+        //                         .filter((v) => v);
+        //                     await this.plugin.savePluginData();
+        //                 });
+        //             })
+        //     );
 
         new Setting(containerEl)
             .setName("Reset cache")
