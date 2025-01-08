@@ -520,14 +520,26 @@ export default class SRPlugin extends Plugin {
             if (deckTag.startsWith("||")) {
                 // Clear previous deck
                 if (parentDeckTa2 !== "" && parentDec2 != null) {
-                    const uniqueCardsMap = new Map<string, Card>();
-                    for (const card of parentDec2.newFlashcards) {
-                        const uniqueKey = `${card.note.path}-${card.cardText}`; // Use a combination of note and cardText as a unique key
-                        if (!uniqueCardsMap.has(uniqueKey)) {
-                            uniqueCardsMap.set(uniqueKey, card);
+                    {
+                        const uniqueCardsMap = new Map<string, Card>();
+                        for (const card of parentDec2.newFlashcards) {
+                            const uniqueKey = `${card.note.path}-${card.cardText}`; // Use a combination of note and cardText as a unique key
+                            if (!uniqueCardsMap.has(uniqueKey)) {
+                                uniqueCardsMap.set(uniqueKey, card);
+                            }
                         }
+                        parentDec2.newFlashcards = Array.from(uniqueCardsMap.values());
                     }
-                    parentDec2.newFlashcards = Array.from(uniqueCardsMap.values());
+                    {
+                        const uniqueCardsMap = new Map<string, Card>();
+                        for (const card of parentDec2.dueFlashcards) {
+                            const uniqueKey = `${card.note.path}-${card.cardText}`; // Use a combination of note and cardText as a unique key
+                            if (!uniqueCardsMap.has(uniqueKey)) {
+                                uniqueCardsMap.set(uniqueKey, card);
+                            }
+                        }
+                        parentDec2.dueFlashcards = Array.from(uniqueCardsMap.values());
+                    }
                 }
 
                 // Set the new parent deck
@@ -539,15 +551,28 @@ export default class SRPlugin extends Plugin {
             } else if (deckTag.startsWith("|")) {
                 // Clear previous deck
                 if (parentDeckTag !== "" && parentDeck != null) {
-                    // Remove duplicates from parentDeck.newFlashcards based on note and cardText
-                    const uniqueCardsMap = new Map<string, Card>();
-                    for (const card of parentDeck.newFlashcards) {
-                        const uniqueKey = `${card.note.path}-${card.cardText}`; // Use a combination of note and cardText as a unique key
-                        if (!uniqueCardsMap.has(uniqueKey)) {
-                            uniqueCardsMap.set(uniqueKey, card);
+                    {
+                        // Remove duplicates from parentDeck.newFlashcards based on note and cardText
+                        const uniqueCardsMap = new Map<string, Card>();
+                        for (const card of parentDeck.newFlashcards) {
+                            const uniqueKey = `${card.note.path}-${card.cardText}`; // Use a combination of note and cardText as a unique key
+                            if (!uniqueCardsMap.has(uniqueKey)) {
+                                uniqueCardsMap.set(uniqueKey, card);
+                            }
                         }
+                        parentDeck.newFlashcards = Array.from(uniqueCardsMap.values());
                     }
-                    parentDeck.newFlashcards = Array.from(uniqueCardsMap.values());
+                    {
+                        // Remove duplicates from parentDeck.dueFlashcards based on note and cardText
+                        const uniqueCardsMap = new Map<string, Card>();
+                        for (const card of parentDeck.dueFlashcards) {
+                            const uniqueKey = `${card.note.path}-${card.cardText}`; // Use a combination of note and cardText as a unique key
+                            if (!uniqueCardsMap.has(uniqueKey)) {
+                                uniqueCardsMap.set(uniqueKey, card);
+                            }
+                        }
+                        parentDeck.dueFlashcards = Array.from(uniqueCardsMap.values());
+                    }
                 }
 
                 // Set the new parent deck
