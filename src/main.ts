@@ -399,7 +399,11 @@ export default class SRPlugin extends Plugin {
             this.data.buryList = [];
         }
         await this.resetFlashcardTags();
-
+        const isValid = this.checkTagIsValid();
+        if (!isValid) {
+            this.syncLock = false;
+            return;
+        }
         for (const tag of this.data.settings.flashcardTags) {
             SRPlugin.deckTree.createDeck([tag]);
         }
@@ -738,6 +742,27 @@ export default class SRPlugin extends Plugin {
         this.data.settings.excludeFlashcardTags = excludeFlashcardTags;
 
         // await this.savePluginData();
+    }
+
+    checkTagIsValid(): boolean {
+        const flashcardTags = this.data.settings.flashcardTags;
+        for (const tag of flashcardTags) {
+            if (tag.startsWith("#") && tag.endsWith("|")) {
+                console.log(`Invalid tag: ${tag}`);
+                new Notice(`Invalid tag: ${tag}`);
+                return false;
+            }
+        }
+        const excludeFlashcardTags = this.data.settings.excludeFlashcardTags;
+        for (const tag of excludeFlashcardTags) {
+            if (tag.startsWith("#") && tag.endsWith("|")) {
+                new Notice(`Invalid tag: ${tag}`);
+                console.log(`Invalid tag: ${tag}`);
+                return false;
+            }
+        }
+
+        return true;
     }
 
     printNoTag() {
