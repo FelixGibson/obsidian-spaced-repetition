@@ -762,17 +762,17 @@ export class Deck {
         if (this.deckTag.contains("read]]")) {
             maxCount = 3;
         } else if (this.deckTag.contains("#[[c]]")) {
-            maxCount = 30;
+            maxCount = 17;
         } else if (this.deckTag.contains("#[[p]]")) {
-            maxCount = 30;
+            maxCount = 17;
         } else if (this.deckTag.contains("#[[cquest]]") || this.deckTag.contains("#[[pquest]]")) {
             maxCount = 15;
         } else if (this.deckTag.contains("quest]]")) {
             maxCount = 15;
         } else if (this.deckTag.startsWith("||")) {
-            maxCount = 30;
+            maxCount = 17;
         } else if (this.deckTag.startsWith("|")) {
-            maxCount = 30;
+            maxCount = 17;
         }
         let dueFlashcardsJSON = [];
         let newFlashcardsJSON = [];
