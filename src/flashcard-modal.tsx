@@ -766,7 +766,7 @@ export class Deck {
         } else if (this.deckTag.contains("#[[p]]")) {
             maxCount = 17;
         } else if (this.deckTag.contains("#[[cquest]]") || this.deckTag.contains("#[[pquest]]")) {
-            maxCount = 15;
+            maxCount = 10;
         } else if (this.deckTag.contains("quest]]")) {
             maxCount = 15;
         } else if (this.deckTag.startsWith("||")) {
