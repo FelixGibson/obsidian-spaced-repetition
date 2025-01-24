@@ -363,7 +363,7 @@ export default class SRPlugin extends Plugin {
             }
         }
         const isInDuration = window.moment().utcOffset(8).isBetween(
-            window.moment().utcOffset(8).hour(9).minute(40),
+            window.moment().utcOffset(8).hour(9).minute(50),
             window.moment().utcOffset(8).hour(10).minute(0),
             undefined,
             "[]" // Include the start and end times
@@ -373,7 +373,10 @@ export default class SRPlugin extends Plugin {
             Date.now() - this.data.settings.lastCacheTime < 1000 * 60 * 60 * 23;
         const isMobile = Platform.isMobile;
         // load deckTree from cache && > 23h
-        if (isMobile || isLessThan23Hours || !isInDuration) {
+        if (
+            this.data.settings.lastCacheTime != 0 &&
+            (isMobile || isLessThan23Hours || !isInDuration)
+        ) {
             SRPlugin.deckTree = this.jsonToDeck(JSON.parse(this.data.settings.cacheDeckString));
             // if (Platform.isMobile && 1) {
             //     this.data.settings.cacheDeckString = "";

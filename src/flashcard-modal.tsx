@@ -769,6 +769,8 @@ export class Deck {
             maxCount = 10;
         } else if (this.deckTag.contains("quest]]")) {
             maxCount = 15;
+        } else if (this.deckTag.startsWith("|Backend|")) {
+            maxCount = 4;
         } else if (this.deckTag.startsWith("||")) {
             maxCount = 8;
         } else if (this.deckTag.startsWith("|")) {
