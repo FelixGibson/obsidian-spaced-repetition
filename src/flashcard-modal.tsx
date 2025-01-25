@@ -167,7 +167,7 @@ export class FlashcardModal extends Modal {
             deck.render(mainContentEl, this);
 
             // If the deckTag matches the title pattern, add it to the sidebar
-            if (/^\|\|\S+\|\|$/.test(deck.deckTag)) {
+            if (/^\|\|.+\|\|$/.test(deck.deckTag)) {
                 // Handle ||title|| case - Larger title
                 const titleItem = sidebarEl.createDiv("sidebar-item sidebar-item-large");
                 titleItem.innerText = deck.deckTag.replace(/\|\|/g, ""); // Remove '||' characters for display
@@ -180,7 +180,7 @@ export class FlashcardModal extends Modal {
                         targetDeckEl.scrollIntoView({ behavior: "smooth", block: "start" });
                     }
                 });
-            } else if (/^\|\S+\|$/.test(deck.deckTag)) {
+            } else if (/^\|.+\|$/.test(deck.deckTag)) {
                 // Handle |title| case - Smaller title
                 const titleItem = sidebarEl.createDiv("sidebar-item sidebar-item-small");
                 titleItem.innerText = deck.deckTag.replace(/\|/g, ""); // Remove '|' characters for display
@@ -974,7 +974,7 @@ export class Deck {
         const deckView: HTMLElement = containerEl.createDiv("tree-item");
         deckView.setAttribute("data-deck-tag", this.deckTag); // Add a data attribute for easy lookup
 
-        if (/^\|\S+\|$/.test(this.deckTag)) {
+        if (/^\|.+\|$/.test(this.deckTag)) {
             let deckViewSelf = deckView.createDiv("tree-item-name");
             deckViewSelf.innerHTML = `<h3 class="tag-pane-tag-self">${this.deckTag}</h3>`;
             deckViewSelf.addEventListener("click", () => {
