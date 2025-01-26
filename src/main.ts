@@ -110,7 +110,7 @@ export default class SRPlugin extends Plugin {
     }
 
     getDataFilePath(): string {
-        return `${this.manifest.id}/data.json.gz`;
+        return `.obsidian/plugins/${this.manifest.id}/data.json.gz`;
     }
 
     getDefaultData(): PluginData {
