@@ -368,14 +368,13 @@ export default class SRPlugin extends Plugin {
             undefined,
             "[]" // Include the start and end times
         );
-        const isLessThan23Hours =
+        const isLessThan10Hours =
             this.data.settings.cacheDeckString &&
-            Date.now() - this.data.settings.lastCacheTime < 1000 * 60 * 60 * 23;
+            Date.now() - this.data.settings.lastCacheTime < 1000 * 60 * 60 * 10;
         const isMobile = Platform.isMobile;
-        // load deckTree from cache && > 23h
         if (
             this.data.settings.lastCacheTime != 0 &&
-            (isMobile || isLessThan23Hours || !isInDuration)
+            (isMobile || isLessThan10Hours || !isInDuration)
         ) {
             SRPlugin.deckTree = this.jsonToDeck(JSON.parse(this.data.settings.cacheDeckString));
             // if (Platform.isMobile && 1) {
