@@ -8,6 +8,7 @@ import {
     FrontMatterCache,
     Platform,
 } from "obsidian";
+import * as pako from "pako";
 import * as graph from "pagerank.js";
 
 import { SRSettingTab, SRSettings, DEFAULT_SETTINGS, applySettingsUpdate } from "src/settings";
@@ -79,6 +80,52 @@ export default class SRPlugin extends Plugin {
     public static deckTree: Deck | null;
     public dueDatesFlashcards: Record<number, number> = {}; // Record<# of days in future, due count>
     public cardStats: Stats;
+
+    async savePluginData2() {
+        const jsonData = JSON.stringify(this.data);
+        const compressedData = pako.gzip(jsonData);
+
+        await this.app.vault.adapter.writeBinary(this.getDataFilePath(), compressedData);
+    }
+
+    // async loadPluginData() {
+    //     try {
+    //         const compressedData = await this.app.vault.adapter.readBinary(this.getDataFilePath());
+    //         const jsonData = pako.ungzip(compressedData, { to: 'string' });
+    //         this.data = JSON.parse(jsonData);
+    //     } catch (e) {
+    //         console.error('Failed to load plugin data:', e);
+    //         this.data = this.getDefaultData();
+    //     }
+    // }
+
+    async loadPluginData(): Promise<void> {
+        this.data = Object.assign({}, DEFAULT_DATA, await this.loadData());
+        this.data.settings = Object.assign({}, DEFAULT_SETTINGS, this.data.settings);
+    }
+
+    public async savePluginData(): Promise<void> {
+        await this.saveData(this.data);
+        await this.savePluginData2();
+    }
+
+    getDataFilePath(): string {
+        return `${this.manifest.id}/data.json.gz`;
+    }
+
+    getDefaultData(): PluginData {
+        return {
+            settings: this.getDefaultSettings(),
+            buryDate: "",
+            buryList: [],
+            historyDeck: null,
+        };
+    }
+
+    getDefaultSettings(): SRSettings {
+        // Define your default settings here
+        return DEFAULT_SETTINGS;
+    }
 
     jsonToCard(json: any): Card {
         const tmp: TAbstractFile = this.app.vault.getAbstractFileByPath(json.note);
@@ -1371,15 +1418,6 @@ export default class SRPlugin extends Plugin {
         }
 
         return 0;
-    }
-
-    async loadPluginData(): Promise<void> {
-        this.data = Object.assign({}, DEFAULT_DATA, await this.loadData());
-        this.data.settings = Object.assign({}, DEFAULT_SETTINGS, this.data.settings);
-    }
-
-    public async savePluginData(): Promise<void> {
-        await this.saveData(this.data);
     }
 
     initView(): void {
