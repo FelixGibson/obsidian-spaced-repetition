@@ -88,24 +88,24 @@ export default class SRPlugin extends Plugin {
         await this.app.vault.adapter.writeBinary(this.getDataFilePath(), compressedData);
     }
 
-    // async loadPluginData() {
-    //     try {
-    //         const compressedData = await this.app.vault.adapter.readBinary(this.getDataFilePath());
-    //         const jsonData = pako.ungzip(compressedData, { to: 'string' });
-    //         this.data = JSON.parse(jsonData);
-    //     } catch (e) {
-    //         console.error('Failed to load plugin data:', e);
-    //         this.data = this.getDefaultData();
-    //     }
-    // }
+    async loadPluginData2() {
+        try {
+            const compressedData = await this.app.vault.adapter.readBinary(this.getDataFilePath());
+            const jsonData = pako.ungzip(compressedData, { to: "string" });
+            this.data = JSON.parse(jsonData);
+        } catch (e) {
+            console.error("Failed to load plugin data:", e);
+            this.data = this.getDefaultData();
+        }
+    }
 
     async loadPluginData(): Promise<void> {
-        this.data = Object.assign({}, DEFAULT_DATA, await this.loadData());
-        this.data.settings = Object.assign({}, DEFAULT_SETTINGS, this.data.settings);
+        await this.loadPluginData2();
+        // this.data = Object.assign({}, DEFAULT_DATA, await this.loadData());
+        // this.data.settings = Object.assign({}, DEFAULT_SETTINGS, this.data.settings);
     }
 
     public async savePluginData(): Promise<void> {
-        await this.saveData(this.data);
         await this.savePluginData2();
     }
 
@@ -203,7 +203,9 @@ export default class SRPlugin extends Plugin {
         appIcon();
 
         this.statusBar = this.addStatusBarItem();
-        this.statusBar.setText(`profit: ${this.data.settings.profit}`);
+        if (this.data.settings) {
+            this.statusBar.setText(`profit: ${this.data.settings.profit}`);
+        }
         // this.statusBar.classList.add("mod-clickable");
         // this.statusBar.setAttribute("aria-label", t("OPEN_NOTE_FOR_REVIEW"));
         // this.statusBar.setAttribute("aria-label-position", "top");

@@ -528,7 +528,7 @@ export class FlashcardModal extends Modal {
             new Notice(`diminish : ${input}`);
             settings.profit = value + input;
         }
-        await this.plugin.saveData(settings);
+        this.plugin.savePluginData();
     }
 
     private scaleInteger(input: number): [number, number, number] {
@@ -586,7 +586,7 @@ export class FlashcardModal extends Modal {
     async burySiblingCards(tillNextDay: boolean): Promise<void> {
         if (tillNextDay) {
             this.plugin.data.buryList.push(cyrb53(this.currentCard.cardText));
-            await this.plugin.savePluginData();
+            this.plugin.savePluginData();
         }
 
         for (const sibling of this.currentCard.siblings) {
