@@ -37,6 +37,7 @@
         "dragula": "^3.7.3",
         "html5sortable": "^0.13.3",
         "pagerank.js": "^1.0.2",
+        "pako": "^2.1.0",
         "react-dnd": "^16.0.1",
         "react-dnd-html5-backend": "^16.0.1"
     }
