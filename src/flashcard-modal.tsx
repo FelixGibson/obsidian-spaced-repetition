@@ -576,7 +576,7 @@ export class FlashcardModal extends Modal {
         // phone not update
         if (!(Platform.isMobile && 1)) {
             // refresh cache
-            const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSON());
+            const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSON(false));
             this.plugin.data.settings.cacheDeckString = cacheDeckString;
             this.plugin.savePluginData();
         }
@@ -757,29 +757,42 @@ export class Deck {
     public subdecks: Deck[];
     public parent: Deck | null;
 
-    toJSON(): Record<string, any> {
+    toJSON(isRestrict: boolean): Record<string, any> {
         let maxCount = 15;
-        if (this.deckTag.contains("read]]")) {
-            maxCount = 3;
-        } else if (this.deckTag.contains("#[[c]]")) {
-            maxCount = 8;
-        } else if (this.deckTag.contains("#[[p]]")) {
-            maxCount = 8;
-        } else if (this.deckTag.contains("#[[cquest]]") || this.deckTag.contains("#[[pquest]]")) {
-            maxCount = 10;
-        } else if (this.deckTag.contains("quest]]")) {
-            maxCount = 15;
-        } else if (this.deckTag.startsWith("|Backend|")) {
-            maxCount = 4;
-        } else if (this.deckTag.startsWith("||")) {
-            maxCount = 8;
-        } else if (this.deckTag.startsWith("|")) {
-            maxCount = 8;
+
+        if (!isRestrict) {
+            maxCount = 50;
+        } else {
+            if (this.deckTag.contains("read]]")) {
+                maxCount = 3;
+            } else if (this.deckTag.contains("fri]]") || this.deckTag.contains("friv]]")) {
+                maxCount = 2;
+            } else if (this.deckTag.contains("#[[c]]")) {
+                maxCount = 8;
+            } else if (this.deckTag.contains("#[[p]]")) {
+                maxCount = 8;
+            } else if (
+                this.deckTag.contains("#[[cquest]]") ||
+                this.deckTag.contains("#[[pquest]]")
+            ) {
+                maxCount = 10;
+            } else if (this.deckTag.contains("quest]]")) {
+                maxCount = 15;
+            } else if (this.deckTag.startsWith("|Backend|")) {
+                maxCount = 4;
+            } else if (this.deckTag.startsWith("||")) {
+                maxCount = 8;
+            } else if (this.deckTag.startsWith("|")) {
+                maxCount = 8;
+            }
+            if (Math.random() < 0.1) {
+                maxCount = maxCount * 3;
+            }
         }
-        let dueFlashcardsJSON = [];
-        let newFlashcardsJSON = [];
+        const dueFlashcardsJSON = [];
+        const newFlashcardsJSON = [];
         for (let i = 0; i < Math.min(this.newFlashcards.length, maxCount); i++) {
-            let card = cardToJSON(this.newFlashcards[i]);
+            const card = cardToJSON(this.newFlashcards[i]);
             if (card !== undefined) {
                 newFlashcardsJSON.push(card);
             }
@@ -789,14 +802,14 @@ export class Deck {
             i < Math.min(this.dueFlashcards.length, maxCount - newFlashcardsJSON.length);
             i++
         ) {
-            let card = cardToJSON(this.dueFlashcards[i]);
+            const card = cardToJSON(this.dueFlashcards[i]);
             if (card !== undefined) {
                 dueFlashcardsJSON.push(card);
             }
         }
-        let subdecksJSON = [];
+        const subdecksJSON = [];
         for (let i = 0; i < this.subdecks.length; i++) {
-            let subdeck = this.subdecks[i].toJSON();
+            const subdeck = this.subdecks[i].toJSON(isRestrict);
             if (subdeck !== undefined) {
                 subdecksJSON.push(subdeck);
             }
@@ -1160,7 +1173,7 @@ export class Deck {
 
         if (
             modal.currentCard.cardText !== undefined &&
-            (modal.currentCard.cardText.contains("#[[bt]]") ||
+            (modal.currentCard.cardText.contains("#[[bv]]") ||
                 modal.currentCard.cardText.contains("//x.com") ||
                 modal.currentCard.cardText.contains("#[[b]]") ||
                 modal.currentCard.cardText.contains("#[[bquest]]"))

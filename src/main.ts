@@ -678,7 +678,7 @@ export default class SRPlugin extends Plugin {
 
         if (SRPlugin.deckTree !== null) {
             // store the deckTree to local files
-            const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSON());
+            const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSON(true));
             this.data.settings.cacheDeckString = cacheDeckString;
             this.data.settings.lastCacheTime = Date.now();
             this.savePluginData();
