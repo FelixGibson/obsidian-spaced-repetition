@@ -766,15 +766,23 @@ export class Deck {
         } else if (this.deckTag.contains("#[[p]]")) {
             maxCount = 8;
         } else if (this.deckTag.contains("#[[cquest]]") || this.deckTag.contains("#[[pquest]]")) {
-            maxCount = 10;
+            maxCount = 5;
+        } else if (this.deckTag.contains("fri")) {
+            maxCount = 2;
         } else if (this.deckTag.contains("quest]]")) {
-            maxCount = 15;
-        } else if (this.deckTag.startsWith("|Backend|")) {
-            maxCount = 4;
+            maxCount = 5;
+            // } else if (this.deckTag.startsWith("|Backend|")) {
+            //     maxCount = 4;
         } else if (this.deckTag.startsWith("||")) {
-            maxCount = 8;
+            maxCount = 15;
         } else if (this.deckTag.startsWith("|")) {
             maxCount = 8;
+        } else if (this.deckTag.contains("algorithm")) {
+            maxCount = 1;
+        } else if (this.deckTag.contains("#[[pquestv]]")) {
+            maxCount = 3;
+        } else if (this.deckTag.contains("#[[cquestv]]")) {
+            maxCount = 3;
         }
         let dueFlashcardsJSON = [];
         let newFlashcardsJSON = [];
