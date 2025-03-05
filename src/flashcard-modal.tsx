@@ -758,7 +758,7 @@ export class Deck {
     public parent: Deck | null;
 
     toJSON(): Record<string, any> {
-        let maxCount = 15;
+        let maxCount = 10;
         if (this.deckTag.contains("read]]")) {
             maxCount = 3;
         } else if (this.deckTag.contains("#[[c]]")) {
@@ -776,15 +776,15 @@ export class Deck {
             // } else if (this.deckTag.startsWith("|Backend|")) {
             //     maxCount = 4;
         } else if (this.deckTag.startsWith("||")) {
-            maxCount = 13;
+            maxCount = 10;
         } else if (this.deckTag.startsWith("|")) {
             maxCount = 8;
         } else if (this.deckTag.contains("algorithm")) {
             maxCount = 1;
         } else if (this.deckTag.contains("#[[pquestv]]")) {
-            maxCount = 3;
+            maxCount = 2;
         } else if (this.deckTag.contains("#[[cquestv]]")) {
-            maxCount = 3;
+            maxCount = 1;
         }
         let dueFlashcardsJSON = [];
         let newFlashcardsJSON = [];
