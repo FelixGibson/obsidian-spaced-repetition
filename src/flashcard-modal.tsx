@@ -765,6 +765,8 @@ export class Deck {
             maxCount = 8;
         } else if (this.deckTag.contains("#[[p]]")) {
             maxCount = 8;
+        } else if (this.deckTag.startsWith("|Collector|")) {
+            maxCount = 3;
         } else if (this.deckTag.contains("#[[cquest]]") || this.deckTag.contains("#[[pquest]]")) {
             maxCount = 5;
         } else if (this.deckTag.contains("fri")) {
@@ -774,7 +776,7 @@ export class Deck {
             // } else if (this.deckTag.startsWith("|Backend|")) {
             //     maxCount = 4;
         } else if (this.deckTag.startsWith("||")) {
-            maxCount = 15;
+            maxCount = 13;
         } else if (this.deckTag.startsWith("|")) {
             maxCount = 8;
         } else if (this.deckTag.contains("algorithm")) {
@@ -1171,8 +1173,9 @@ export class Deck {
             (modal.currentCard.cardText.contains("#[[bv]]") ||
                 modal.currentCard.cardText.contains("//x.com") ||
                 modal.currentCard.cardText.contains("#[[b]]") ||
-                modal.currentCard.cardText.contains("#[[bquest]]")) &&
-            false
+                modal.currentCard.cardText.contains("#[[bquest]]") ||
+                modal.currentCard.cardText.contains("#[[bquestv]]"))
+            // && false
         ) {
             modal.processReview(ReviewResponse.Hard);
         } else {
