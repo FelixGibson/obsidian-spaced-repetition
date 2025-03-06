@@ -758,15 +758,17 @@ export class Deck {
     public parent: Deck | null;
 
     toJSON(): Record<string, any> {
-        let maxCount = 10;
+        let maxCount = 14;
         if (this.deckTag.contains("read]]")) {
-            maxCount = 3;
+            maxCount = 2;
         } else if (this.deckTag.contains("#[[c]]")) {
             maxCount = 8;
         } else if (this.deckTag.contains("#[[p]]")) {
             maxCount = 8;
         } else if (this.deckTag.startsWith("|Collector|")) {
             maxCount = 3;
+        } else if (this.deckTag.startsWith("#[[super thinking index]]")) {
+            maxCount = 5;
         } else if (this.deckTag.contains("#[[cquest]]") || this.deckTag.contains("#[[pquest]]")) {
             maxCount = 5;
         } else if (this.deckTag.contains("fri")) {
@@ -1170,11 +1172,11 @@ export class Deck {
 
         if (
             modal.currentCard.cardText !== undefined &&
-            (modal.currentCard.cardText.contains("#[[bv]]") ||
-                modal.currentCard.cardText.contains("//x.com") ||
-                modal.currentCard.cardText.contains("#[[b]]") ||
-                modal.currentCard.cardText.contains("#[[bquest]]") ||
-                modal.currentCard.cardText.contains("#[[bquestv]]"))
+            // modal.currentCard.cardText.contains("#[[bv]]") ||
+            (modal.currentCard.cardText.contains("//x.com") ||
+                // modal.currentCard.cardText.contains("#[[b]]") ||
+                modal.currentCard.cardText.contains("#[[bquest]]"))
+            // modal.currentCard.cardText.contains("#[[bquestv]]")
             // && false
         ) {
             modal.processReview(ReviewResponse.Hard);
