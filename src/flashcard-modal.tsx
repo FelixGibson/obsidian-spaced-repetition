@@ -759,8 +759,10 @@ export class Deck {
 
     toJSON(): Record<string, any> {
         let maxCount = 14;
-        if (this.deckTag.contains("read]]")) {
-            maxCount = 2;
+        if (this.deckTag.contains("#[[backendread")) {
+            maxCount = 1;
+        } else if (this.deckTag.contains("read]]")) {
+            maxCount = 1;
         } else if (this.deckTag.contains("#[[c]]")) {
             maxCount = 8;
         } else if (this.deckTag.contains("#[[p]]")) {
@@ -768,23 +770,31 @@ export class Deck {
         } else if (this.deckTag.startsWith("|Collector|")) {
             maxCount = 3;
         } else if (this.deckTag.startsWith("#[[super thinking index]]")) {
-            maxCount = 5;
+            maxCount = 3;
         } else if (this.deckTag.contains("#[[cquest]]") || this.deckTag.contains("#[[pquest]]")) {
             maxCount = 5;
+        } else if (this.deckTag.contains("#[[zk]]") || this.deckTag.contains("#[[solidity]]")) {
+            maxCount = 1;
+        } else if (this.deckTag.contains("#[[fri]]")) {
+            maxCount = 5;
         } else if (this.deckTag.contains("fri")) {
-            maxCount = 2;
+            maxCount = 1;
         } else if (this.deckTag.contains("quest]]")) {
             maxCount = 5;
-            // } else if (this.deckTag.startsWith("|Backend|")) {
-            //     maxCount = 4;
+        } else if (this.deckTag.startsWith("|Backend|")) {
+            maxCount = 20;
+        } else if (this.deckTag.startsWith("|营销|")) {
+            maxCount = 15;
+        } else if (this.deckTag.startsWith("|Leetcode|")) {
+            maxCount = 7;
         } else if (this.deckTag.startsWith("||")) {
-            maxCount = 10;
+            maxCount = 6;
         } else if (this.deckTag.startsWith("|")) {
-            maxCount = 8;
-        } else if (this.deckTag.contains("algorithm")) {
-            maxCount = 1;
+            maxCount = 10;
+        } else if (this.deckTag.contains("algorithm") || this.deckTag.contains("leetcode-top150")) {
+            maxCount = 7;
         } else if (this.deckTag.contains("#[[pquestv]]")) {
-            maxCount = 2;
+            maxCount = 1;
         } else if (this.deckTag.contains("#[[cquestv]]")) {
             maxCount = 1;
         }
