@@ -788,7 +788,7 @@ export class Deck {
         } else if (this.deckTag.startsWith("|Leetcode|")) {
             maxCount = 7;
         } else if (this.deckTag.startsWith("||")) {
-            maxCount = 20;
+            maxCount = 30;
         } else if (this.deckTag.startsWith("|")) {
             maxCount = 15;
         } else if (this.deckTag.contains("algorithm") || this.deckTag.contains("leetcode-top150")) {
