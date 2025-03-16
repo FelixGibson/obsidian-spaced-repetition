@@ -760,9 +760,9 @@ export class Deck {
     toJSON(): Record<string, any> {
         let maxCount = 14;
         if (this.deckTag.contains("#[[backendread")) {
-            maxCount = 1;
+            maxCount = 3;
         } else if (this.deckTag.contains("read]]")) {
-            maxCount = 1;
+            maxCount = 3;
         } else if (this.deckTag.contains("#[[c]]")) {
             maxCount = 8;
         } else if (this.deckTag.contains("#[[p]]")) {
@@ -773,12 +773,12 @@ export class Deck {
             maxCount = 3;
         } else if (this.deckTag.contains("#[[cquest]]") || this.deckTag.contains("#[[pquest]]")) {
             maxCount = 5;
-        } else if (this.deckTag.contains("#[[zk]]") || this.deckTag.contains("#[[solidity]]")) {
-            maxCount = 1;
+            // } else if (this.deckTag.contains("#[[zk]]") || this.deckTag.contains("#[[solidity]]")) {
+            //     maxCount = 1;
         } else if (this.deckTag.contains("#[[fri]]")) {
             maxCount = 5;
         } else if (this.deckTag.contains("fri")) {
-            maxCount = 1;
+            maxCount = 2;
         } else if (this.deckTag.contains("quest]]")) {
             maxCount = 5;
         } else if (this.deckTag.startsWith("|Backend|")) {
@@ -794,9 +794,9 @@ export class Deck {
         } else if (this.deckTag.contains("algorithm") || this.deckTag.contains("leetcode-top150")) {
             maxCount = 7;
         } else if (this.deckTag.contains("#[[pquestv]]")) {
-            maxCount = 1;
+            maxCount = 3;
         } else if (this.deckTag.contains("#[[cquestv]]")) {
-            maxCount = 1;
+            maxCount = 3;
         }
         let dueFlashcardsJSON = [];
         let newFlashcardsJSON = [];
