@@ -144,6 +144,7 @@ export default class SRPlugin extends Plugin {
         deck.dueFlashcards = dueFlashcards;
         deck.dueFlashcardsCount = obj.dueFlashcardsCount;
         deck.totalFlashcards = obj.totalFlashcards;
+        deck.originCount = obj.originCount;
         deck.subdecks = (obj.subdecks || []).map((subdeckObj: any) =>
             this.jsonToDeck(subdeckObj, deck)
         );
@@ -678,7 +679,7 @@ export default class SRPlugin extends Plugin {
 
         if (SRPlugin.deckTree !== null) {
             // store the deckTree to local files
-            const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSON());
+            const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSONWithLimit());
             this.data.settings.cacheDeckString = cacheDeckString;
             this.data.settings.lastCacheTime = Date.now();
             this.savePluginData();

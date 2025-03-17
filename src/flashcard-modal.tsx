@@ -55,6 +55,9 @@ export class FlashcardModal extends Modal {
     public checkDeck: Deck;
     public mode: FlashcardModalMode;
     public ignoreStats: boolean;
+    public progressContainer: HTMLElement;
+    public progressBar: HTMLElement;
+    public progressText: HTMLElement;
 
     constructor(app: App, plugin: SRPlugin, ignoreStats = false) {
         super(app);
@@ -260,6 +263,10 @@ export class FlashcardModal extends Modal {
             this.processReview(ReviewResponse.Reset);
         });
         this.resetLinkView.style.float = "right";
+        // Add progress bar container
+        this.progressContainer = this.contentEl.createDiv("sr-progress-container");
+        this.progressBar = this.progressContainer.createDiv("sr-progress-bar");
+        this.progressText = this.progressContainer.createSpan("sr-progress-text");
 
         if (this.plugin.data.settings.showContextInCards) {
             this.contextView = this.contentEl.createDiv();
@@ -755,9 +762,45 @@ export class Deck {
     public dueFlashcardsCount = 0; // counts those in subdecks too
     public totalFlashcards = 0; // counts those in subdecks too
     public subdecks: Deck[];
+    public originCount = 0;
     public parent: Deck | null;
 
     toJSON(): Record<string, any> {
+        let dueFlashcardsJSON = [];
+        let newFlashcardsJSON = [];
+        for (let i = 0; i < this.newFlashcards.length; i++) {
+            let card = cardToJSON(this.newFlashcards[i]);
+            if (card !== undefined) {
+                newFlashcardsJSON.push(card);
+            }
+        }
+        for (let i = 0; i < this.dueFlashcards.length; i++) {
+            let card = cardToJSON(this.dueFlashcards[i]);
+            if (card !== undefined) {
+                dueFlashcardsJSON.push(card);
+            }
+        }
+        let subdecksJSON = [];
+        for (let i = 0; i < this.subdecks.length; i++) {
+            let subdeck = this.subdecks[i].toJSON();
+            if (subdeck !== undefined) {
+                subdecksJSON.push(subdeck);
+            }
+        }
+        return {
+            deckTag: this.deckTag,
+            newFlashcards: newFlashcardsJSON,
+            newFlashcardsCount: newFlashcardsJSON.length, // Updated line
+            dueFlashcards: dueFlashcardsJSON,
+            dueFlashcardsCount: dueFlashcardsJSON.length, // Updated line
+            totalFlashcards: this.totalFlashcards,
+            subdecks: subdecksJSON,
+            originCount: this.originCount,
+            // do not include the parent property to avoid circular references
+        };
+    }
+
+    toJSONWithLimit(): Record<string, any> {
         let maxCount = 14;
         if (this.deckTag.contains("#[[backendread")) {
             maxCount = 3;
@@ -818,11 +861,12 @@ export class Deck {
         }
         let subdecksJSON = [];
         for (let i = 0; i < this.subdecks.length; i++) {
-            let subdeck = this.subdecks[i].toJSON();
+            let subdeck = this.subdecks[i].toJSONWithLimit();
             if (subdeck !== undefined) {
                 subdecksJSON.push(subdeck);
             }
         }
+        this.originCount = dueFlashcardsJSON.length + newFlashcardsJSON.length;
         return {
             deckTag: this.deckTag,
             newFlashcards: newFlashcardsJSON,
@@ -831,6 +875,7 @@ export class Deck {
             dueFlashcardsCount: dueFlashcardsJSON.length, // Updated line
             totalFlashcards: this.totalFlashcards,
             subdecks: subdecksJSON,
+            originCount: this.originCount,
             // do not include the parent property to avoid circular references
         };
     }
@@ -1084,6 +1129,16 @@ export class Deck {
             }
             return;
         }
+
+        // Update progress bar after card navigation
+        const currentTotal = this.dueFlashcards.length + this.newFlashcards.length;
+        const progress = 1 - currentTotal / this.originCount;
+        let progressPercent = Math.round(progress * 100);
+        if (progressPercent < 0) {
+            progressPercent = 0;
+        }
+        modal.progressBar.style.width = `${progressPercent}%`;
+        modal.progressText.textContent = `${progressPercent}%`;
 
         modal.responseDiv.style.display = "none";
         modal.resetLinkView.style.display = "none";

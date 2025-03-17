@@ -161,3 +161,25 @@
     font-weight: normal; /* Normal weight for smaller titles */
     color: #444; /* Slightly lighter color */
 }
+
+.sr-progress-container {
+    width: 100%;
+    height: 20px;
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    margin: 8px 0;
+}
+
+.sr-progress-bar {
+    height: 100%;
+    background-color: #4caf50;
+    border-radius: 8px;
+    transition: width 0.3s ease;
+}
+
+.sr-progress-text {
+    color: white;
+    padding-left: 8px;
+    font-size: 12px;
+    line-height: 20px;
+}
