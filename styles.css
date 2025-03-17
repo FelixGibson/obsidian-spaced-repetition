@@ -161,8 +161,7 @@
     font-weight: normal; /* Normal weight for smaller titles */
     color: #444; /* Slightly lighter color */
 }
-
-/* Progress container */
+/* Progress container: Wraps the entire progress bar and text */
 .sr-progress-container {
     width: 100%;
     margin: 10px 0;
@@ -172,28 +171,32 @@
     gap: 8px;
 }
 
-/* Progress track */
+/* Progress track: The background track for the progress bar */
 .sr-progress-track {
     width: 100%;
     height: 12px;
-    background: var(--background-modifier-active);
+    background: var(--background-modifier-active); /* Placeholder color for the track */
     border-radius: 6px;
-    overflow: hidden;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* Ensures the progress bar doesn't overflow */
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1); /* Adds depth */
 }
 
-/* Progress bar */
+/* Progress bar: The actual bar that grows */
 .sr-progress-bar {
     height: 100%;
-    width: 0;
-    background: linear-gradient(90deg, var(--interactive-accent-light), var(--interactive-accent));
+    width: 0%; /* Starts at 0 */
+    background: linear-gradient(
+        90deg,
+        var(--interactive-accent-light),
+        var(--interactive-accent)
+    ); /* Gradient color */
     border-radius: 6px;
-    transition: width 0.4s ease-in-out;
+    transition: width 0.4s ease-in-out; /* Smooth growth animation */
 }
 
-/* Progress text */
+/* Progress text: Displays the percentage */
 .sr-progress-text {
     font-size: 0.9em;
-    color: var(--text-normal);
-    text-align: right;
+    color: var(--text-normal); /* Text color */
+    text-align: right; /* Aligns to the right */
 }

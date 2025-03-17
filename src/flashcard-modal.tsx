@@ -263,17 +263,16 @@ export class FlashcardModal extends Modal {
             this.processReview(ReviewResponse.Reset);
         });
         this.resetLinkView.style.float = "right";
-        // Add progress bar container
-        // Add progress bar container
+        // Create the Progress Bar
         this.progressContainer = this.contentEl.createDiv("sr-progress-container");
 
-        // Add progress track
+        // Add Progress Track
         const progressTrack = this.progressContainer.createDiv("sr-progress-track");
 
-        // Add progress bar inside the track
+        // Add Progress Bar inside the Track
         this.progressBar = progressTrack.createDiv("sr-progress-bar");
 
-        // Add progress percentage text
+        // Add Progress Text
         this.progressText = this.progressContainer.createSpan("sr-progress-text");
 
         if (this.plugin.data.settings.showContextInCards) {
