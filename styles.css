@@ -185,11 +185,7 @@
 .sr-progress-bar {
     height: 100%;
     width: 0%; /* Starts at 0 */
-    background: linear-gradient(
-        90deg,
-        var(--interactive-accent-light),
-        var(--interactive-accent)
-    ); /* Gradient color */
+    background: #2196f3; /* Changed to solid blue color */
     border-radius: 6px;
     transition: width 0.4s ease-in-out; /* Smooth growth animation */
 }
