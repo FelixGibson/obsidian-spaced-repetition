@@ -264,8 +264,16 @@ export class FlashcardModal extends Modal {
         });
         this.resetLinkView.style.float = "right";
         // Add progress bar container
+        // Add progress bar container
         this.progressContainer = this.contentEl.createDiv("sr-progress-container");
-        this.progressBar = this.progressContainer.createDiv("sr-progress-bar");
+
+        // Add progress track
+        const progressTrack = this.progressContainer.createDiv("sr-progress-track");
+
+        // Add progress bar inside the track
+        this.progressBar = progressTrack.createDiv("sr-progress-bar");
+
+        // Add progress percentage text
         this.progressText = this.progressContainer.createSpan("sr-progress-text");
 
         if (this.plugin.data.settings.showContextInCards) {
@@ -1138,7 +1146,9 @@ export class Deck {
             progressPercent = 0;
         }
         modal.progressBar.style.width = `${progressPercent}%`;
-        modal.progressText.textContent = `${progressPercent}%`;
+
+        // Update progress text
+        modal.progressText.textContent = `Progress: ${progressPercent}%`;
 
         modal.responseDiv.style.display = "none";
         modal.resetLinkView.style.display = "none";

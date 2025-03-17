@@ -162,24 +162,38 @@
     color: #444; /* Slightly lighter color */
 }
 
+/* Progress container */
 .sr-progress-container {
     width: 100%;
-    height: 20px;
-    background-color: #e0e0e0;
-    border-radius: 10px;
-    margin: 8px 0;
+    margin: 10px 0;
+    padding: 12px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
+/* Progress track */
+.sr-progress-track {
+    width: 100%;
+    height: 12px;
+    background: var(--background-modifier-active);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Progress bar */
 .sr-progress-bar {
     height: 100%;
-    background-color: #4caf50;
-    border-radius: 8px;
-    transition: width 0.3s ease;
+    width: 0;
+    background: linear-gradient(90deg, var(--interactive-accent-light), var(--interactive-accent));
+    border-radius: 6px;
+    transition: width 0.4s ease-in-out;
 }
 
+/* Progress text */
 .sr-progress-text {
-    color: white;
-    padding-left: 8px;
-    font-size: 12px;
-    line-height: 20px;
+    font-size: 0.9em;
+    color: var(--text-normal);
+    text-align: right;
 }
