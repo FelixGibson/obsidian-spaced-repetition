@@ -372,7 +372,8 @@ export default class SRPlugin extends Plugin {
         const isLessThan10Hours =
             this.data.settings.cacheDeckString &&
             Date.now() - this.data.settings.lastCacheTime < 1000 * 60 * 60 * 10;
-        const isMobile = Platform.isMobile;
+        // const isMobile = Platform.isMobile;
+        const isMobile = false;
         if (
             this.data.settings.lastCacheTime != 0 &&
             (isMobile || isLessThan10Hours || !isInDuration)

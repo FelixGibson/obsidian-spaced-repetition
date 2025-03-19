@@ -112,12 +112,12 @@ export class FlashcardModal extends Modal {
     private static initialized: boolean = false;
 
     onOpen(): void {
-        if (Platform.isMobile && 1) {
-            if (!FlashcardModal.initialized) {
-                this.plugin.data.historyDeck = "";
-                FlashcardModal.initialized = true;
-            }
-        }
+        // if (Platform.isMobile && 1) {
+        //     if (!FlashcardModal.initialized) {
+        //         this.plugin.data.historyDeck = "";
+        //         FlashcardModal.initialized = true;
+        //     }
+        // }
         this.decksList();
     }
 
@@ -132,24 +132,24 @@ export class FlashcardModal extends Modal {
             (deck) => deck.deckTag === this.plugin.data.historyDeck
         );
         if (this.plugin.data.historyDeck && aimDeck.length > 0) {
-            let deck = aimDeck[0];
-            if (Platform.isMobile && 1) {
-                if (FlashcardModal.lastTimeDeck) {
-                    deck = FlashcardModal.lastTimeDeck;
-                }
-            }
+            const deck = aimDeck[0];
+            // if (Platform.isMobile && 1) {
+            //     if (FlashcardModal.lastTimeDeck) {
+            //         deck = FlashcardModal.lastTimeDeck;
+            //     }
+            // }
 
             this.currentDeck = deck;
             this.checkDeck = deck.parent;
             this.setupCardsView();
             deck.nextCard(this);
-            if (Platform.isMobile && 1) {
-                if (SRPlugin.deckTree.subdecks.length > 1) {
-                    // clear all the other useless deck
-                    SRPlugin.deckTree.subdecks = [deck];
-                    FlashcardModal.lastTimeDeck = deck;
-                }
-            }
+            // if (Platform.isMobile && 1) {
+            //     if (SRPlugin.deckTree.subdecks.length > 1) {
+            //         // // clear all the other useless deck
+            //         // SRPlugin.deckTree.subdecks = [deck];
+            //         FlashcardModal.lastTimeDeck = deck;
+            //     }
+            // }
             return;
         }
 
@@ -595,13 +595,10 @@ export class FlashcardModal extends Modal {
     }
 
     nextCard(): void {
-        // phone not update
-        if (!(Platform.isMobile && 1)) {
-            // refresh cache
-            const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSON());
-            this.plugin.data.settings.cacheDeckString = cacheDeckString;
-            this.plugin.savePluginData();
-        }
+        // refresh cache
+        const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSON());
+        this.plugin.data.settings.cacheDeckString = cacheDeckString;
+        this.plugin.savePluginData();
         this.currentDeck.nextCard(this);
     }
 
@@ -1066,13 +1063,13 @@ export class Deck {
                 modal.checkDeck = this.parent;
                 modal.setupCardsView();
                 this.nextCard(modal);
-                if (Platform.isMobile && 1) {
-                    if (SRPlugin.deckTree.subdecks.length > 1) {
-                        // clear all the other useless deck
-                        SRPlugin.deckTree.subdecks = [this];
-                        FlashcardModal.lastTimeDeck = this;
-                    }
-                }
+                // if (Platform.isMobile && 1) {
+                //     if (SRPlugin.deckTree.subdecks.length > 1) {
+                //         // clear all the other useless deck
+                //         SRPlugin.deckTree.subdecks = [this];
+                //         FlashcardModal.lastTimeDeck = this;
+                //     }
+                // }
             });
             return;
         }
@@ -1095,13 +1092,13 @@ export class Deck {
             modal.checkDeck = this.parent;
             modal.setupCardsView();
             this.nextCard(modal);
-            if (Platform.isMobile && 1) {
-                if (SRPlugin.deckTree.subdecks.length > 1) {
-                    // clear all the other useless deck
-                    SRPlugin.deckTree.subdecks = [this];
-                    FlashcardModal.lastTimeDeck = this;
-                }
-            }
+            // if (Platform.isMobile && 1) {
+            //     if (SRPlugin.deckTree.subdecks.length > 1) {
+            //         // clear all the other useless deck
+            //         SRPlugin.deckTree.subdecks = [this];
+            //         FlashcardModal.lastTimeDeck = this;
+            //     }
+            // }
         });
         const deckViewInnerText: HTMLElement = deckViewInner.createDiv("tag-pane-tag-text");
         deckViewInnerText.innerHTML += `<span class="tag-pane-tag-self">${this.deckTag}</span>`;
