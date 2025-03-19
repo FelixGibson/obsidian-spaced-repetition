@@ -509,11 +509,9 @@ export class FlashcardModal extends Modal {
             this.burySiblingCards(true);
         }
 
-        if (!(Platform.isMobile && 1)) {
-            this.app.vault.modify(this.currentCard.note, fileText);
-            // random score
-            this.ding("Good Job" + " " + 0.3);
-        }
+        this.app.vault.modify(this.currentCard.note, fileText);
+        // random score
+        this.ding("Good Job" + " " + 0.3);
 
         this.nextCard();
     }
@@ -848,6 +846,7 @@ export class Deck {
         } else if (this.deckTag.contains("#[[cquestv]]")) {
             maxCount = 3;
         }
+        maxCount = maxCount * 3;
         let dueFlashcardsJSON = [];
         let newFlashcardsJSON = [];
         for (let i = 0; i < Math.min(this.newFlashcards.length, maxCount); i++) {
