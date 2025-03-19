@@ -11,6 +11,7 @@ export default {
     HARD: "Hard",
     GOOD: "Good",
     EASY: "Easy",
+    SKIP: "Skip",
     SHOW_ANSWER: "Show Answer",
     CARD_PROGRESS_RESET: "Card's progress has been reset.",
 

@@ -9,7 +9,7 @@
 .sr-response {
     display: inline-grid;
     width: 100%;
-    grid-template-columns: auto auto auto;
+    grid-template-columns: repeat(4, minmax(0, 1fr)); /* Changed to 4 equal columns */
     position: absolute;
     bottom: 0;
 }
@@ -47,14 +47,17 @@
     height: 2px;
 }
 
+#sr-skip-btn,
 #sr-hard-btn,
 #sr-good-btn,
 #sr-easy-btn {
     height: 48px;
     margin: auto;
     color: #ffffff;
+    min-width: 60px; /* Added minimum width */
 }
 
+#sr-skip-btn,
 #sr-hard-btn {
     background-color: #f44336;
 }
@@ -95,10 +98,12 @@
         width: 95% !important;
     }
 
+    #sr-skip-btn,
     #sr-hard-btn,
     #sr-good-btn,
     #sr-easy-btn {
-        width: 100px;
+        min-width: 40px; /* Smaller min-width for mobile */
+        padding: 0 8px; /* Reduced padding */
     }
 }
 

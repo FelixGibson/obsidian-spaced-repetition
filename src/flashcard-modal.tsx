@@ -42,6 +42,7 @@ export class FlashcardModal extends Modal {
     public answerBtn: HTMLElement;
     public flashcardView: HTMLElement;
     public hardBtn: HTMLElement;
+    public skipBtn: HTMLElement;
     public goodBtn: HTMLElement;
     public easyBtn: HTMLElement;
     public nextBtn: HTMLElement;
@@ -308,6 +309,14 @@ export class FlashcardModal extends Modal {
             this.processReview(ReviewResponse.Easy);
         });
         this.responseDiv.appendChild(this.easyBtn);
+
+        this.skipBtn = document.createElement("button");
+        this.skipBtn.setAttribute("id", "sr-skip-btn");
+        this.skipBtn.setText(t("SKIP"));
+        this.skipBtn.addEventListener("click", () => {
+            this.processReview(ReviewResponse.Skip);
+        });
+        this.responseDiv.appendChild(this.skipBtn);
         this.responseDiv.style.display = "none";
 
         this.answerBtn = this.contentEl.createDiv();
@@ -323,6 +332,7 @@ export class FlashcardModal extends Modal {
             this.responseDiv.addClass("sr-ignorestats-response");
             this.easyBtn.addClass("sr-ignorestats-btn");
             this.hardBtn.addClass("sr-ignorestats-btn");
+            this.skipBtn.addClass("sr-ignorestats-btn");
         }
     }
 
@@ -1228,14 +1238,17 @@ export class Deck {
             // Same for mobile/desktop
             modal.hardBtn.setText(`${t("HARD")}`);
             modal.easyBtn.setText(`${t("EASY")}`);
+            modal.skipBtn.setText(`${t("SKIP")}`);
         } else if (Platform.isMobile) {
             modal.hardBtn.setText(textInterval(hardInterval, true));
             modal.goodBtn.setText(textInterval(goodInterval, true));
             modal.easyBtn.setText(textInterval(easyInterval, true));
+            // modal.skipBtn.setText(textInterval(easyInterval, true));
         } else {
             modal.hardBtn.setText(`${t("HARD")} - ${textInterval(hardInterval, false)}`);
             modal.goodBtn.setText(`${t("GOOD")} - ${textInterval(goodInterval, false)}`);
             modal.easyBtn.setText(`${t("EASY")} - ${textInterval(easyInterval, false)}`);
+            // modal.skipBtn.setText(`${t("SKIP")} - ${textInterval(easyInterval, false)}`);
         }
 
         if (modal.plugin.data.settings.showContextInCards)
