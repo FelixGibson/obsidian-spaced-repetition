@@ -1053,7 +1053,11 @@ export class Deck {
     render(containerEl: HTMLElement, modal: FlashcardModal): void {
         const deckView: HTMLElement = containerEl.createDiv("tree-item");
         deckView.setAttribute("data-deck-tag", this.deckTag); // Add a data attribute for easy lookup
-
+        const progress =
+            1 - (this.dueFlashcards.length + this.newFlashcards.length) / this.originCount;
+        if (progress === 1) {
+            deckView.style.opacity = "0.5";
+        }
         if (/^\|.+\|$/.test(this.deckTag)) {
             let deckViewSelf = deckView.createDiv("tree-item-name");
             deckViewSelf.innerHTML = `<h3 class="tag-pane-tag-self">${this.deckTag}</h3>`;
