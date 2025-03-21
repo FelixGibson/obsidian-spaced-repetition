@@ -853,7 +853,7 @@ export class Deck {
         } else if (this.deckTag.contains("#[[cquestv]]")) {
             maxCount = 3;
         }
-        maxCount = maxCount * 3;
+        maxCount = maxCount * 2;
         let dueFlashcardsJSON = [];
         let newFlashcardsJSON = [];
         for (let i = 0; i < Math.min(this.newFlashcards.length, maxCount); i++) {
