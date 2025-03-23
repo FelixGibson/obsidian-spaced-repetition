@@ -24,7 +24,7 @@ export interface SRSettings {
     singlelineReversedCardSeparator: string;
     multilineCardSeparator: string;
     cacheDeckString: string;
-    lastCacheTime: number;
+    lastSyncDate: string;
     multilineReversedCardSeparator: string;
     // notes
     tagsToReview: string[];
@@ -62,7 +62,7 @@ export const DEFAULT_SETTINGS: SRSettings = {
     singlelineReversedCardSeparator: ":::",
     multilineCardSeparator: "?",
     cacheDeckString: "",
-    lastCacheTime: 0,
+    lastSyncDate: "",
     multilineReversedCardSeparator: "??",
     // notes
     tagsToReview: ["#review"],
@@ -168,7 +168,7 @@ export class SRSettingTab extends PluginSettingTab {
                     .setIcon("reset")
                     .setTooltip(t("RESET_DEFAULT"))
                     .onClick(async () => {
-                        this.plugin.data.settings.lastCacheTime = 0;
+                        this.plugin.data.settings.lastSyncDate = "";
                         SRPlugin.deckTree = undefined;
                         await this.plugin.savePluginData();
                         this.display();

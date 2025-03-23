@@ -363,25 +363,15 @@ export default class SRPlugin extends Plugin {
                 return;
             }
         }
-        const isInDuration = window.moment().utcOffset(8).isBetween(
-            window.moment().utcOffset(8).hour(9).minute(50),
-            window.moment().utcOffset(8).hour(10).minute(0),
-            undefined,
-            "[]" // Include the start and end times
-        );
-        const isLessThan10Hours =
-            this.data.settings.cacheDeckString &&
-            Date.now() - this.data.settings.lastCacheTime < 1000 * 60 * 60 * 10;
-        // const isMobile = Platform.isMobile;
-        const isMobile = false;
-        if (
-            this.data.settings.lastCacheTime != 0 &&
-            (isMobile || isLessThan10Hours || !isInDuration)
-        ) {
+
+        // 获取当前北京时间
+        const now = window.moment().utcOffset(8); // 设置为 UTC+8
+        const todayDate = now.format("YYYY-MM-DD");
+
+        const isFirstSyncToday = todayDate !== this.data.settings.lastSyncDate;
+
+        if (!isFirstSyncToday) {
             SRPlugin.deckTree = this.jsonToDeck(JSON.parse(this.data.settings.cacheDeckString));
-            // if (Platform.isMobile && 1) {
-            //     this.data.settings.cacheDeckString = "";
-            // }
             if (this.data.settings.showDebugMessages) {
                 console.log(`SR: ${t("DECKS")}`, SRPlugin.deckTree);
             }
@@ -400,8 +390,6 @@ export default class SRPlugin extends Plugin {
             matureCount: 0,
         };
 
-        const now = window.moment(Date.now());
-        const todayDate: string = now.format("YYYY-MM-DD");
         // clear bury list if we've changed dates
         if (todayDate !== this.data.buryDate) {
             this.data.buryDate = todayDate;
@@ -682,7 +670,7 @@ export default class SRPlugin extends Plugin {
             // store the deckTree to local files
             const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSONWithLimit());
             this.data.settings.cacheDeckString = cacheDeckString;
-            this.data.settings.lastCacheTime = Date.now();
+            this.data.settings.lastSyncDate = now.format("YYYY-MM-DD");
             this.savePluginData();
         }
 
