@@ -512,60 +512,7 @@ export default class SRPlugin extends Plugin {
             this.pageranks[node] = rank * 10000;
         });
 
-        let parentDeckTag = "";
-        let parentDeck: Deck = null;
-
-        let parentDeckTa2 = "";
-        let parentDec2: Deck = null;
-        for (const deckTag of this.data.settings.flashcardTags) {
-            if (deckTag.startsWith("||")) {
-                this.deduplicateDeckCards(parentDec2);
-
-                // Set the new parent deck
-                parentDeckTa2 = deckTag;
-                parentDec2 =
-                    SRPlugin.deckTree.subdecks.find((deck) => deck.deckTag === parentDeckTa2) ||
-                    null;
-                continue;
-            } else if (deckTag.startsWith("|")) {
-                this.deduplicateDeckCards(parentDeck);
-
-                // Set the new parent deck
-                parentDeckTag = deckTag;
-                parentDeck =
-                    SRPlugin.deckTree.subdecks.find((deck) => deck.deckTag === parentDeckTag) ||
-                    null;
-                continue;
-            }
-
-            if (parentDeckTag !== "") {
-                const subDecks = SRPlugin.deckTree.subdecks.filter(
-                    (deck) => deck.deckTag === deckTag
-                );
-                if (subDecks.length > 0) {
-                    for (const subDeck of subDecks) {
-                        // Merge flashcards from subDeck into parentDeck
-                        parentDeck.newFlashcards.push(...subDeck.newFlashcards);
-                        parentDeck.dueFlashcards.push(...subDeck.dueFlashcards);
-                    }
-                }
-            }
-            if (parentDeckTa2 !== "") {
-                const subDecks = SRPlugin.deckTree.subdecks.filter(
-                    (deck) => deck.deckTag === deckTag
-                );
-                if (subDecks.length > 0) {
-                    for (const subDeck of subDecks) {
-                        // Merge flashcards from subDeck into parentDeck
-                        parentDec2.newFlashcards.push(...subDeck.newFlashcards);
-                        parentDec2.dueFlashcards.push(...subDeck.dueFlashcards);
-                    }
-                }
-            }
-        }
-
-        this.deduplicateDeckCards(parentDec2);
-        this.deduplicateDeckCards(parentDeck);
+        this.processDeckHierarchy(); // 替换原来的for循环逻辑
 
         // sort the deck names
         SRPlugin.deckTree.sortSubdecksList(this.data.settings.flashcardTags);
@@ -626,6 +573,51 @@ export default class SRPlugin extends Plugin {
             }
         }
         return Array.from(uniqueCardsMap.values());
+    }
+
+    private processDeckHierarchy(): void {
+        const maxLevel = 6;
+        const deckLevels: DeckLevel[] = Array.from({ length: maxLevel }, () => ({
+            prefix: "",
+            parentDeck: null,
+        }));
+
+        for (const deckTag of this.data.settings.flashcardTags) {
+            const level = (deckTag.match(/^\|+/)?.[0]?.length || 0) - 1;
+
+            // 处理层级标记
+            if (level >= 0 && level < maxLevel) {
+                // 处理前一个层级的卡片去重
+                if (deckLevels[level].prefix) {
+                    this.deduplicateDeckCards(deckLevels[level].parentDeck);
+                }
+
+                // 设置新层级
+                deckLevels[level].prefix = deckTag;
+                deckLevels[level].parentDeck =
+                    SRPlugin.deckTree.subdecks.find((deck) => deck.deckTag === deckTag) || null;
+                continue;
+            }
+
+            // 合并子卡片到所有父层级
+            for (let l = maxLevel - 1; l >= 0; l--) {
+                if (!deckLevels[l].prefix) continue;
+
+                const subDecks = SRPlugin.deckTree.subdecks.filter(
+                    (deck) => deck.deckTag === deckTag
+                );
+
+                if (subDecks.length > 0) {
+                    for (const subDeck of subDecks) {
+                        deckLevels[l].parentDeck?.newFlashcards.push(...subDeck.newFlashcards);
+                        deckLevels[l].parentDeck?.dueFlashcards.push(...subDeck.dueFlashcards);
+                    }
+                }
+            }
+        }
+
+        // 最终去重所有层级
+        deckLevels.forEach((level) => this.deduplicateDeckCards(level.parentDeck));
     }
 
     async resetFlashcardTags() {
@@ -1330,4 +1322,10 @@ function getCardContext(cardLine: number, headings: HeadingCache[]): string {
         context += headingObj.heading + " > ";
     }
     return context.slice(0, -3);
+}
+
+// 新增接口定义
+interface DeckLevel {
+    prefix: string;
+    parentDeck: Deck | null;
 }
