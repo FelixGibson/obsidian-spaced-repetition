@@ -817,7 +817,7 @@ export class Deck {
         if (this.deckTag.contains("#[[backendread")) {
             maxCount = 3;
         } else if (this.deckTag.contains("read]]")) {
-            maxCount = 3;
+            maxCount = 1;
         } else if (this.deckTag.contains("#[[c]]")) {
             maxCount = 8;
         } else if (this.deckTag.contains("#[[p]]")) {
@@ -827,7 +827,7 @@ export class Deck {
         } else if (this.deckTag.startsWith("#[[super thinking index]]")) {
             maxCount = 3;
         } else if (this.deckTag.contains("#[[cquest]]") || this.deckTag.contains("#[[pquest]]")) {
-            maxCount = 5;
+            maxCount = 1;
             // } else if (this.deckTag.contains("#[[zk]]") || this.deckTag.contains("#[[solidity]]")) {
             //     maxCount = 1;
         } else if (this.deckTag.contains("#[[fri]]")) {
