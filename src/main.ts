@@ -340,222 +340,229 @@ export default class SRPlugin extends Plugin {
         }
         this.syncLock = true;
 
-        // reset notes stuff
-        graph.reset();
-        this.easeByPath = {};
-        this.incomingLinks = {};
-        this.pageranks = {};
-        this.dueNotesCount = 0;
-        this.dueDatesNotes = {};
-        this.reviewDecks = {};
+        try {
+            // reset notes stuff
+            graph.reset();
+            this.easeByPath = {};
+            this.incomingLinks = {};
+            this.pageranks = {};
+            this.dueNotesCount = 0;
+            this.dueDatesNotes = {};
+            this.reviewDecks = {};
 
-        // if the history is not null, just restore deckTree and return
-        if (SRPlugin.deckTree !== undefined) {
-            const arrayOld = SRPlugin.deckTree.getSubdecksList(
-                this.data.settings.excludeFlashcardTags
-            );
-            const arrayNew = this.data.settings.flashcardTags;
-            const isSame =
-                arrayOld.length === arrayNew.length &&
-                arrayOld.every((value, index) => value === arrayNew[index]);
-            if (isSame) {
+            // if the history is not null, just restore deckTree and return
+            if (SRPlugin.deckTree !== undefined) {
+                const arrayOld = SRPlugin.deckTree.getSubdecksList(
+                    this.data.settings.excludeFlashcardTags
+                );
+                const arrayNew = this.data.settings.flashcardTags;
+                const isSame =
+                    arrayOld.length === arrayNew.length &&
+                    arrayOld.every((value, index) => value === arrayNew[index]);
+                if (isSame) {
+                    this.syncLock = false;
+                    return;
+                }
+            }
+
+            // 获取当前北京时间
+            const now = window.moment().utcOffset(8); // 设置为 UTC+8
+            const todayDate = now.format("YYYY-MM-DD");
+
+            const isFirstSyncToday = todayDate !== this.data.settings.lastSyncDate;
+
+            if (!isFirstSyncToday) {
+                SRPlugin.deckTree = this.jsonToDeck(JSON.parse(this.data.settings.cacheDeckString));
+                if (this.data.settings.showDebugMessages) {
+                    console.log(`SR: ${t("DECKS")}`, SRPlugin.deckTree);
+                }
                 this.syncLock = false;
                 return;
             }
-        }
 
-        // 获取当前北京时间
-        const now = window.moment().utcOffset(8); // 设置为 UTC+8
-        const todayDate = now.format("YYYY-MM-DD");
+            // reset flashcards stuff
+            SRPlugin.deckTree = new Deck("root", null);
+            this.dueDatesFlashcards = {};
+            this.cardStats = {
+                eases: {},
+                intervals: {},
+                newCount: 0,
+                youngCount: 0,
+                matureCount: 0,
+            };
 
-        const isFirstSyncToday = todayDate !== this.data.settings.lastSyncDate;
+            // clear bury list if we've changed dates
+            if (todayDate !== this.data.buryDate) {
+                this.data.buryDate = todayDate;
+                this.data.buryList = [];
+            }
+            await this.resetFlashcardTags();
+            const isValid = this.checkTagIsValid();
+            if (!isValid) {
+                this.syncLock = false;
+                return;
+            }
+            for (const tag of this.data.settings.flashcardTags) {
+                SRPlugin.deckTree.createDeck([tag]);
+            }
 
-        if (!isFirstSyncToday) {
-            SRPlugin.deckTree = this.jsonToDeck(JSON.parse(this.data.settings.cacheDeckString));
+            const notes: TFile[] = this.app.vault.getMarkdownFiles();
+            for (const note of notes) {
+                if (
+                    this.data.settings.noteFoldersToIgnore.some((folder) =>
+                        note.path.startsWith(folder)
+                    )
+                ) {
+                    continue;
+                }
+
+                if (this.incomingLinks[note.path] === undefined) {
+                    this.incomingLinks[note.path] = [];
+                }
+
+                const links = this.app.metadataCache.resolvedLinks[note.path] || {};
+                for (const targetPath in links) {
+                    if (this.incomingLinks[targetPath] === undefined)
+                        this.incomingLinks[targetPath] = [];
+
+                    // markdown files only
+                    if (targetPath.split(".").pop().toLowerCase() === "md") {
+                        this.incomingLinks[targetPath].push({
+                            sourcePath: note.path,
+                            linkCount: links[targetPath],
+                        });
+
+                        graph.link(note.path, targetPath, links[targetPath]);
+                    }
+                }
+
+                const deckPath: string[] = this.findDeckPath(note);
+                const flashcardsInNoteAvgEase: number = await this.findFlashcardsInNote(
+                    note,
+                    deckPath
+                );
+
+                if (flashcardsInNoteAvgEase > 0) {
+                    this.easeByPath[note.path] = flashcardsInNoteAvgEase;
+                }
+
+                const fileCachedData = this.app.metadataCache.getFileCache(note) || {};
+
+                const frontmatter: FrontMatterCache | Record<string, unknown> =
+                    fileCachedData.frontmatter || {};
+                const tags = getAllTags(fileCachedData) || [];
+
+                let shouldIgnore = true;
+                const matchedNoteTags = [];
+
+                for (const tagToReview of this.data.settings.tagsToReview) {
+                    if (
+                        tags.some((tag) => tag === tagToReview || tag.startsWith(tagToReview + "/"))
+                    ) {
+                        if (!Object.prototype.hasOwnProperty.call(this.reviewDecks, tagToReview)) {
+                            this.reviewDecks[tagToReview] = new ReviewDeck(tagToReview);
+                        }
+                        matchedNoteTags.push(tagToReview);
+                        shouldIgnore = false;
+                        break;
+                    }
+                }
+                if (shouldIgnore) {
+                    continue;
+                }
+
+                // file has no scheduling information
+                if (
+                    !(
+                        Object.prototype.hasOwnProperty.call(frontmatter, "sr-due") &&
+                        Object.prototype.hasOwnProperty.call(frontmatter, "sr-interval") &&
+                        Object.prototype.hasOwnProperty.call(frontmatter, "sr-ease")
+                    )
+                ) {
+                    for (const matchedNoteTag of matchedNoteTags) {
+                        this.reviewDecks[matchedNoteTag].newNotes.push(note);
+                    }
+                    continue;
+                }
+
+                const dueUnix: number = window
+                    .moment(frontmatter["sr-due"], ["YYYY-MM-DD", "DD-MM-YYYY", "ddd MMM DD YYYY"])
+                    .valueOf();
+
+                for (const matchedNoteTag of matchedNoteTags) {
+                    this.reviewDecks[matchedNoteTag].scheduledNotes.push({ note, dueUnix });
+                    if (dueUnix <= now.valueOf()) {
+                        this.reviewDecks[matchedNoteTag].dueNotesCount++;
+                    }
+                }
+
+                if (Object.prototype.hasOwnProperty.call(this.easeByPath, note.path)) {
+                    this.easeByPath[note.path] =
+                        (this.easeByPath[note.path] + frontmatter["sr-ease"]) / 2;
+                } else {
+                    this.easeByPath[note.path] = frontmatter["sr-ease"];
+                }
+
+                if (dueUnix <= now.valueOf()) {
+                    this.dueNotesCount++;
+                }
+
+                const nDays: number = Math.ceil((dueUnix - now.valueOf()) / (24 * 3600 * 1000));
+                if (!Object.prototype.hasOwnProperty.call(this.dueDatesNotes, nDays)) {
+                    this.dueDatesNotes[nDays] = 0;
+                }
+                this.dueDatesNotes[nDays]++;
+            }
+
+            graph.rank(0.85, 0.000001, (node: string, rank: number) => {
+                this.pageranks[node] = rank * 10000;
+            });
+
+            this.processDeckHierarchy(); // 替换原来的for循环逻辑
+
+            // sort the deck names
+            SRPlugin.deckTree.sortSubdecksList(this.data.settings.flashcardTags);
+            SRPlugin.deckTree.sortFlashcards();
             if (this.data.settings.showDebugMessages) {
+                console.log(`SR: ${t("EASES")}`, this.easeByPath);
                 console.log(`SR: ${t("DECKS")}`, SRPlugin.deckTree);
             }
+
+            if (SRPlugin.deckTree !== null) {
+                // store the deckTree to local files
+                const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSONWithLimit());
+                this.data.settings.cacheDeckString = cacheDeckString;
+                this.data.settings.lastSyncDate = now.format("YYYY-MM-DD");
+                this.savePluginData();
+            }
+
+            for (const deckKey in this.reviewDecks) {
+                this.reviewDecks[deckKey].sortNotes(this.pageranks);
+            }
+
+            if (this.data.settings.showDebugMessages) {
+                console.log(
+                    "SR: " +
+                        t("SYNC_TIME_TAKEN", {
+                            t: Date.now() - now.valueOf(),
+                        })
+                );
+            }
+
+            // this.statusBar.setText(
+            //     t("STATUS_BAR", {
+            //         dueNotesCount: this.dueNotesCount,
+            //         dueFlashcardsCount: SRPlugin.deckTree.dueFlashcardsCount,
+            //     })
+            // );
+            if (this.reviewQueueView !== undefined) {
+                this.reviewQueueView.redraw();
+            }
+
+            this.printNoTag();
+        } finally {
             this.syncLock = false;
-            return;
         }
-
-        // reset flashcards stuff
-        SRPlugin.deckTree = new Deck("root", null);
-        this.dueDatesFlashcards = {};
-        this.cardStats = {
-            eases: {},
-            intervals: {},
-            newCount: 0,
-            youngCount: 0,
-            matureCount: 0,
-        };
-
-        // clear bury list if we've changed dates
-        if (todayDate !== this.data.buryDate) {
-            this.data.buryDate = todayDate;
-            this.data.buryList = [];
-        }
-        await this.resetFlashcardTags();
-        const isValid = this.checkTagIsValid();
-        if (!isValid) {
-            this.syncLock = false;
-            return;
-        }
-        for (const tag of this.data.settings.flashcardTags) {
-            SRPlugin.deckTree.createDeck([tag]);
-        }
-
-        const notes: TFile[] = this.app.vault.getMarkdownFiles();
-        for (const note of notes) {
-            if (
-                this.data.settings.noteFoldersToIgnore.some((folder) =>
-                    note.path.startsWith(folder)
-                )
-            ) {
-                continue;
-            }
-
-            if (this.incomingLinks[note.path] === undefined) {
-                this.incomingLinks[note.path] = [];
-            }
-
-            const links = this.app.metadataCache.resolvedLinks[note.path] || {};
-            for (const targetPath in links) {
-                if (this.incomingLinks[targetPath] === undefined)
-                    this.incomingLinks[targetPath] = [];
-
-                // markdown files only
-                if (targetPath.split(".").pop().toLowerCase() === "md") {
-                    this.incomingLinks[targetPath].push({
-                        sourcePath: note.path,
-                        linkCount: links[targetPath],
-                    });
-
-                    graph.link(note.path, targetPath, links[targetPath]);
-                }
-            }
-
-            const deckPath: string[] = this.findDeckPath(note);
-            const flashcardsInNoteAvgEase: number = await this.findFlashcardsInNote(note, deckPath);
-
-            if (flashcardsInNoteAvgEase > 0) {
-                this.easeByPath[note.path] = flashcardsInNoteAvgEase;
-            }
-
-            const fileCachedData = this.app.metadataCache.getFileCache(note) || {};
-
-            const frontmatter: FrontMatterCache | Record<string, unknown> =
-                fileCachedData.frontmatter || {};
-            const tags = getAllTags(fileCachedData) || [];
-
-            let shouldIgnore = true;
-            const matchedNoteTags = [];
-
-            for (const tagToReview of this.data.settings.tagsToReview) {
-                if (tags.some((tag) => tag === tagToReview || tag.startsWith(tagToReview + "/"))) {
-                    if (!Object.prototype.hasOwnProperty.call(this.reviewDecks, tagToReview)) {
-                        this.reviewDecks[tagToReview] = new ReviewDeck(tagToReview);
-                    }
-                    matchedNoteTags.push(tagToReview);
-                    shouldIgnore = false;
-                    break;
-                }
-            }
-            if (shouldIgnore) {
-                continue;
-            }
-
-            // file has no scheduling information
-            if (
-                !(
-                    Object.prototype.hasOwnProperty.call(frontmatter, "sr-due") &&
-                    Object.prototype.hasOwnProperty.call(frontmatter, "sr-interval") &&
-                    Object.prototype.hasOwnProperty.call(frontmatter, "sr-ease")
-                )
-            ) {
-                for (const matchedNoteTag of matchedNoteTags) {
-                    this.reviewDecks[matchedNoteTag].newNotes.push(note);
-                }
-                continue;
-            }
-
-            const dueUnix: number = window
-                .moment(frontmatter["sr-due"], ["YYYY-MM-DD", "DD-MM-YYYY", "ddd MMM DD YYYY"])
-                .valueOf();
-
-            for (const matchedNoteTag of matchedNoteTags) {
-                this.reviewDecks[matchedNoteTag].scheduledNotes.push({ note, dueUnix });
-                if (dueUnix <= now.valueOf()) {
-                    this.reviewDecks[matchedNoteTag].dueNotesCount++;
-                }
-            }
-
-            if (Object.prototype.hasOwnProperty.call(this.easeByPath, note.path)) {
-                this.easeByPath[note.path] =
-                    (this.easeByPath[note.path] + frontmatter["sr-ease"]) / 2;
-            } else {
-                this.easeByPath[note.path] = frontmatter["sr-ease"];
-            }
-
-            if (dueUnix <= now.valueOf()) {
-                this.dueNotesCount++;
-            }
-
-            const nDays: number = Math.ceil((dueUnix - now.valueOf()) / (24 * 3600 * 1000));
-            if (!Object.prototype.hasOwnProperty.call(this.dueDatesNotes, nDays)) {
-                this.dueDatesNotes[nDays] = 0;
-            }
-            this.dueDatesNotes[nDays]++;
-        }
-
-        graph.rank(0.85, 0.000001, (node: string, rank: number) => {
-            this.pageranks[node] = rank * 10000;
-        });
-
-        this.processDeckHierarchy(); // 替换原来的for循环逻辑
-
-        // sort the deck names
-        SRPlugin.deckTree.sortSubdecksList(this.data.settings.flashcardTags);
-        SRPlugin.deckTree.sortFlashcards();
-        if (this.data.settings.showDebugMessages) {
-            console.log(`SR: ${t("EASES")}`, this.easeByPath);
-            console.log(`SR: ${t("DECKS")}`, SRPlugin.deckTree);
-        }
-
-        if (SRPlugin.deckTree !== null) {
-            // store the deckTree to local files
-            const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSONWithLimit());
-            this.data.settings.cacheDeckString = cacheDeckString;
-            this.data.settings.lastSyncDate = now.format("YYYY-MM-DD");
-            this.savePluginData();
-        }
-
-        for (const deckKey in this.reviewDecks) {
-            this.reviewDecks[deckKey].sortNotes(this.pageranks);
-        }
-
-        if (this.data.settings.showDebugMessages) {
-            console.log(
-                "SR: " +
-                    t("SYNC_TIME_TAKEN", {
-                        t: Date.now() - now.valueOf(),
-                    })
-            );
-        }
-
-        // this.statusBar.setText(
-        //     t("STATUS_BAR", {
-        //         dueNotesCount: this.dueNotesCount,
-        //         dueFlashcardsCount: SRPlugin.deckTree.dueFlashcardsCount,
-        //     })
-        // );
-        if (this.reviewQueueView !== undefined) {
-            this.reviewQueueView.redraw();
-        }
-
-        this.printNoTag();
-
-        this.syncLock = false;
     }
 
     private deduplicateDeckCards(deck: Deck): void {
