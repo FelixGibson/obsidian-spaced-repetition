@@ -519,15 +519,7 @@ export default class SRPlugin extends Plugin {
         let parentDec2: Deck = null;
         for (const deckTag of this.data.settings.flashcardTags) {
             if (deckTag.startsWith("||")) {
-                // Clear previous deck
-                if (parentDeckTa2 !== "" && parentDec2 != null) {
-                    {
-                        parentDec2.newFlashcards = this.deduplicateCards(parentDec2.newFlashcards);
-                    }
-                    {
-                        parentDec2.dueFlashcards = this.deduplicateCards(parentDec2.dueFlashcards);
-                    }
-                }
+                this.deduplicateDeckCards(parentDec2);
 
                 // Set the new parent deck
                 parentDeckTa2 = deckTag;
@@ -536,15 +528,7 @@ export default class SRPlugin extends Plugin {
                     null;
                 continue;
             } else if (deckTag.startsWith("|")) {
-                // Clear previous deck
-                if (parentDeckTag !== "" && parentDeck != null) {
-                    {
-                        parentDeck.newFlashcards = this.deduplicateCards(parentDeck.newFlashcards);
-                    }
-                    {
-                        parentDeck.dueFlashcards = this.deduplicateCards(parentDeck.dueFlashcards);
-                    }
-                }
+                this.deduplicateDeckCards(parentDeck);
 
                 // Set the new parent deck
                 parentDeckTag = deckTag;
@@ -579,24 +563,9 @@ export default class SRPlugin extends Plugin {
                 }
             }
         }
-        // one more time
-        if (parentDeckTa2 !== "" && parentDec2 != null) {
-            {
-                parentDec2.newFlashcards = this.deduplicateCards(parentDec2.newFlashcards);
-            }
-            {
-                parentDec2.dueFlashcards = this.deduplicateCards(parentDec2.dueFlashcards);
-            }
-        }
-        // Clear previous deck
-        if (parentDeckTag !== "" && parentDeck != null) {
-            {
-                parentDeck.newFlashcards = this.deduplicateCards(parentDeck.newFlashcards);
-            }
-            {
-                parentDeck.dueFlashcards = this.deduplicateCards(parentDeck.dueFlashcards);
-            }
-        }
+
+        this.deduplicateDeckCards(parentDec2);
+        this.deduplicateDeckCards(parentDeck);
 
         // sort the deck names
         SRPlugin.deckTree.sortSubdecksList(this.data.settings.flashcardTags);
@@ -640,6 +609,12 @@ export default class SRPlugin extends Plugin {
         this.printNoTag();
 
         this.syncLock = false;
+    }
+
+    private deduplicateDeckCards(deck: Deck): void {
+        if (!deck) return;
+        deck.newFlashcards = this.deduplicateCards(deck.newFlashcards);
+        deck.dueFlashcards = this.deduplicateCards(deck.dueFlashcards);
     }
 
     private deduplicateCards(cards: Card[]): Card[] {
