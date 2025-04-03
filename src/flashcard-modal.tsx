@@ -170,32 +170,20 @@ export class FlashcardModal extends Modal {
             }
             deck.render(mainContentEl, this);
 
-            // If the deckTag matches the title pattern, add it to the sidebar
-            if (/^\|\|.+\|\|$/.test(deck.deckTag)) {
-                // Handle ||title|| case - Larger title
-                const titleItem = sidebarEl.createDiv("sidebar-item sidebar-item-large");
-                titleItem.innerText = deck.deckTag.replace(/\|\|/g, ""); // Remove '||' characters for display
+            // 处理多层级侧边栏标题
+            const pipeCount = deck.deckTag.match(/^\|+/)?.[0]?.length || 0;
+            if (pipeCount > 0 && pipeCount <= 6) {
+                const level = Math.min(pipeCount, 6);
+                const titleText = deck.deckTag.replace(/\|+/g, "");
+
+                const titleItem = sidebarEl.createDiv(`sidebar-item sidebar-item-level${level}`);
+                titleItem.innerText = titleText;
+
                 titleItem.addEventListener("click", () => {
-                    // Scroll to the corresponding deck in the main content
                     const targetDeckEl = mainContentEl.querySelector(
                         `[data-deck-tag="${deck.deckTag}"]`
                     );
-                    if (targetDeckEl) {
-                        targetDeckEl.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }
-                });
-            } else if (/^\|.+\|$/.test(deck.deckTag)) {
-                // Handle |title| case - Smaller title
-                const titleItem = sidebarEl.createDiv("sidebar-item sidebar-item-small");
-                titleItem.innerText = deck.deckTag.replace(/\|/g, ""); // Remove '|' characters for display
-                titleItem.addEventListener("click", () => {
-                    // Scroll to the corresponding deck in the main content
-                    const targetDeckEl = mainContentEl.querySelector(
-                        `[data-deck-tag="${deck.deckTag}"]`
-                    );
-                    if (targetDeckEl) {
-                        targetDeckEl.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }
+                    targetDeckEl?.scrollIntoView({ behavior: "smooth", block: "start" });
                 });
             }
         }

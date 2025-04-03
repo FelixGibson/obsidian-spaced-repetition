@@ -201,3 +201,49 @@
     color: var(--text-normal); /* Text color */
     text-align: right; /* Aligns to the right */
 }
+/* 移除原字体大小样式，改为缩进 */
+.sidebar-item {
+    padding: 0.3em 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* 修正缩进方向：层级数值越大（竖线越多）缩进越少 */
+.sidebar-item-level1 {
+    margin-left: 5em;
+} /* 对应 |... */
+.sidebar-item-level2 {
+    margin-left: 4em;
+} /* 对应 ||... */
+.sidebar-item-level3 {
+    margin-left: 3em;
+} /* 对应 |||... */
+.sidebar-item-level4 {
+    margin-left: 2em;
+}
+.sidebar-item-level5 {
+    margin-left: 1em;
+}
+.sidebar-item-level6 {
+    margin-left: 0;
+}
+
+/* 同步调整字体大小梯度 */
+.sidebar-item-level1 {
+    font-size: 0.85em;
+}
+.sidebar-item-level2 {
+    font-size: 0.9em;
+}
+.sidebar-item-level3 {
+    font-size: 0.95em;
+}
+.sidebar-item-level4 {
+    font-size: 1em;
+}
+.sidebar-item-level5 {
+    font-size: 1.05em;
+}
+.sidebar-item-level6 {
+    font-size: 1.1em;
+}
