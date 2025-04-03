@@ -522,24 +522,10 @@ export default class SRPlugin extends Plugin {
                 // Clear previous deck
                 if (parentDeckTa2 !== "" && parentDec2 != null) {
                     {
-                        const uniqueCardsMap = new Map<string, Card>();
-                        for (const card of parentDec2.newFlashcards) {
-                            const uniqueKey = `${card.note.path}-${card.cardText}`; // Use a combination of note and cardText as a unique key
-                            if (!uniqueCardsMap.has(uniqueKey)) {
-                                uniqueCardsMap.set(uniqueKey, card);
-                            }
-                        }
-                        parentDec2.newFlashcards = Array.from(uniqueCardsMap.values());
+                        parentDec2.newFlashcards = this.deduplicateCards(parentDec2.newFlashcards);
                     }
                     {
-                        const uniqueCardsMap = new Map<string, Card>();
-                        for (const card of parentDec2.dueFlashcards) {
-                            const uniqueKey = `${card.note.path}-${card.cardText}`; // Use a combination of note and cardText as a unique key
-                            if (!uniqueCardsMap.has(uniqueKey)) {
-                                uniqueCardsMap.set(uniqueKey, card);
-                            }
-                        }
-                        parentDec2.dueFlashcards = Array.from(uniqueCardsMap.values());
+                        parentDec2.dueFlashcards = this.deduplicateCards(parentDec2.dueFlashcards);
                     }
                 }
 
@@ -553,26 +539,10 @@ export default class SRPlugin extends Plugin {
                 // Clear previous deck
                 if (parentDeckTag !== "" && parentDeck != null) {
                     {
-                        // Remove duplicates from parentDeck.newFlashcards based on note and cardText
-                        const uniqueCardsMap = new Map<string, Card>();
-                        for (const card of parentDeck.newFlashcards) {
-                            const uniqueKey = `${card.note.path}-${card.cardText}`; // Use a combination of note and cardText as a unique key
-                            if (!uniqueCardsMap.has(uniqueKey)) {
-                                uniqueCardsMap.set(uniqueKey, card);
-                            }
-                        }
-                        parentDeck.newFlashcards = Array.from(uniqueCardsMap.values());
+                        parentDeck.newFlashcards = this.deduplicateCards(parentDeck.newFlashcards);
                     }
                     {
-                        // Remove duplicates from parentDeck.dueFlashcards based on note and cardText
-                        const uniqueCardsMap = new Map<string, Card>();
-                        for (const card of parentDeck.dueFlashcards) {
-                            const uniqueKey = `${card.note.path}-${card.cardText}`; // Use a combination of note and cardText as a unique key
-                            if (!uniqueCardsMap.has(uniqueKey)) {
-                                uniqueCardsMap.set(uniqueKey, card);
-                            }
-                        }
-                        parentDeck.dueFlashcards = Array.from(uniqueCardsMap.values());
+                        parentDeck.dueFlashcards = this.deduplicateCards(parentDeck.dueFlashcards);
                     }
                 }
 
@@ -612,49 +582,19 @@ export default class SRPlugin extends Plugin {
         // one more time
         if (parentDeckTa2 !== "" && parentDec2 != null) {
             {
-                const uniqueCardsMap = new Map<string, Card>();
-                for (const card of parentDec2.newFlashcards) {
-                    const uniqueKey = `${card.note.path}-${card.cardText}`; // Use a combination of note and cardText as a unique key
-                    if (!uniqueCardsMap.has(uniqueKey)) {
-                        uniqueCardsMap.set(uniqueKey, card);
-                    }
-                }
-                parentDec2.newFlashcards = Array.from(uniqueCardsMap.values());
+                parentDec2.newFlashcards = this.deduplicateCards(parentDec2.newFlashcards);
             }
             {
-                const uniqueCardsMap = new Map<string, Card>();
-                for (const card of parentDec2.dueFlashcards) {
-                    const uniqueKey = `${card.note.path}-${card.cardText}`; // Use a combination of note and cardText as a unique key
-                    if (!uniqueCardsMap.has(uniqueKey)) {
-                        uniqueCardsMap.set(uniqueKey, card);
-                    }
-                }
-                parentDec2.dueFlashcards = Array.from(uniqueCardsMap.values());
+                parentDec2.dueFlashcards = this.deduplicateCards(parentDec2.dueFlashcards);
             }
         }
         // Clear previous deck
         if (parentDeckTag !== "" && parentDeck != null) {
             {
-                // Remove duplicates from parentDeck.newFlashcards based on note and cardText
-                const uniqueCardsMap = new Map<string, Card>();
-                for (const card of parentDeck.newFlashcards) {
-                    const uniqueKey = `${card.note.path}-${card.cardText}`; // Use a combination of note and cardText as a unique key
-                    if (!uniqueCardsMap.has(uniqueKey)) {
-                        uniqueCardsMap.set(uniqueKey, card);
-                    }
-                }
-                parentDeck.newFlashcards = Array.from(uniqueCardsMap.values());
+                parentDeck.newFlashcards = this.deduplicateCards(parentDeck.newFlashcards);
             }
             {
-                // Remove duplicates from parentDeck.dueFlashcards based on note and cardText
-                const uniqueCardsMap = new Map<string, Card>();
-                for (const card of parentDeck.dueFlashcards) {
-                    const uniqueKey = `${card.note.path}-${card.cardText}`; // Use a combination of note and cardText as a unique key
-                    if (!uniqueCardsMap.has(uniqueKey)) {
-                        uniqueCardsMap.set(uniqueKey, card);
-                    }
-                }
-                parentDeck.dueFlashcards = Array.from(uniqueCardsMap.values());
+                parentDeck.dueFlashcards = this.deduplicateCards(parentDeck.dueFlashcards);
             }
         }
 
@@ -700,6 +640,17 @@ export default class SRPlugin extends Plugin {
         this.printNoTag();
 
         this.syncLock = false;
+    }
+
+    private deduplicateCards(cards: Card[]): Card[] {
+        const uniqueCardsMap = new Map<string, Card>();
+        for (const card of cards) {
+            const uniqueKey = `${card.note.path}-${card.cardText}`;
+            if (!uniqueCardsMap.has(uniqueKey)) {
+                uniqueCardsMap.set(uniqueKey, card);
+            }
+        }
+        return Array.from(uniqueCardsMap.values());
     }
 
     async resetFlashcardTags() {
