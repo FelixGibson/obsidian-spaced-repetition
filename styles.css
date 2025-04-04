@@ -88,30 +88,22 @@
 }
 
 @media only screen and (max-width: 600px) {
-    #sr-flashcard-view {
-        flex-direction: column; /* 改为垂直排列 */
+    .sr-modal-content::-webkit-scrollbar,
+    #sr-flashcard-view::-webkit-scrollbar {
+        display: none;
     }
 
-    #title-sidebar {
-        width: 100%; /* 侧边栏全宽度 */
-        border-right: none; /* 移除右边框 */
-        border-bottom: 1px solid #ccc; /* 添加底部分割线 */
-        height: auto; /* 高度自适应 */
-        order: -1; /* 让侧边栏显示在上方 */
+    .sr-response,
+    #sr-show-answer {
+        width: 95% !important;
     }
 
-    .main-content {
-        overflow-y: visible; /* 移除滚动 */
-        padding: 0.5rem; /* 减少内边距 */
-    }
-
-    .sidebar-item {
-        margin-left: 0 !important; /* 移除层级缩进 */
-        font-size: 0.9em !important; /* 统一字体大小 */
-    }
-
-    .tree-item-self {
-        flex-direction: column; /* 垂直排列deck项 */
+    #sr-skip-btn,
+    #sr-hard-btn,
+    #sr-good-btn,
+    #sr-easy-btn {
+        min-width: 40px; /* Smaller min-width for mobile */
+        padding: 0 8px; /* Reduced padding */
     }
 }
 
