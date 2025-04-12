@@ -584,7 +584,9 @@ export class FlashcardModal extends Modal {
 
     nextCard(): void {
         // refresh cache
-        const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSON());
+        const cacheDeckString = JSON.stringify(
+            SRPlugin.deckTree.toJSONWithLimit(this.plugin.data.settings.tagLimits)
+        );
         this.plugin.data.settings.cacheDeckString = cacheDeckString;
         this.plugin.savePluginData();
         this.currentDeck.nextCard(this);
@@ -765,42 +767,42 @@ export class Deck {
     public originCount = 0;
     public parent: Deck | null;
 
-    toJSON(): Record<string, any> {
-        let dueFlashcardsJSON = [];
-        let newFlashcardsJSON = [];
-        for (let i = 0; i < this.newFlashcards.length; i++) {
-            let card = cardToJSON(this.newFlashcards[i]);
-            if (card !== undefined) {
-                newFlashcardsJSON.push(card);
-            }
-        }
-        for (let i = 0; i < this.dueFlashcards.length; i++) {
-            let card = cardToJSON(this.dueFlashcards[i]);
-            if (card !== undefined) {
-                dueFlashcardsJSON.push(card);
-            }
-        }
-        let subdecksJSON = [];
-        for (let i = 0; i < this.subdecks.length; i++) {
-            let subdeck = this.subdecks[i].toJSON();
-            if (subdeck !== undefined) {
-                subdecksJSON.push(subdeck);
-            }
-        }
-        return {
-            deckTag: this.deckTag,
-            newFlashcards: newFlashcardsJSON,
-            newFlashcardsCount: newFlashcardsJSON.length, // Updated line
-            dueFlashcards: dueFlashcardsJSON,
-            dueFlashcardsCount: dueFlashcardsJSON.length, // Updated line
-            totalFlashcards: this.totalFlashcards,
-            subdecks: subdecksJSON,
-            originCount: this.originCount,
-            // do not include the parent property to avoid circular references
-        };
-    }
+    // toJSON(): Record<string, any> {
+    //     let dueFlashcardsJSON = [];
+    //     let newFlashcardsJSON = [];
+    //     for (let i = 0; i < this.newFlashcards.length; i++) {
+    //         let card = cardToJSON(this.newFlashcards[i]);
+    //         if (card !== undefined) {
+    //             newFlashcardsJSON.push(card);
+    //         }
+    //     }
+    //     for (let i = 0; i < this.dueFlashcards.length; i++) {
+    //         let card = cardToJSON(this.dueFlashcards[i]);
+    //         if (card !== undefined) {
+    //             dueFlashcardsJSON.push(card);
+    //         }
+    //     }
+    //     let subdecksJSON = [];
+    //     for (let i = 0; i < this.subdecks.length; i++) {
+    //         let subdeck = this.subdecks[i].toJSON();
+    //         if (subdeck !== undefined) {
+    //             subdecksJSON.push(subdeck);
+    //         }
+    //     }
+    //     return {
+    //         deckTag: this.deckTag,
+    //         newFlashcards: newFlashcardsJSON,
+    //         newFlashcardsCount: newFlashcardsJSON.length, // Updated line
+    //         dueFlashcards: dueFlashcardsJSON,
+    //         dueFlashcardsCount: dueFlashcardsJSON.length, // Updated line
+    //         totalFlashcards: this.totalFlashcards,
+    //         subdecks: subdecksJSON,
+    //         originCount: this.originCount,
+    //         // do not include the parent property to avoid circular references
+    //     };
+    // }
 
-    toJSONWithLimit(): Record<string, any> {
+    toJSONWithLimit(tagLimits: Record<string, number>): Record<string, any> {
         let maxCount = 14;
         if (this.deckTag.contains("#[[backendread")) {
             maxCount = 3;
@@ -842,6 +844,10 @@ export class Deck {
             maxCount = 3;
         }
         maxCount = maxCount * 2;
+        if (tagLimits[this.deckTag] !== undefined) {
+            maxCount = tagLimits[this.deckTag];
+        }
+
         let dueFlashcardsJSON = [];
         let newFlashcardsJSON = [];
         for (let i = 0; i < Math.min(this.newFlashcards.length, maxCount); i++) {
@@ -862,12 +868,15 @@ export class Deck {
         }
         let subdecksJSON = [];
         for (let i = 0; i < this.subdecks.length; i++) {
-            let subdeck = this.subdecks[i].toJSONWithLimit();
+            let subdeck = this.subdecks[i].toJSONWithLimit(tagLimits);
             if (subdeck !== undefined) {
                 subdecksJSON.push(subdeck);
             }
         }
-        this.originCount = dueFlashcardsJSON.length + newFlashcardsJSON.length;
+        if (this.originCount == 0) {
+            // 否则，保留第一次之前的数量方便统计progress
+            this.originCount = dueFlashcardsJSON.length + newFlashcardsJSON.length;
+        }
         return {
             deckTag: this.deckTag,
             newFlashcards: newFlashcardsJSON,

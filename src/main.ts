@@ -530,7 +530,9 @@ export default class SRPlugin extends Plugin {
 
             if (SRPlugin.deckTree !== null) {
                 // store the deckTree to local files
-                const cacheDeckString = JSON.stringify(SRPlugin.deckTree.toJSONWithLimit());
+                const cacheDeckString = JSON.stringify(
+                    SRPlugin.deckTree.toJSONWithLimit(this.data.settings.tagLimits)
+                );
                 this.data.settings.cacheDeckString = cacheDeckString;
                 this.data.settings.lastSyncDate = now.format("YYYY-MM-DD");
                 this.savePluginData();
@@ -629,8 +631,8 @@ export default class SRPlugin extends Plugin {
 
     async resetFlashcardTags() {
         let flashcardTags: string[] = [];
-
         let excludeFlashcardTags: string[] = [];
+        const tagLimits: Record<string, number> = {};
 
         for (const filePath of ["pages/b.md", "pages/excludeFlashcardTags.md"]) {
             const tmp: TAbstractFile = this.app.vault.getAbstractFileByPath(filePath);
@@ -652,14 +654,28 @@ export default class SRPlugin extends Plugin {
             if (tmp instanceof TFile) {
                 const fileText: string = await this.app.vault.read(tmp);
                 if (fileText) {
-                    const lines = fileText
+                    const rawLines = fileText
                         .split(/\n+/)
                         .map((v) => v.trim())
                         .filter((v) => v);
-                    flashcardTags = flashcardTags.concat(lines);
+
+                    // 新增处理每行结尾数字的逻辑
+                    for (const line of rawLines) {
+                        // 使用正则匹配结尾数字
+                        const match = line.match(/(.+?)\s+(\d+)$/);
+                        if (match) {
+                            const tag = match[1];
+                            const limit = parseInt(match[2]);
+                            flashcardTags.push(tag);
+                            tagLimits[tag] = limit; // 存储标签最大数量
+                        } else {
+                            flashcardTags.push(line);
+                        }
+                    }
                 }
             }
         }
+        this.data.settings.tagLimits = tagLimits;
         this.data.settings.flashcardTags = flashcardTags;
         this.data.settings.excludeFlashcardTags = excludeFlashcardTags;
 

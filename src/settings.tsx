@@ -6,6 +6,7 @@ import SRPlugin from "src/main";
 import { t } from "src/lang/helpers";
 
 export interface SRSettings {
+    tagLimits: Record<string, number>;
     // flashcards
     flashcardTags: string[];
     profit: number;
@@ -44,6 +45,7 @@ export interface SRSettings {
 }
 
 export const DEFAULT_SETTINGS: SRSettings = {
+    tagLimits: {},
     // flashcards
     flashcardTags: ["#flashcards"],
     profit: 0,
