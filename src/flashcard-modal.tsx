@@ -183,7 +183,7 @@ export class FlashcardModal extends Modal {
                     const targetDeckEl = mainContentEl.querySelector(
                         `[data-deck-tag="${deck.deckTag}"]`
                     );
-                    targetDeckEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    targetDeckEl?.scrollIntoView({ behavior: "auto", block: "start" });
                 });
             }
         }
@@ -529,9 +529,13 @@ export class FlashcardModal extends Modal {
                 star += "*";
             }
             if (triple[1] > 0) {
-                new Notice(` ${triple[0].toFixed(8)}% \n ${star}   ${triple[2]} points`);
-                console.log(`chance: ${triple[0].toFixed(2)} of ${triple[1]}X : ${triple[2]}`);
-                settings.profit = value + triple[2];
+                new Notice(
+                    ` ${triple[0].toFixed(8)}% \n ${star}   ${Math.round(triple[2])} points`
+                );
+                console.log(
+                    `chance: ${triple[0].toFixed(2)} of ${triple[1]}X : ${Math.round(triple[2])}`
+                );
+                settings.profit = Math.round(value + triple[2]);
                 this.plugin.statusBar.setText(`profit: ${settings.profit}`);
             }
         } else {
