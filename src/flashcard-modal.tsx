@@ -168,7 +168,6 @@ export class FlashcardModal extends Modal {
                     continue;
                 }
             }
-            deck.render(mainContentEl, this);
 
             // 处理多层级侧边栏标题
             const pipeCount = deck.deckTag.match(/^\|+/)?.[0]?.length || 0;
@@ -178,6 +177,7 @@ export class FlashcardModal extends Modal {
 
                 const titleItem = sidebarEl.createDiv(`sidebar-item sidebar-item-level${level}`);
                 titleItem.innerText = titleText;
+                titleItem.setAttribute("data-deck-tag", deck.deckTag);
 
                 titleItem.addEventListener("click", () => {
                     const targetDeckEl = mainContentEl.querySelector(
@@ -186,6 +186,7 @@ export class FlashcardModal extends Modal {
                     targetDeckEl?.scrollIntoView({ behavior: "auto", block: "start" });
                 });
             }
+            deck.render(mainContentEl, this);
         }
     }
 
@@ -1057,7 +1058,12 @@ export class Deck {
         const progress =
             1 - (this.dueFlashcards.length + this.newFlashcards.length) / this.originCount;
         if (progress === 1) {
-            deckView.style.opacity = "0.5";
+            deckView.style.opacity = "0.2";
+            // Also set opacity for matching sidebar item
+            const sidebarItem = document.querySelector(`[data-deck-tag="${this.deckTag}"]`);
+            if (sidebarItem) {
+                (sidebarItem as HTMLElement).style.opacity = "0.2";
+            }
         }
         if (/^\|.+\|$/.test(this.deckTag)) {
             let deckViewSelf = deckView.createDiv("tree-item-name");
