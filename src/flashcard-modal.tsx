@@ -171,7 +171,7 @@ export class FlashcardModal extends Modal {
     }
 
     // 新增渲染方法
-    private renderDeckList(keyword?: string): void {
+    public renderDeckList(keyword?: string): void {
         // 清空容器中除搜索框外的所有内容
         Array.from(this.contentEl.children).forEach((child) => {
             if (!child.classList.contains("sr-deck-search")) {
@@ -1091,6 +1091,39 @@ export class Deck {
     render(containerEl: HTMLElement, modal: FlashcardModal): void {
         const deckView: HTMLElement = containerEl.createDiv("tree-item");
         deckView.setAttribute("data-deck-tag", this.deckTag); // Add a data attribute for easy lookup
+
+        // 添加定位按钮容器
+        const header = deckView.createDiv("sr-deck-header");
+
+        // 定位按钮
+        const locateBtn = header.createEl("button", {
+            cls: "sr-locate-btn",
+            attr: { "aria-label": t("LOCATE_DECK") },
+        });
+        locateBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>`;
+
+        // 原有标题内容
+        const titleContent = header.createDiv("sr-deck-title");
+
+        // 修改定位按钮点击逻辑
+        locateBtn.addEventListener("click", () => {
+            // 获取搜索框并清空内容
+            const searchBox = modal.contentEl.querySelector(".sr-deck-search") as HTMLInputElement;
+            if (searchBox) {
+                searchBox.value = "";
+                // 触发重新渲染完整列表
+                modal.renderDeckList();
+
+                // 在新的容器中找到目标元素
+                const mainContent = modal.contentEl.querySelector(".main-content");
+                const targetDeckEl = mainContent.querySelector(`[data-deck-tag="${this.deckTag}"]`);
+                targetDeckEl?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                });
+            }
+        });
+
         const progress =
             1 - (this.dueFlashcards.length + this.newFlashcards.length) / this.originCount;
         if (progress === 1) {
