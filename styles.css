@@ -247,3 +247,33 @@
 .sidebar-item-level6 {
     font-size: 1.1em;
 }
+
+/* 调整inner容器布局 */
+.tree-item-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+/* 标题文本容器 */
+.tag-pane-tag-text {
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 按钮容器 */
+.sr-locate-btn-container {
+    flex-shrink: 0;
+    margin-left: 10px;
+}
+
+/* 修复按钮样式 */
+.sr-locate-btn {
+    background: var(--background-primary);
+    padding: 2px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex; /* 确保SVG居中 */
+}

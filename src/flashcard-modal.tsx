@@ -1092,38 +1092,6 @@ export class Deck {
         const deckView: HTMLElement = containerEl.createDiv("tree-item");
         deckView.setAttribute("data-deck-tag", this.deckTag); // Add a data attribute for easy lookup
 
-        // 添加定位按钮容器
-        const header = deckView.createDiv("sr-deck-header");
-
-        // 定位按钮
-        const locateBtn = header.createEl("button", {
-            cls: "sr-locate-btn",
-            attr: { "aria-label": t("LOCATE_DECK") },
-        });
-        locateBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>`;
-
-        // 原有标题内容
-        const titleContent = header.createDiv("sr-deck-title");
-
-        // 修改定位按钮点击逻辑
-        locateBtn.addEventListener("click", () => {
-            // 获取搜索框并清空内容
-            const searchBox = modal.contentEl.querySelector(".sr-deck-search") as HTMLInputElement;
-            if (searchBox) {
-                searchBox.value = "";
-                // 触发重新渲染完整列表
-                modal.renderDeckList();
-
-                // 在新的容器中找到目标元素
-                const mainContent = modal.contentEl.querySelector(".main-content");
-                const targetDeckEl = mainContent.querySelector(`[data-deck-tag="${this.deckTag}"]`);
-                targetDeckEl?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start",
-                });
-            }
-        });
-
         const progress =
             1 - (this.dueFlashcards.length + this.newFlashcards.length) / this.originCount;
         if (progress === 1) {
@@ -1166,7 +1134,10 @@ export class Deck {
         }
 
         const deckViewInner: HTMLElement = deckViewSelf.createDiv("tree-item-inner");
-        deckViewSelf.addEventListener("click", () => {
+
+        const deckViewInnerText: HTMLElement = deckViewInner.createDiv("tag-pane-tag-text");
+        deckViewInnerText.innerHTML += `<span class="tag-pane-tag-self">${this.deckTag}</span>`;
+        deckViewInnerText.addEventListener("click", () => {
             modal.plugin.data.historyDeck = this.deckTag;
             modal.currentDeck = this;
             modal.checkDeck = this.parent;
@@ -1180,8 +1151,34 @@ export class Deck {
             //     }
             // }
         });
-        const deckViewInnerText: HTMLElement = deckViewInner.createDiv("tag-pane-tag-text");
-        deckViewInnerText.innerHTML += `<span class="tag-pane-tag-self">${this.deckTag}</span>`;
+
+        const btnContainer = deckViewInner.createDiv("sr-locate-btn-container");
+
+        // 定位按钮（移动到标题文本右侧）
+        const locateBtn = btnContainer.createEl("button", {
+            cls: "sr-locate-btn",
+            attr: { "aria-label": t("LOCATE_DECK") },
+        });
+        locateBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>`;
+
+        // 修改定位按钮点击逻辑
+        locateBtn.addEventListener("click", () => {
+            // 获取搜索框并清空内容
+            const searchBox = modal.contentEl.querySelector(".sr-deck-search") as HTMLInputElement;
+            if (searchBox) {
+                searchBox.value = "";
+                // 触发重新渲染完整列表
+                modal.renderDeckList();
+
+                // 在新的容器中找到目标元素
+                const mainContent = modal.contentEl.querySelector(".main-content");
+                const targetDeckEl = mainContent.querySelector(`[data-deck-tag="${this.deckTag}"]`);
+                targetDeckEl?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                });
+            }
+        });
         const deckViewChildren: HTMLElement = deckView.createDiv("tree-item-children");
         deckViewChildren.style.display = "none";
         if (this.subdecks.length > 0) {
