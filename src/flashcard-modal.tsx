@@ -157,19 +157,48 @@ export class FlashcardModal extends Modal {
         this.titleEl.setText(t("DECKS"));
         this.contentEl.innerHTML = "";
         this.contentEl.setAttribute("id", "sr-flashcard-view");
+        // 添加搜索框
+        const searchBox = this.contentEl.createEl("input", {
+            type: "text",
+            placeholder: t("SEARCH_DECKS"),
+            cls: "sr-deck-search",
+        });
+        searchBox.addEventListener("input", (e) => {
+            const keyword = (e.target as HTMLInputElement).value.toLowerCase();
+            this.renderDeckList(keyword);
+        });
+        this.renderDeckList(); // 初始渲染
+    }
 
-        const sidebarEl = this.contentEl.createDiv("sidebar");
-        sidebarEl.setAttribute("id", "title-sidebar");
-
-        const mainContentEl = this.contentEl.createDiv("main-content");
-        for (const deck of SRPlugin.deckTree.subdecks) {
-            if (this.plugin.data.settings.excludeFlashcardTags.length > 0) {
-                if (this.plugin.data.settings.excludeFlashcardTags.includes(deck.deckTag)) {
-                    continue;
-                }
+    // 新增渲染方法
+    private renderDeckList(keyword?: string): void {
+        // 清空容器中除搜索框外的所有内容
+        Array.from(this.contentEl.children).forEach((child) => {
+            if (!child.classList.contains("sr-deck-search")) {
+                child.remove();
             }
+        });
 
-            // 处理多层级侧边栏标题
+        // 直接创建新容器（无需克隆）
+        const sidebarEl = this.contentEl.createDiv({
+            cls: "sidebar",
+            attr: { id: "title-sidebar" },
+        });
+        const mainContentEl = this.contentEl.createDiv({
+            cls: "main-content",
+        });
+
+        // 删除多余的克隆逻辑↓↓
+        // 过滤deck列表 (保持原逻辑)
+        const filteredDecks = SRPlugin.deckTree.subdecks.filter((deck) => {
+            if (this.plugin.data.settings.excludeFlashcardTags.includes(deck.deckTag)) {
+                return false;
+            }
+            return !keyword || deck.deckTag.toLowerCase().includes(keyword);
+        });
+
+        // 生成侧边栏标题（保持原有逻辑）
+        filteredDecks.forEach((deck) => {
             const pipeCount = deck.deckTag.match(/^\|+/)?.[0]?.length || 0;
             if (pipeCount > 0 && pipeCount <= 6) {
                 const level = Math.min(pipeCount, 6);
@@ -186,8 +215,15 @@ export class FlashcardModal extends Modal {
                     targetDeckEl?.scrollIntoView({ behavior: "auto", block: "start" });
                 });
             }
+        });
+
+        // 渲染主内容
+        filteredDecks.forEach((deck) => {
             deck.render(mainContentEl, this);
-        }
+        });
+
+        this.contentEl.appendChild(sidebarEl);
+        this.contentEl.appendChild(mainContentEl);
     }
 
     setupCardsView(): void {
