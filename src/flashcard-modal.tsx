@@ -845,45 +845,45 @@ export class Deck {
 
     toJSONWithLimit(tagLimits: Record<string, number>): Record<string, any> {
         let maxCount = 14;
-        if (this.deckTag.contains("#[[backendread")) {
-            maxCount = 3;
-        } else if (this.deckTag.contains("read]]")) {
-            maxCount = 1;
-        } else if (this.deckTag.contains("#[[c]]")) {
-            maxCount = 8;
-        } else if (this.deckTag.contains("#[[p]]")) {
-            maxCount = 8;
-        } else if (this.deckTag.startsWith("|Collector|")) {
-            maxCount = 3;
-        } else if (this.deckTag.startsWith("#[[super thinking index]]")) {
-            maxCount = 3;
-        } else if (this.deckTag.contains("#[[cquest]]") || this.deckTag.contains("#[[pquest]]")) {
-            maxCount = 1;
-            // } else if (this.deckTag.contains("#[[zk]]") || this.deckTag.contains("#[[solidity]]")) {
-            //     maxCount = 1;
-        } else if (this.deckTag.contains("#[[fri]]")) {
-            maxCount = 5;
-        } else if (this.deckTag.contains("fri")) {
-            maxCount = 2;
-        } else if (this.deckTag.contains("quest]]")) {
-            maxCount = 5;
-        } else if (this.deckTag.startsWith("|Backend|")) {
-            maxCount = 20;
-        } else if (this.deckTag.startsWith("|营销|")) {
-            maxCount = 15;
-        } else if (this.deckTag.startsWith("|Leetcode|")) {
-            maxCount = 7;
-        } else if (this.deckTag.startsWith("||")) {
-            maxCount = 30;
-        } else if (this.deckTag.startsWith("|")) {
-            maxCount = 15;
-        } else if (this.deckTag.contains("algorithm") || this.deckTag.contains("leetcode-top150")) {
-            maxCount = 7;
-        } else if (this.deckTag.contains("#[[pquestv]]")) {
-            maxCount = 3;
-        } else if (this.deckTag.contains("#[[cquestv]]")) {
-            maxCount = 3;
-        }
+        // if (this.deckTag.contains("#[[backendread")) {
+        //     maxCount = 3;
+        // } else if (this.deckTag.contains("read]]")) {
+        //     maxCount = 1;
+        // } else if (this.deckTag.contains("#[[c]]")) {
+        //     maxCount = 8;
+        // } else if (this.deckTag.contains("#[[p]]")) {
+        //     maxCount = 8;
+        // } else if (this.deckTag.startsWith("|Collector|")) {
+        //     maxCount = 3;
+        // } else if (this.deckTag.startsWith("#[[super thinking index]]")) {
+        //     maxCount = 3;
+        // } else if (this.deckTag.contains("#[[cquest]]") || this.deckTag.contains("#[[pquest]]")) {
+        //     maxCount = 1;
+        //     // } else if (this.deckTag.contains("#[[zk]]") || this.deckTag.contains("#[[solidity]]")) {
+        //     //     maxCount = 1;
+        // } else if (this.deckTag.contains("#[[fri]]")) {
+        //     maxCount = 5;
+        // } else if (this.deckTag.contains("fri")) {
+        //     maxCount = 2;
+        // } else if (this.deckTag.contains("quest]]")) {
+        //     maxCount = 5;
+        // } else if (this.deckTag.startsWith("|Backend|")) {
+        //     maxCount = 20;
+        // } else if (this.deckTag.startsWith("|营销|")) {
+        //     maxCount = 15;
+        // } else if (this.deckTag.startsWith("|Leetcode|")) {
+        //     maxCount = 7;
+        // } else if (this.deckTag.startsWith("||")) {
+        //     maxCount = 30;
+        // } else if (this.deckTag.startsWith("|")) {
+        //     maxCount = 15;
+        // } else if (this.deckTag.contains("algorithm") || this.deckTag.contains("leetcode-top150")) {
+        //     maxCount = 7;
+        // } else if (this.deckTag.contains("#[[pquestv]]")) {
+        //     maxCount = 3;
+        // } else if (this.deckTag.contains("#[[cquestv]]")) {
+        //     maxCount = 3;
+        // }
         maxCount = maxCount * 2;
         if (tagLimits[this.deckTag] !== undefined) {
             maxCount = tagLimits[this.deckTag];
