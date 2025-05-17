@@ -724,7 +724,7 @@ export default class SRPlugin extends Plugin {
             }
 
             // Find all tags using regex `#[[text]]`
-            const reg = /#\[\[([^\]]+)\]\]/g;
+            const reg = /#\[\[([^\|\]]+)(?:\|[^\]]*)?\]\]/g; // <- 修改这里
             let match;
 
             // Extract all matches and add them to the Set
@@ -741,7 +741,7 @@ export default class SRPlugin extends Plugin {
             }
 
             // Find all tags using regex `#[[text]]`
-            const reg = /#\[\[([^\]]+)\]\]/g;
+            const reg = /#\[\[([^\|\]]+)(?:\|[^\]]*)?\]\]/g; // <- 修改这里
             let match;
 
             // Extract all matches and add them to the Set
