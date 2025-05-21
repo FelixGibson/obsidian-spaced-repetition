@@ -561,7 +561,7 @@ export default class SRPlugin extends Plugin {
                 this.reviewQueueView.redraw();
             }
 
-            this.printNoTag();
+            await this.printNoTag();
         } finally {
             this.syncLock = false;
         }
@@ -703,7 +703,7 @@ export default class SRPlugin extends Plugin {
         return true;
     }
 
-    printNoTag() {
+    async printNoTag() {
         const noTagDeckList: Deck[] = SRPlugin.deckTree.subdecks.filter(
             (deck) => deck.deckTag === "#no_tag"
         );
@@ -753,6 +753,21 @@ export default class SRPlugin extends Plugin {
         // Convert Set back to Array
         const tagArray: string[] = Array.from(tagList);
         console.log(Array.from(tagArray.map((tag) => `#[[${tag}]]`)).join("\n"));
+        // append to flashcard.md
+        const flashcardFile: TFile = this.app.vault.getAbstractFileByPath(
+            "pages/flashcard.md"
+        ) as TFile;
+        if (flashcardFile) {
+            const fileText: string = await this.app.vault.read(flashcardFile);
+            if (fileText) {
+                const lines = fileText
+                    .split(/\n+/)
+                    .map((v) => v.trim())
+                    .filter((v) => v);
+                const newLines = lines.concat(tagArray.map((tag) => `#[[${tag}]]`));
+                this.app.vault.modify(flashcardFile, newLines.join("\n"));
+            }
+        }
     }
 
     async saveReviewResponse(note: TFile, response: ReviewResponse): Promise<void> {
