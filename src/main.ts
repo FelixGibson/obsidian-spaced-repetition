@@ -634,7 +634,7 @@ export default class SRPlugin extends Plugin {
         let excludeFlashcardTags: string[] = [];
         const tagLimits: Record<string, number> = {};
 
-        for (const filePath of ["pages/b.md", "pages/excludeFlashcardTags.md"]) {
+        for (const filePath of ["pages/flashcardb.md", "pages/excludeFlashcardTags.md"]) {
             const tmp: TAbstractFile = this.app.vault.getAbstractFileByPath(filePath);
             if (tmp instanceof TFile) {
                 const fileText: string = await this.app.vault.read(tmp);
@@ -649,7 +649,7 @@ export default class SRPlugin extends Plugin {
             }
         }
 
-        for (const filePath of ["pages/flashcard.md", "pages/byte.md"]) {
+        for (const filePath of ["pages/flashcard.md", "pages/flashcardbyte.md"]) {
             const tmp: TAbstractFile = this.app.vault.getAbstractFileByPath(filePath);
             if (tmp instanceof TFile) {
                 const fileText: string = await this.app.vault.read(tmp);
