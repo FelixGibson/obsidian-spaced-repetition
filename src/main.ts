@@ -518,7 +518,7 @@ export default class SRPlugin extends Plugin {
                 this.pageranks[node] = rank * 10000;
             });
 
-            this.processDeckHierarchy(); // 替换原来的for循环逻辑
+            await this.processDeckHierarchy(); // 替换原来的for循环逻辑
 
             // sort the deck names
             SRPlugin.deckTree.sortSubdecksList(this.data.settings.flashcardTags);
@@ -584,12 +584,31 @@ export default class SRPlugin extends Plugin {
         return Array.from(uniqueCardsMap.values());
     }
 
-    private processDeckHierarchy(): void {
+    private async processDeckHierarchy() {
         const maxLevel = 6;
         const deckLevels: DeckLevel[] = Array.from({ length: maxLevel }, () => ({
             prefix: "",
             parentDeck: null,
         }));
+        const processTagFile = async (tag: string) => {
+            const tagContent = tag.match(/#\[\[(.*?)\]\]/)?.[1] || tag.replace(/^#/, "");
+            const targetString = "#[[cheatsheet]]";
+            const filePath = `pages/${tagContent}.md`; // 使用提取后的标签内容
+            const appendContent = `- ${targetString} ;; `;
+
+            try {
+                const file = this.app.vault.getAbstractFileByPath(filePath);
+                if (file instanceof TFile) {
+                    const content = await this.app.vault.read(file);
+                    if (!content.includes(targetString)) {
+                        await this.app.vault.append(file, `\n${appendContent}`);
+                        console.log(`SR: Added cheatsheet to ${filePath}`);
+                    }
+                }
+            } catch (error) {
+                console.error(`SR: Error processing ${filePath}:`, error);
+            }
+        };
 
         for (const deckTag of this.data.settings.flashcardTags) {
             const level = (deckTag.match(/^\|+/)?.[0]?.length || 0) - 1;
@@ -622,6 +641,10 @@ export default class SRPlugin extends Plugin {
                         deckLevels[l].parentDeck?.dueFlashcards.push(...subDeck.dueFlashcards);
                     }
                 }
+            }
+
+            if (deckTag.startsWith("#[[") && !deckTag.contains("|")) {
+                await processTagFile(deckTag);
             }
         }
 
