@@ -649,7 +649,7 @@ export default class SRPlugin extends Plugin {
             }
         }
 
-        for (const filePath of ["pages/backend.md", "pages/flashcard.md", "pages/byte.md"]) {
+        for (const filePath of ["pages/flashcard.md", "pages/byte.md"]) {
             const tmp: TAbstractFile = this.app.vault.getAbstractFileByPath(filePath);
             if (tmp instanceof TFile) {
                 const fileText: string = await this.app.vault.read(tmp);
