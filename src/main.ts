@@ -645,6 +645,11 @@ export default class SRPlugin extends Plugin {
 
             if (deckTag.startsWith("#[[") && !deckTag.contains("|")) {
                 await processTagFile(deckTag);
+            } else if (deckTag.startsWith("#[[") && deckTag.contains("|")) {
+                const parts = deckTag.split("|");
+                for (const part of parts) {
+                    await processTagFile(part);
+                }
             }
         }
 
