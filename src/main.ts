@@ -592,21 +592,26 @@ export default class SRPlugin extends Plugin {
         }));
         const processTagFile = async (tag: string) => {
             const tagContent = tag.match(/#\[\[(.*?)\]\]/)?.[1] || tag.replace(/^#/, "");
-            const targetString = "#[[cheatsheet]]";
-            const filePath = `pages/${tagContent}.md`; // 使用提取后的标签内容
-            const appendContent = `- ${targetString} ;; `;
+            // 定义需要检查的两个目标标签
+            const targetTags = ["#[[cheatsheet]]", "#[[anti-model]]"];
+            const filePath = `pages/${tagContent}.md`;
 
             try {
                 const file = this.app.vault.getAbstractFileByPath(filePath);
                 if (file instanceof TFile) {
                     const content = await this.app.vault.read(file);
-                    if (!content.includes(targetString)) {
+                    // 找出缺失的标签
+                    const missingTags = targetTags.filter((t) => !content.includes(t));
+
+                    if (missingTags.length > 0) {
+                        // 只为缺失的标签生成内容
+                        const appendContent = missingTags.map((t) => `- ${t} ;; `).join("\n");
                         await this.app.vault.append(file, `\n${appendContent}`);
-                        console.log(`SR: Added cheatsheet to ${filePath}`);
+                        console.log(`SR: 已添加缺失标签 ${missingTags.join(", ")} 到 ${filePath}`);
                     }
                 }
             } catch (error) {
-                console.error(`SR: Error processing ${filePath}:`, error);
+                console.error(`SR: 处理 ${filePath} 时出错:`, error);
             }
         };
 
