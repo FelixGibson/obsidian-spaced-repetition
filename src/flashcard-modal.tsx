@@ -1339,7 +1339,7 @@ export class Deck {
             // modal.currentCard.cardText.contains("#[[bquestv]]")
             // && false
         ) {
-            modal.processReview(ReviewResponse.Hard);
+            modal.processReview(ReviewResponse.Good);
         } else {
             modal.renderMarkdownWrapper("- Q:\n" + modal.currentCard.front, modal.flashcardView);
         }
