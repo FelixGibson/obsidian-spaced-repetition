@@ -122,6 +122,14 @@ export class FlashcardModal extends Modal {
     }
 
     onClose(): void {
+        if (SRPlugin.deckTree) {
+            const cacheDeckString = JSON.stringify(
+                SRPlugin.deckTree.toJSONWithLimit(this.plugin.data.settings.tagLimits)
+            );
+            this.plugin.data.settings.cacheDeckString = cacheDeckString;
+            this.plugin.savePluginData().catch((error) => console.error("最终保存失败:", error));
+        }
+
         this.mode = FlashcardModalMode.Closed;
     }
 
@@ -624,12 +632,12 @@ export class FlashcardModal extends Modal {
     }
 
     nextCard(): void {
-        // refresh cache
-        const cacheDeckString = JSON.stringify(
-            SRPlugin.deckTree.toJSONWithLimit(this.plugin.data.settings.tagLimits)
-        );
-        this.plugin.data.settings.cacheDeckString = cacheDeckString;
-        this.plugin.savePluginData();
+        // // refresh cache
+        // const cacheDeckString = JSON.stringify(
+        //     SRPlugin.deckTree.toJSONWithLimit(this.plugin.data.settings.tagLimits)
+        // );
+        // this.plugin.data.settings.cacheDeckString = cacheDeckString;
+        // this.plugin.savePluginData();
         this.currentDeck.nextCard(this);
     }
 
