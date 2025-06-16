@@ -112,18 +112,20 @@ export class FlashcardModal extends Modal {
     private static initialized: boolean = false;
 
     onOpen(): void {
-        // if (Platform.isMobile && 1) {
-        //     if (!FlashcardModal.initialized) {
-        //         this.plugin.data.historyDeck = "";
-        //         FlashcardModal.initialized = true;
-        //     }
-        // }
-        this.decksList();
+        if (FlashcardModal.isClosing || FlashcardModal.isOpening) return; // 同时检查打开状态
+        FlashcardModal.isOpening = true; // 加锁
+
+        try {
+            this.decksList();
+        } finally {
+            FlashcardModal.isOpening = false; // 确保释放锁
+        }
     }
     private static isClosing: boolean = false;
+    private static isOpening: boolean = false; // 新增打开状态锁
 
     onClose(): void {
-        if (FlashcardModal.isClosing) return; // 如果正在关闭则直接返回
+        if (FlashcardModal.isClosing || FlashcardModal.isOpening) return; // 同时检查打开状态
         FlashcardModal.isClosing = true; // 加锁
 
         try {
