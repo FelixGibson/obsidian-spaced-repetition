@@ -120,17 +120,26 @@ export class FlashcardModal extends Modal {
         // }
         this.decksList();
     }
+    private static isClosing: boolean = false;
 
     onClose(): void {
-        if (SRPlugin.deckTree) {
-            const cacheDeckString = JSON.stringify(
-                SRPlugin.deckTree.toJSONWithLimit(this.plugin.data.settings.tagLimits)
-            );
-            this.plugin.data.settings.cacheDeckString = cacheDeckString;
-            this.plugin.savePluginData().catch((error) => console.error("最终保存失败:", error));
-        }
+        if (FlashcardModal.isClosing) return; // 如果正在关闭则直接返回
+        FlashcardModal.isClosing = true; // 加锁
 
-        this.mode = FlashcardModalMode.Closed;
+        try {
+            if (SRPlugin.deckTree) {
+                const cacheDeckString = JSON.stringify(
+                    SRPlugin.deckTree.toJSONWithLimit(this.plugin.data.settings.tagLimits)
+                );
+                this.plugin.data.settings.cacheDeckString = cacheDeckString;
+                this.plugin
+                    .savePluginData()
+                    .catch((error) => console.error("最终保存失败:", error));
+            }
+            this.mode = FlashcardModalMode.Closed;
+        } finally {
+            FlashcardModal.isClosing = false; // 确保在 finally 中释放锁
+        }
     }
 
     public static lastTimeDeck: Deck = null;
