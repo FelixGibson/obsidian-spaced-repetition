@@ -64,9 +64,9 @@ export class FlashcardModal extends Modal {
         super(app);
 
         this.plugin = plugin;
-        this.ignoreStats = ignoreStats;
 
         this.titleEl.setText(t("DECKS"));
+        this.ignoreStats = ignoreStats;
 
         if (Platform.isMobile) {
             this.contentEl.style.display = "block";
@@ -79,6 +79,8 @@ export class FlashcardModal extends Modal {
         this.contentEl.addClass("sr-modal-content");
 
         document.body.onkeydown = (e) => {
+            if (this.isProcessing) return;
+
             if (this.mode !== FlashcardModalMode.DecksList) {
                 if (this.mode !== FlashcardModalMode.Closed && e.code === "KeyS") {
                     this.currentDeck.deleteFlashcardAtIndex(
@@ -244,6 +246,7 @@ export class FlashcardModal extends Modal {
         this.contentEl.appendChild(sidebarEl);
         this.contentEl.appendChild(mainContentEl);
     }
+    private isProcessing: boolean = false; // 新增防抖状态标志
 
     setupCardsView(): void {
         this.contentEl.innerHTML = "";
@@ -257,6 +260,17 @@ export class FlashcardModal extends Modal {
                 this.decksList();
             }
         });
+        const createDebouncedHandler = (response: ReviewResponse) => {
+            return async () => {
+                if (this.isProcessing) return;
+                this.isProcessing = true;
+                try {
+                    await this.processReview(response);
+                } finally {
+                    this.isProcessing = false;
+                }
+            };
+        };
 
         this.fileLinkView = this.contentEl.createDiv("sr-link");
         this.fileLinkView.setText(t("EDIT_LATER"));
@@ -304,9 +318,8 @@ export class FlashcardModal extends Modal {
 
         this.resetLinkView = this.contentEl.createDiv("sr-link");
         this.resetLinkView.setText(t("RESET_CARD_PROGRESS"));
-        this.resetLinkView.addEventListener("click", () => {
-            this.processReview(ReviewResponse.Reset);
-        });
+        this.resetLinkView.addEventListener("click", createDebouncedHandler(ReviewResponse.Reset));
+
         this.resetLinkView.style.float = "right";
         // Create the Progress Bar
         this.progressContainer = this.contentEl.createDiv("sr-progress-container");
@@ -333,33 +346,29 @@ export class FlashcardModal extends Modal {
         this.hardBtn = document.createElement("button");
         this.hardBtn.setAttribute("id", "sr-hard-btn");
         this.hardBtn.setText(t("HARD"));
-        this.hardBtn.addEventListener("click", () => {
-            this.processReview(ReviewResponse.Hard);
-        });
+        this.hardBtn.addEventListener("click", createDebouncedHandler(ReviewResponse.Hard));
+
         this.responseDiv.appendChild(this.hardBtn);
 
         this.goodBtn = document.createElement("button");
         this.goodBtn.setAttribute("id", "sr-good-btn");
         this.goodBtn.setText(t("GOOD"));
-        this.goodBtn.addEventListener("click", () => {
-            this.processReview(ReviewResponse.Good);
-        });
+        this.goodBtn.addEventListener("click", createDebouncedHandler(ReviewResponse.Good));
+
         this.responseDiv.appendChild(this.goodBtn);
 
         this.easyBtn = document.createElement("button");
         this.easyBtn.setAttribute("id", "sr-easy-btn");
         this.easyBtn.setText(t("EASY"));
-        this.easyBtn.addEventListener("click", () => {
-            this.processReview(ReviewResponse.Easy);
-        });
+        this.easyBtn.addEventListener("click", createDebouncedHandler(ReviewResponse.Easy));
+
         this.responseDiv.appendChild(this.easyBtn);
 
         this.skipBtn = document.createElement("button");
         this.skipBtn.setAttribute("id", "sr-skip-btn");
         this.skipBtn.setText(t("SKIP"));
-        this.skipBtn.addEventListener("click", () => {
-            this.processReview(ReviewResponse.Skip);
-        });
+        this.skipBtn.addEventListener("click", createDebouncedHandler(ReviewResponse.Skip));
+
         this.responseDiv.appendChild(this.skipBtn);
         this.responseDiv.style.display = "none";
 
@@ -402,172 +411,211 @@ export class FlashcardModal extends Modal {
     }
 
     async processReview(response: ReviewResponse): Promise<void> {
-        if (this.ignoreStats) {
-            if (response == ReviewResponse.Easy) {
-                this.currentDeck.deleteFlashcardAtIndex(
-                    this.currentCardIdx,
-                    this.currentCard.isDue
-                );
-            }
-            this.currentDeck.nextCard(this);
-            return;
-        }
+        return new Promise((resolve) => {
+            setTimeout(async () => {
+                try {
+                    if (this.ignoreStats) {
+                        if (response == ReviewResponse.Easy) {
+                            this.currentDeck.deleteFlashcardAtIndex(
+                                this.currentCardIdx,
+                                this.currentCard.isDue
+                            );
+                        }
+                        this.currentDeck.nextCard(this);
+                        return;
+                    }
 
-        let interval: number, ease: number, due;
+                    let interval: number, ease: number, due;
 
-        this.currentDeck.deleteFlashcardAtIndex(this.currentCardIdx, this.currentCard.isDue);
-        if (response !== ReviewResponse.Reset && response !== ReviewResponse.Skip) {
-            let schedObj: Record<string, number>;
-            // scheduled card
-            if (this.currentCard.isDue) {
-                schedObj = schedule(
-                    response,
-                    this.currentCard.interval,
-                    this.currentCard.ease,
-                    this.currentCard.delayBeforeReview,
-                    this.plugin.data.settings,
-                    this.plugin.dueDatesFlashcards
-                );
-            } else {
-                let initial_ease: number = this.plugin.data.settings.baseEase;
-                if (
-                    Object.prototype.hasOwnProperty.call(
-                        this.plugin.easeByPath,
-                        this.currentCard.note.path
-                    )
-                ) {
-                    initial_ease = Math.round(this.plugin.easeByPath[this.currentCard.note.path]);
+                    this.currentDeck.deleteFlashcardAtIndex(
+                        this.currentCardIdx,
+                        this.currentCard.isDue
+                    );
+                    if (response !== ReviewResponse.Reset && response !== ReviewResponse.Skip) {
+                        let schedObj: Record<string, number>;
+                        // scheduled card
+                        if (this.currentCard.isDue) {
+                            schedObj = schedule(
+                                response,
+                                this.currentCard.interval,
+                                this.currentCard.ease,
+                                this.currentCard.delayBeforeReview,
+                                this.plugin.data.settings,
+                                this.plugin.dueDatesFlashcards
+                            );
+                        } else {
+                            let initial_ease: number = this.plugin.data.settings.baseEase;
+                            if (
+                                Object.prototype.hasOwnProperty.call(
+                                    this.plugin.easeByPath,
+                                    this.currentCard.note.path
+                                )
+                            ) {
+                                initial_ease = Math.round(
+                                    this.plugin.easeByPath[this.currentCard.note.path]
+                                );
+                            }
+
+                            schedObj = schedule(
+                                response,
+                                1.0,
+                                initial_ease,
+                                0,
+                                this.plugin.data.settings,
+                                this.plugin.dueDatesFlashcards
+                            );
+                            interval = schedObj.interval;
+                            ease = schedObj.ease;
+                        }
+
+                        interval = schedObj.interval;
+                        ease = schedObj.ease;
+                        due = window.moment(Date.now() + interval * 24 * 3600 * 1000);
+                    } else if (response === ReviewResponse.Reset) {
+                        const schedObj: Record<string, number> = schedule(
+                            ReviewResponse.Hard,
+                            1.0,
+                            this.plugin.data.settings.baseEase,
+                            0,
+                            this.plugin.data.settings,
+                            this.plugin.dueDatesFlashcards
+                        );
+
+                        interval = schedObj.interval;
+                        ease = schedObj.ease;
+                        due = window.moment(Date.now() + interval * 24 * 3600 * 1000);
+                        // new Notice(t("CARD_PROGRESS_RESET"));
+                    } else if (response === ReviewResponse.Skip) {
+                        this.nextCard();
+                        return;
+                    }
+
+                    const dueString: string = due.format("YYYY-MM-DD");
+
+                    let fileText: string = await this.app.vault.read(this.currentCard.note);
+                    const replacementRegex = new RegExp(
+                        escapeRegexString(this.currentCard.cardText),
+                        "gm"
+                    );
+                    const originalText = this.currentCard.cardText;
+
+                    const sep: string = this.plugin.data.settings.cardCommentOnSameLine
+                        ? " "
+                        : "\n";
+                    // // Override separator if last block is a codeblock
+                    // if (this.currentCard.cardText.endsWith("```") && sep !== "\n") {
+                    //     sep = "\n";
+                    // }
+
+                    // check if we're adding scheduling information to the flashcard
+                    // for the first time
+                    if (this.currentCard.cardType === CardType.MultiLineBasic) {
+                        const multilineRegex = new RegExp(
+                            `^[\\t ]*${escapeRegex(
+                                this.plugin.data.settings.multilineCardSeparator
+                            )}`,
+                            "gm"
+                        );
+                        const questionLastIdx =
+                            this.currentCard.cardText.search(multilineRegex) - 1;
+                        const question = this.currentCard.cardText.substring(0, questionLastIdx);
+                        const originQuestion = question;
+                        let questionNew = question;
+                        if (question.indexOf("<!--SR:") === -1) {
+                            questionNew =
+                                question + sep + `<!--SR:!${dueString},${interval},${ease}-->`;
+                            this.currentCard.cardText = this.currentCard.cardText.replace(
+                                question,
+                                questionNew
+                            );
+                        } else {
+                            const questionWithoutSchedule = question.replace(/<!--SR:.+-->/gm, "");
+                            questionNew =
+                                questionWithoutSchedule +
+                                sep +
+                                `<!--SR:!${dueString},${interval},${ease}-->`;
+                            this.currentCard.cardText = this.currentCard.cardText.replace(
+                                question,
+                                questionNew
+                            );
+                        }
+                        if (fileText.contains(originQuestion + "\n")) {
+                            fileText = fileText.replace(
+                                new RegExp(escapeRegexString(question)),
+                                () => questionNew
+                            );
+                        }
+                    } else {
+                        if (this.currentCard.cardText.indexOf("<!--SR:") === -1) {
+                            this.currentCard.cardText =
+                                this.currentCard.cardText +
+                                sep +
+                                `<!--SR:!${dueString},${interval},${ease}-->`;
+                        } else {
+                            let scheduling: RegExpMatchArray[] = [
+                                ...this.currentCard.cardText.matchAll(MULTI_SCHEDULING_EXTRACTOR),
+                            ];
+                            if (scheduling.length === 0) {
+                                scheduling = [
+                                    ...this.currentCard.cardText.matchAll(
+                                        LEGACY_SCHEDULING_EXTRACTOR
+                                    ),
+                                ];
+                            }
+
+                            const currCardSched: RegExpMatchArray = [
+                                "0",
+                                dueString,
+                                interval.toString(),
+                                ease.toString(),
+                            ] as RegExpMatchArray;
+                            if (this.currentCard.isDue) {
+                                scheduling[this.currentCard.siblingIdx] = currCardSched;
+                            } else {
+                                scheduling.push(currCardSched);
+                            }
+
+                            this.currentCard.cardText = this.currentCard.cardText.replace(
+                                /<!--SR:.+-->/gm,
+                                ""
+                            );
+                            this.currentCard.cardText += "<!--SR:";
+                            for (let i = 0; i < scheduling.length; i++) {
+                                this.currentCard.cardText += `!${scheduling[i][1]},${scheduling[i][2]},${scheduling[i][3]}`;
+                            }
+                            this.currentCard.cardText += "-->";
+                        }
+                        if (fileText.contains(originalText + "\n")) {
+                            fileText = fileText.replace(
+                                replacementRegex,
+                                () => this.currentCard.cardText
+                            );
+                        } else if (fileText.endsWith(originalText)) {
+                            fileText = fileText.replace(
+                                replacementRegex,
+                                () => this.currentCard.cardText
+                            );
+                        }
+                    }
+                    for (const sibling of this.currentCard.siblings) {
+                        sibling.cardText = this.currentCard.cardText;
+                    }
+                    if (this.plugin.data.settings.burySiblingCards) {
+                        this.burySiblingCards(true);
+                    }
+
+                    await this.app.vault.modify(this.currentCard.note, fileText);
+                    // random score
+                    this.ding("Good Job" + " " + 0.3);
+
+                    this.nextCard();
+                } catch (error) {
+                    console.error("处理复习时出错:", error);
+                } finally {
+                    resolve();
                 }
-
-                schedObj = schedule(
-                    response,
-                    1.0,
-                    initial_ease,
-                    0,
-                    this.plugin.data.settings,
-                    this.plugin.dueDatesFlashcards
-                );
-                interval = schedObj.interval;
-                ease = schedObj.ease;
-            }
-
-            interval = schedObj.interval;
-            ease = schedObj.ease;
-            due = window.moment(Date.now() + interval * 24 * 3600 * 1000);
-        } else if (response === ReviewResponse.Reset) {
-            const schedObj: Record<string, number> = schedule(
-                ReviewResponse.Hard,
-                1.0,
-                this.plugin.data.settings.baseEase,
-                0,
-                this.plugin.data.settings,
-                this.plugin.dueDatesFlashcards
-            );
-
-            interval = schedObj.interval;
-            ease = schedObj.ease;
-            due = window.moment(Date.now() + interval * 24 * 3600 * 1000);
-            // new Notice(t("CARD_PROGRESS_RESET"));
-        } else if (response === ReviewResponse.Skip) {
-            this.nextCard();
-            return;
-        }
-
-        const dueString: string = due.format("YYYY-MM-DD");
-
-        let fileText: string = await this.app.vault.read(this.currentCard.note);
-        const replacementRegex = new RegExp(escapeRegexString(this.currentCard.cardText), "gm");
-        const originalText = this.currentCard.cardText;
-
-        const sep: string = this.plugin.data.settings.cardCommentOnSameLine ? " " : "\n";
-        // // Override separator if last block is a codeblock
-        // if (this.currentCard.cardText.endsWith("```") && sep !== "\n") {
-        //     sep = "\n";
-        // }
-
-        // check if we're adding scheduling information to the flashcard
-        // for the first time
-        if (this.currentCard.cardType === CardType.MultiLineBasic) {
-            const multilineRegex = new RegExp(
-                `^[\\t ]*${escapeRegex(this.plugin.data.settings.multilineCardSeparator)}`,
-                "gm"
-            );
-            const questionLastIdx = this.currentCard.cardText.search(multilineRegex) - 1;
-            const question = this.currentCard.cardText.substring(0, questionLastIdx);
-            const originQuestion = question;
-            let questionNew = question;
-            if (question.indexOf("<!--SR:") === -1) {
-                questionNew = question + sep + `<!--SR:!${dueString},${interval},${ease}-->`;
-                this.currentCard.cardText = this.currentCard.cardText.replace(
-                    question,
-                    questionNew
-                );
-            } else {
-                const questionWithoutSchedule = question.replace(/<!--SR:.+-->/gm, "");
-                questionNew =
-                    questionWithoutSchedule + sep + `<!--SR:!${dueString},${interval},${ease}-->`;
-                this.currentCard.cardText = this.currentCard.cardText.replace(
-                    question,
-                    questionNew
-                );
-            }
-            if (fileText.contains(originQuestion + "\n")) {
-                fileText = fileText.replace(
-                    new RegExp(escapeRegexString(question)),
-                    () => questionNew
-                );
-            }
-        } else {
-            if (this.currentCard.cardText.indexOf("<!--SR:") === -1) {
-                this.currentCard.cardText =
-                    this.currentCard.cardText + sep + `<!--SR:!${dueString},${interval},${ease}-->`;
-            } else {
-                let scheduling: RegExpMatchArray[] = [
-                    ...this.currentCard.cardText.matchAll(MULTI_SCHEDULING_EXTRACTOR),
-                ];
-                if (scheduling.length === 0) {
-                    scheduling = [
-                        ...this.currentCard.cardText.matchAll(LEGACY_SCHEDULING_EXTRACTOR),
-                    ];
-                }
-
-                const currCardSched: RegExpMatchArray = [
-                    "0",
-                    dueString,
-                    interval.toString(),
-                    ease.toString(),
-                ] as RegExpMatchArray;
-                if (this.currentCard.isDue) {
-                    scheduling[this.currentCard.siblingIdx] = currCardSched;
-                } else {
-                    scheduling.push(currCardSched);
-                }
-
-                this.currentCard.cardText = this.currentCard.cardText.replace(/<!--SR:.+-->/gm, "");
-                this.currentCard.cardText += "<!--SR:";
-                for (let i = 0; i < scheduling.length; i++) {
-                    this.currentCard.cardText += `!${scheduling[i][1]},${scheduling[i][2]},${scheduling[i][3]}`;
-                }
-                this.currentCard.cardText += "-->";
-            }
-            if (fileText.contains(originalText + "\n")) {
-                fileText = fileText.replace(replacementRegex, () => this.currentCard.cardText);
-            } else if (fileText.endsWith(originalText)) {
-                fileText = fileText.replace(replacementRegex, () => this.currentCard.cardText);
-            }
-        }
-        for (const sibling of this.currentCard.siblings) {
-            sibling.cardText = this.currentCard.cardText;
-        }
-        if (this.plugin.data.settings.burySiblingCards) {
-            this.burySiblingCards(true);
-        }
-
-        this.app.vault.modify(this.currentCard.note, fileText);
-        // random score
-        this.ding("Good Job" + " " + 0.3);
-
-        this.nextCard();
+            }, 0);
+        });
     }
 
     private async ding(name: string) {
