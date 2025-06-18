@@ -1399,11 +1399,13 @@ export class Deck {
 
         if (
             modal.currentCard.cardText !== undefined &&
-            // modal.currentCard.cardText.contains("#[[bv]]") ||
-            (modal.currentCard.cardText.contains("//x.com") ||
-                // modal.currentCard.cardText.contains("#[[b]]") ||
-                modal.currentCard.cardText.contains("#[[bquest]]"))
-            // modal.currentCard.cardText.contains("#[[bquestv]]")
+            (modal.currentCard.cardText.contains("#[[bv]]") ||
+                modal.currentCard.cardText.contains("//x.com") ||
+                modal.currentCard.cardText.contains("#[[b]]") ||
+                modal.currentCard.cardText.contains("#[[bquest]]") ||
+                modal.currentCard.cardText.contains("#[[bquestv]]") ||
+                modal.currentCard.cardText.contains("invest") ||
+                modal.currentCard.cardText.contains("business"))
             // && false
         ) {
             modal.processReview(ReviewResponse.Good);
