@@ -78,7 +78,7 @@ export class FlashcardModal extends Modal {
         this.contentEl.style.height = "92%";
         this.contentEl.addClass("sr-modal-content");
 
-        document.body.onkeydown = (e) => {
+        document.body.onkeydown = async (e) => {
             if (this.isProcessing) return;
 
             if (this.mode !== FlashcardModalMode.DecksList) {
@@ -93,18 +93,28 @@ export class FlashcardModal extends Modal {
                     this.mode === FlashcardModalMode.Front &&
                     (e.code === "Space" || e.code === "Enter")
                 ) {
-                    this.showAnswer();
+                    await this.showAnswer();
                 } else if (this.mode === FlashcardModalMode.Back) {
-                    if (e.code === "Numpad1" || e.code === "Digit1") {
-                        this.processReview(ReviewResponse.Hard);
-                    } else if (e.code === "Numpad2" || e.code === "Digit2" || e.code === "Space") {
-                        this.processReview(ReviewResponse.Good);
-                    } else if (e.code === "Numpad3" || e.code === "Digit3") {
-                        this.processReview(ReviewResponse.Easy);
-                    } else if (e.code === "Numpad4" || e.code === "Digit4") {
-                        this.processReview(ReviewResponse.Reset);
-                    } else if (e.code === "Numpad5" || e.code === "Digit5") {
-                        this.processReview(ReviewResponse.Skip);
+                    try {
+                        // 添加错误处理
+                        if (e.code === "Numpad1" || e.code === "Digit1") {
+                            await this.processReview(ReviewResponse.Hard); // 添加 await
+                        } else if (
+                            e.code === "Numpad2" ||
+                            e.code === "Digit2" ||
+                            e.code === "Space"
+                        ) {
+                            await this.processReview(ReviewResponse.Good);
+                        } else if (e.code === "Numpad3" || e.code === "Digit3") {
+                            await this.processReview(ReviewResponse.Easy);
+                        } else if (e.code === "Numpad4" || e.code === "Digit4") {
+                            await this.processReview(ReviewResponse.Reset);
+                        } else if (e.code === "Numpad5" || e.code === "Digit5") {
+                            await this.processReview(ReviewResponse.Skip);
+                        }
+                    } catch (error) {
+                        console.error("处理键盘事件失败:", error);
+                        new Notice("操作失败，请检查控制台日志");
                     }
                 }
             }
@@ -375,8 +385,8 @@ export class FlashcardModal extends Modal {
         this.answerBtn = this.contentEl.createDiv();
         this.answerBtn.setAttribute("id", "sr-show-answer");
         this.answerBtn.setText(t("SHOW_ANSWER"));
-        this.answerBtn.addEventListener("click", () => {
-            this.showAnswer();
+        this.answerBtn.addEventListener("click", async () => {
+            await this.showAnswer();
         });
 
         if (this.ignoreStats) {
@@ -389,7 +399,7 @@ export class FlashcardModal extends Modal {
         }
     }
 
-    showAnswer(): void {
+    async showAnswer(): Promise<void> {
         this.mode = FlashcardModalMode.Back;
 
         this.answerBtn.style.display = "none";
@@ -407,7 +417,7 @@ export class FlashcardModal extends Modal {
             this.flashcardView.innerHTML = "";
         }
 
-        this.renderMarkdownWrapper("- A:\n" + this.currentCard.back, this.flashcardView);
+        await this.renderMarkdownWrapper("- A:\n" + this.currentCard.back, this.flashcardView);
     }
 
     async processReview(response: ReviewResponse): Promise<void> {
@@ -860,7 +870,7 @@ export class FlashcardModal extends Modal {
             blockText = text;
         }
 
-        this.renderMarkdownWrapper(blockText, el, recursiveDepth + 1);
+        await this.renderMarkdownWrapper(blockText, el, recursiveDepth + 1);
     }
 }
 
@@ -1266,7 +1276,7 @@ export class Deck {
         }
     }
 
-    nextCard(modal: FlashcardModal): void {
+    async nextCard(modal: FlashcardModal): Promise<void> {
         if (this.newFlashcards.length + this.dueFlashcards.length === 0) {
             if (this.dueFlashcardsCount + this.newFlashcardsCount > 0) {
                 for (const deck of this.subdecks) {
@@ -1408,9 +1418,12 @@ export class Deck {
                 modal.currentCard.cardText.contains("business"))
             // && false
         ) {
-            modal.processReview(ReviewResponse.Good);
+            await modal.processReview(ReviewResponse.Good);
         } else {
-            modal.renderMarkdownWrapper("- Q:\n" + modal.currentCard.front, modal.flashcardView);
+            await modal.renderMarkdownWrapper(
+                "- Q:\n" + modal.currentCard.front,
+                modal.flashcardView
+            );
         }
     }
 }
