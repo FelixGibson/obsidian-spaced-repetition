@@ -535,7 +535,7 @@ export default class SRPlugin extends Plugin {
                 );
                 this.data.settings.cacheDeckString = cacheDeckString;
                 this.data.settings.lastSyncDate = now.format("YYYY-MM-DD");
-                this.savePluginData();
+                await this.savePluginData();
             }
 
             for (const deckKey in this.reviewDecks) {

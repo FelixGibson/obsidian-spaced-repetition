@@ -137,23 +137,26 @@ export class FlashcardModal extends Modal {
     private static isOpening: boolean = false; // 新增打开状态锁
 
     onClose(): void {
-        if (FlashcardModal.isClosing || FlashcardModal.isOpening) return; // 同时检查打开状态
-        FlashcardModal.isClosing = true; // 加锁
+        if (FlashcardModal.isClosing || FlashcardModal.isOpening) return;
+        FlashcardModal.isClosing = true;
 
-        try {
-            if (SRPlugin.deckTree) {
-                const cacheDeckString = JSON.stringify(
-                    SRPlugin.deckTree.toJSONWithLimit(this.plugin.data.settings.tagLimits)
-                );
-                this.plugin.data.settings.cacheDeckString = cacheDeckString;
-                this.plugin
-                    .savePluginData()
-                    .catch((error) => console.error("最终保存失败:", error));
+        // 使用IIFE立即执行异步函数
+        (async () => {
+            try {
+                if (SRPlugin.deckTree) {
+                    const cacheDeckString = JSON.stringify(
+                        SRPlugin.deckTree.toJSONWithLimit(this.plugin.data.settings.tagLimits)
+                    );
+                    this.plugin.data.settings.cacheDeckString = cacheDeckString;
+                    await this.plugin.savePluginData();
+                }
+                this.mode = FlashcardModalMode.Closed;
+            } catch (error) {
+                console.error("保存失败:", error);
+            } finally {
+                FlashcardModal.isClosing = false;
             }
-            this.mode = FlashcardModalMode.Closed;
-        } finally {
-            FlashcardModal.isClosing = false; // 确保在 finally 中释放锁
-        }
+        })();
     }
 
     public static lastTimeDeck: Deck = null;
