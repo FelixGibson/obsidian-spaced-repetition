@@ -87,8 +87,8 @@ export class FlashcardModal extends Modal {
                         this.currentCardIdx,
                         this.currentCard.isDue
                     );
-                    this.burySiblingCards(false);
-                    this.currentDeck.nextCard(this);
+                    await this.burySiblingCards(false);
+                    await this.currentDeck.nextCard(this);
                 } else if (
                     this.mode === FlashcardModalMode.Front &&
                     (e.code === "Space" || e.code === "Enter")
@@ -123,12 +123,12 @@ export class FlashcardModal extends Modal {
 
     private static initialized: boolean = false;
 
-    onOpen(): void {
+    async onOpen(): Promise<void> {
         if (FlashcardModal.isClosing || FlashcardModal.isOpening) return; // 同时检查打开状态
         FlashcardModal.isOpening = true; // 加锁
 
         try {
-            this.decksList();
+            await this.decksList();
         } finally {
             FlashcardModal.isOpening = false; // 确保释放锁
         }
@@ -157,7 +157,7 @@ export class FlashcardModal extends Modal {
 
     public static lastTimeDeck: Deck = null;
 
-    decksList(): void {
+    async decksList(): Promise<void> {
         const aimDeck = SRPlugin.deckTree.subdecks.filter(
             (deck) => deck.deckTag === this.plugin.data.historyDeck
         );
@@ -172,7 +172,7 @@ export class FlashcardModal extends Modal {
             this.currentDeck = deck;
             this.checkDeck = deck.parent;
             this.setupCardsView();
-            deck.nextCard(this);
+            await deck.nextCard(this);
             // if (Platform.isMobile && 1) {
             //     if (SRPlugin.deckTree.subdecks.length > 1) {
             //         // // clear all the other useless deck
@@ -193,15 +193,15 @@ export class FlashcardModal extends Modal {
             placeholder: t("SEARCH_DECKS"),
             cls: "sr-deck-search",
         });
-        searchBox.addEventListener("input", (e) => {
+        searchBox.addEventListener("input", async (e) => {
             const keyword = (e.target as HTMLInputElement).value.toLowerCase();
-            this.renderDeckList(keyword);
+            await this.renderDeckList(keyword);
         });
-        this.renderDeckList(); // 初始渲染
+        await this.renderDeckList(); // 初始渲染
     }
 
     // 新增渲染方法
-    public renderDeckList(keyword?: string): void {
+    public async renderDeckList(keyword?: string): Promise<void> {
         // 清空容器中除搜索框外的所有内容
         Array.from(this.contentEl.children).forEach((child) => {
             if (!child.classList.contains("sr-deck-search")) {
@@ -248,8 +248,8 @@ export class FlashcardModal extends Modal {
         });
 
         // 渲染主内容
-        filteredDecks.forEach((deck) => {
-            deck.render(mainContentEl, this);
+        filteredDecks.forEach(async (deck) => {
+            await deck.render(mainContentEl, this);
         });
 
         this.contentEl.appendChild(sidebarEl);
@@ -263,10 +263,10 @@ export class FlashcardModal extends Modal {
         const historyLinkView = this.contentEl.createEl("button");
         historyLinkView.setAttribute("id", "sr-history-link");
         historyLinkView.setText("〈");
-        historyLinkView.addEventListener("click", (e: PointerEvent) => {
+        historyLinkView.addEventListener("click", async (e: PointerEvent) => {
             if (e.pointerType.length > 0) {
                 this.plugin.data.historyDeck = "";
-                this.decksList();
+                await this.decksList();
             }
         });
         const createDebouncedHandler = (response: ReviewResponse) => {
@@ -288,17 +288,6 @@ export class FlashcardModal extends Modal {
         }
         this.fileLinkView.addEventListener("click", async () => {
             const activeLeaf: WorkspaceLeaf = this.plugin.app.workspace.activeLeaf;
-            // const n = {
-            //     "match": {
-            //         "content": "Card1 #p ;;     <!--SR:!2022-07-16,3,250-->\nCard2 #p ;; #[[dLove]]\n\n",
-            //         "matches": [
-            //             [
-            //                 57,
-            //                 66
-            //             ]
-            //         ]
-            //     }
-            // };
             const fileText: string = await this.app.vault.read(this.currentCard.note);
             //find start index of card
             const startIndex = fileText.search(escapeRegex(this.currentCard.cardText));
@@ -309,7 +298,7 @@ export class FlashcardModal extends Modal {
                         matches: [[startIndex, startIndex + this.currentCard.cardText.length]],
                     },
                 };
-                activeLeaf.openFile(this.currentCard.note, {
+                await activeLeaf.openFile(this.currentCard.note, {
                     active: true,
                     eState: n,
                 });
@@ -317,7 +306,7 @@ export class FlashcardModal extends Modal {
                 await activeLeaf.openFile(this.currentCard.note);
                 const activeView: MarkdownView =
                     this.app.workspace.getActiveViewOfType(MarkdownView);
-                activeView.editor.setCursor({
+                await activeView.editor.setCursor({
                     line: this.currentCard.lineNo,
                     ch: 0,
                 });
@@ -428,7 +417,7 @@ export class FlashcardModal extends Modal {
                         this.currentCard.isDue
                     );
                 }
-                this.currentDeck.nextCard(this);
+                await this.currentDeck.nextCard(this);
                 return;
             }
 
@@ -490,7 +479,7 @@ export class FlashcardModal extends Modal {
                 due = window.moment(Date.now() + interval * 24 * 3600 * 1000);
                 // new Notice(t("CARD_PROGRESS_RESET"));
             } else if (response === ReviewResponse.Skip) {
-                this.nextCard();
+                await this.nextCard();
                 return;
             }
 
@@ -588,14 +577,14 @@ export class FlashcardModal extends Modal {
                 sibling.cardText = this.currentCard.cardText;
             }
             if (this.plugin.data.settings.burySiblingCards) {
-                this.burySiblingCards(true);
+                await this.burySiblingCards(true);
             }
 
             await this.app.vault.modify(this.currentCard.note, fileText);
             // random score
             await this.ding("Good Job" + " " + 0.3);
 
-            this.nextCard();
+            await this.nextCard();
         } catch (error) {
             console.error("处理复习时出错:", error);
         } finally {
@@ -675,14 +664,14 @@ export class FlashcardModal extends Modal {
         return [scaleFactor / scaleFactorSum, multiplier, input * multiplier];
     }
 
-    nextCard(): void {
+    async nextCard(): Promise<void> {
         // // refresh cache
         // const cacheDeckString = JSON.stringify(
         //     SRPlugin.deckTree.toJSONWithLimit(this.plugin.data.settings.tagLimits)
         // );
         // this.plugin.data.settings.cacheDeckString = cacheDeckString;
         // this.plugin.savePluginData();
-        this.currentDeck.nextCard(this);
+        await this.currentDeck.nextCard(this);
     }
 
     async burySiblingCards(tillNextDay: boolean): Promise<void> {
@@ -1140,7 +1129,7 @@ export class Deck {
         return tags;
     }
 
-    render(containerEl: HTMLElement, modal: FlashcardModal): void {
+    async render(containerEl: HTMLElement, modal: FlashcardModal): Promise<void> {
         const deckView: HTMLElement = containerEl.createDiv("tree-item");
         deckView.setAttribute("data-deck-tag", this.deckTag); // Add a data attribute for easy lookup
 
@@ -1157,12 +1146,12 @@ export class Deck {
         if (/^\|.+\|$/.test(this.deckTag)) {
             let deckViewSelf = deckView.createDiv("tree-item-name");
             deckViewSelf.innerHTML = `<h3 class="tag-pane-tag-self">${this.deckTag}</h3>`;
-            deckViewSelf.addEventListener("click", () => {
+            deckViewSelf.addEventListener("click", async () => {
                 modal.plugin.data.historyDeck = this.deckTag;
                 modal.currentDeck = this;
                 modal.checkDeck = this.parent;
                 modal.setupCardsView();
-                this.nextCard(modal);
+                await this.nextCard(modal);
                 // if (Platform.isMobile && 1) {
                 //     if (SRPlugin.deckTree.subdecks.length > 1) {
                 //         // clear all the other useless deck
@@ -1189,12 +1178,12 @@ export class Deck {
 
         const deckViewInnerText: HTMLElement = deckViewInner.createDiv("tag-pane-tag-text");
         deckViewInnerText.innerHTML += `<span class="tag-pane-tag-self">${this.deckTag}</span>`;
-        deckViewInnerText.addEventListener("click", () => {
+        deckViewInnerText.addEventListener("click", async () => {
             modal.plugin.data.historyDeck = this.deckTag;
             modal.currentDeck = this;
             modal.checkDeck = this.parent;
             modal.setupCardsView();
-            this.nextCard(modal);
+            await this.nextCard(modal);
             // if (Platform.isMobile && 1) {
             //     if (SRPlugin.deckTree.subdecks.length > 1) {
             //         // clear all the other useless deck
@@ -1214,13 +1203,13 @@ export class Deck {
         locateBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>`;
 
         // 修改定位按钮点击逻辑
-        locateBtn.addEventListener("click", () => {
+        locateBtn.addEventListener("click", async () => {
             // 获取搜索框并清空内容
             const searchBox = modal.contentEl.querySelector(".sr-deck-search") as HTMLInputElement;
             if (searchBox) {
                 searchBox.value = "";
                 // 触发重新渲染完整列表
-                modal.renderDeckList();
+                await modal.renderDeckList();
 
                 // 在新的容器中找到目标元素
                 const mainContent = modal.contentEl.querySelector(".main-content");
@@ -1247,7 +1236,7 @@ export class Deck {
             });
         }
         for (const deck of this.subdecks) {
-            deck.render(deckViewChildren, modal);
+            await deck.render(deckViewChildren, modal);
         }
     }
 
@@ -1257,7 +1246,7 @@ export class Deck {
                 for (const deck of this.subdecks) {
                     if (deck.dueFlashcardsCount + deck.newFlashcardsCount > 0) {
                         modal.currentDeck = deck;
-                        deck.nextCard(modal);
+                        await deck.nextCard(modal);
                         return;
                     }
                 }
@@ -1265,9 +1254,9 @@ export class Deck {
 
             if (this.parent == modal.checkDeck) {
                 modal.plugin.data.historyDeck = "";
-                modal.decksList();
+                await modal.decksList();
             } else {
-                this.parent.nextCard(modal);
+                await this.parent.nextCard(modal);
             }
             return;
         }
