@@ -1358,12 +1358,19 @@ export default class SRPlugin extends Plugin {
         const savedData = await this.loadData();
         this.data = Object.assign({}, DEFAULT_DATA, savedData);
         this.data.settings = Object.assign({}, DEFAULT_SETTINGS, this.data.settings);
-        this.cacheDeckString = (await this.app.loadLocalStorage("deck-cache")) || "";
+        // 修改为从本地文件读取缓存
+        const cachePath = `${this.app.vault.configDir}/plugins/obsidian-spaced-repetition/cache.json`;
+        try {
+            this.cacheDeckString = await this.app.vault.adapter.read(cachePath);
+        } catch (e) {
+            this.cacheDeckString = "";
+        }
     }
 
     public async savePluginData(): Promise<void> {
         await this.saveData(this.data);
-        await this.app.saveLocalStorage("deck-cache", this.cacheDeckString);
+        const cachePath = `${this.app.vault.configDir}/plugins/obsidian-spaced-repetition/cache.json`;
+        await this.app.vault.adapter.write(cachePath, this.cacheDeckString);
     }
 
     initView(): void {
