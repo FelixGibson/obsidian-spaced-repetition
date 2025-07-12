@@ -373,7 +373,7 @@ export default class SRPlugin extends Plugin {
 
             const isFirstSyncToday = todayDate !== this.data.settings.lastSyncDate;
 
-            if (!isFirstSyncToday) {
+            if (!isFirstSyncToday && this.cacheDeckString) {
                 SRPlugin.deckTree = this.jsonToDeck(JSON.parse(this.cacheDeckString));
                 if (this.data.settings.showDebugMessages) {
                     console.log(`SR: ${t("DECKS")}`, SRPlugin.deckTree);
