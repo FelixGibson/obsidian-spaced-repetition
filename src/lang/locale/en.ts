@@ -2,6 +2,8 @@
 
 export default {
     // flashcard-modal.tsx
+    LOCATE_DECK: "Locate deck",
+    SEARCH_DECKS: "Search decks",
     DECKS: "Decks",
     DUE_CARDS: "Due Cards",
     NEW_CARDS: "New Cards",

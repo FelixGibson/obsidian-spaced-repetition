@@ -16,7 +16,7 @@ import {
     ArcElement,
 } from "chart.js";
 
-import type SRPlugin from "src/main";
+import SRPlugin from "src/main";
 import { getKeysPreserveType } from "src/utils";
 import { textInterval } from "src/scheduling";
 import { t } from "src/lang/helpers";
@@ -83,11 +83,12 @@ export class StatsModal extends Modal {
         }
 
         const dueDatesFlashcardsCopy: Record<number, number> = { 0: 0 };
-        for (const [dueOffset, dueCount] of Object.entries(this.plugin.dueDatesFlashcards)) {
+        for (const [dueOffsetStr, dueCount] of Object.entries(this.plugin.dueDatesFlashcards)) {
+            const dueOffset = Number(dueOffsetStr); // 添加类型转换
             if (dueOffset <= 0) {
                 dueDatesFlashcardsCopy[0] += dueCount;
             } else {
-                dueDatesFlashcardsCopy[dueOffset] = dueCount;
+                dueDatesFlashcardsCopy[dueOffset] = dueCount; // 使用转换后的数字作为键
             }
         }
 
@@ -137,7 +138,7 @@ export class StatsModal extends Modal {
         const average_interval: string = textInterval(
                 Math.round(
                     (Object.entries(cardStats.intervals)
-                        .map(([interval, count]) => interval * count)
+                        .map(([intervalStr, count]) => Number(intervalStr) * count) // 添加类型转换
                         .reduce((a, b) => a + b, 0) /
                         scheduledCount) *
                         10
@@ -172,7 +173,7 @@ export class StatsModal extends Modal {
         const average_ease: number =
             Math.round(
                 Object.entries(cardStats.eases)
-                    .map(([ease, count]) => ease * count)
+                    .map(([ease, count]) => Number(ease) * count)
                     .reduce((a, b) => a + b, 0) / scheduledCount
             ) || 0;
 
@@ -190,7 +191,7 @@ export class StatsModal extends Modal {
         );
 
         // Add card types
-        const totalCardsCount: number = this.plugin.deckTree.totalFlashcards;
+        const totalCardsCount: number = SRPlugin.deckTree.totalFlashcards;
         createStatsChart(
             "pie",
             "cardTypesChart",

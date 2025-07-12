@@ -25,11 +25,6 @@ import { escapeRegexString, cyrb53 } from "src/utils";
 import { t } from "src/lang/helpers";
 import { escapeRegex } from "./parser";
 
-import { applySettingsUpdate } from "src/settings";
-
-import { default as sortable } from "html5sortable/dist/html5sortable.es.js";
-import { start } from "repl";
-
 export enum FlashcardModalMode {
     DecksList,
     Front,
@@ -144,7 +139,7 @@ export class FlashcardModal extends Modal {
                 const cacheDeckString = JSON.stringify(
                     SRPlugin.deckTree.toJSONWithLimit(this.plugin.data.settings.tagLimits)
                 );
-                this.plugin.data.settings.cacheDeckString = cacheDeckString;
+                this.plugin.cacheDeckString = cacheDeckString;
                 await this.plugin.savePluginData();
             }
             this.mode = FlashcardModalMode.Closed;

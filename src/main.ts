@@ -7,6 +7,7 @@ import {
     getAllTags,
     FrontMatterCache,
     Platform,
+    App,
 } from "obsidian";
 import * as graph from "pagerank.js";
 
@@ -64,6 +65,7 @@ export default class SRPlugin extends Plugin {
     private reviewQueueView: ReviewQueueListView;
     public data: PluginData;
     public syncLock = false;
+    public cacheDeckString = "";
 
     public reviewDecks: { [deckKey: string]: ReviewDeck } = {};
     public lastSelectedReviewDeck: string;
@@ -372,7 +374,7 @@ export default class SRPlugin extends Plugin {
             const isFirstSyncToday = todayDate !== this.data.settings.lastSyncDate;
 
             if (!isFirstSyncToday) {
-                SRPlugin.deckTree = this.jsonToDeck(JSON.parse(this.data.settings.cacheDeckString));
+                SRPlugin.deckTree = this.jsonToDeck(JSON.parse(this.cacheDeckString));
                 if (this.data.settings.showDebugMessages) {
                     console.log(`SR: ${t("DECKS")}`, SRPlugin.deckTree);
                 }
@@ -533,7 +535,7 @@ export default class SRPlugin extends Plugin {
                 const cacheDeckString = JSON.stringify(
                     SRPlugin.deckTree.toJSONWithLimit(this.data.settings.tagLimits)
                 );
-                this.data.settings.cacheDeckString = cacheDeckString;
+                this.cacheDeckString = cacheDeckString;
                 this.data.settings.lastSyncDate = now.format("YYYY-MM-DD");
                 await this.savePluginData();
             }
@@ -1353,12 +1355,15 @@ export default class SRPlugin extends Plugin {
     }
 
     async loadPluginData(): Promise<void> {
-        this.data = Object.assign({}, DEFAULT_DATA, await this.loadData());
+        const savedData = await this.loadData();
+        this.data = Object.assign({}, DEFAULT_DATA, savedData);
         this.data.settings = Object.assign({}, DEFAULT_SETTINGS, this.data.settings);
+        this.cacheDeckString = (await this.app.loadLocalStorage("deck-cache")) || "";
     }
 
     public async savePluginData(): Promise<void> {
         await this.saveData(this.data);
+        await this.app.saveLocalStorage("deck-cache", this.cacheDeckString);
     }
 
     initView(): void {

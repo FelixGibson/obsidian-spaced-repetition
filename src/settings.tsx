@@ -24,7 +24,6 @@ export interface SRSettings {
     singlelineCardSeparator: string;
     singlelineReversedCardSeparator: string;
     multilineCardSeparator: string;
-    cacheDeckString: string;
     lastSyncDate: string;
     multilineReversedCardSeparator: string;
     // notes
@@ -63,7 +62,6 @@ export const DEFAULT_SETTINGS: SRSettings = {
     singlelineCardSeparator: "::",
     singlelineReversedCardSeparator: ":::",
     multilineCardSeparator: "?",
-    cacheDeckString: "",
     lastSyncDate: "",
     multilineReversedCardSeparator: "??",
     // notes
