@@ -1368,7 +1368,47 @@ export default class SRPlugin extends Plugin {
     }
 
     public async savePluginData(): Promise<void> {
-        await this.saveData(this.data);
+        const cleanSettings: SRSettings = {
+            tagLimits: {},
+            flashcardTags: [],
+            profit: this.data.settings.profit,
+            excludeFlashcardTags: [],
+            convertFoldersToDecks: this.data.settings.convertFoldersToDecks,
+            cardCommentOnSameLine: this.data.settings.cardCommentOnSameLine,
+            burySiblingCards: this.data.settings.burySiblingCards,
+            showContextInCards: this.data.settings.showContextInCards,
+            flashcardHeightPercentage: this.data.settings.flashcardHeightPercentage,
+            flashcardWidthPercentage: this.data.settings.flashcardWidthPercentage,
+            showFileNameInFileLink: this.data.settings.showFileNameInFileLink,
+            randomizeCardOrder: this.data.settings.randomizeCardOrder,
+            convertHighlightsToClozes: this.data.settings.convertHighlightsToClozes,
+            convertBoldTextToClozes: this.data.settings.convertBoldTextToClozes,
+            singlelineCardSeparator: this.data.settings.singlelineCardSeparator,
+            singlelineReversedCardSeparator: this.data.settings.singlelineReversedCardSeparator,
+            multilineCardSeparator: this.data.settings.multilineCardSeparator,
+            lastSyncDate: this.data.settings.lastSyncDate,
+            multilineReversedCardSeparator: this.data.settings.multilineReversedCardSeparator,
+            tagsToReview: this.data.settings.tagsToReview,
+            noteFoldersToIgnore: this.data.settings.noteFoldersToIgnore,
+            openRandomNote: this.data.settings.openRandomNote,
+            autoNextNote: this.data.settings.autoNextNote,
+            disableFileMenuReviewOptions: this.data.settings.disableFileMenuReviewOptions,
+            maxNDaysNotesReviewQueue: this.data.settings.maxNDaysNotesReviewQueue,
+            baseEase: this.data.settings.baseEase,
+            lapsesIntervalChange: this.data.settings.lapsesIntervalChange,
+            easyBonus: this.data.settings.easyBonus,
+            maximumInterval: this.data.settings.maximumInterval,
+            maxLinkFactor: this.data.settings.maxLinkFactor,
+            showDebugMessages: this.data.settings.showDebugMessages,
+        };
+
+        const cleanData: PluginData = {
+            settings: cleanSettings,
+            buryDate: this.data.buryDate,
+            buryList: this.data.buryList,
+            historyDeck: this.data.historyDeck,
+        };
+        await this.saveData(cleanData);
         const cachePath = `${this.app.vault.configDir}/plugins/obsidian-spaced-repetition/cache.json`;
         await this.app.vault.adapter.write(cachePath, this.cacheDeckString);
     }
