@@ -1369,10 +1369,10 @@ export default class SRPlugin extends Plugin {
 
     public async savePluginData(): Promise<void> {
         const cleanSettings: SRSettings = {
-            tagLimits: {},
-            flashcardTags: [],
+            tagLimits: this.data.settings.tagLimits,
+            flashcardTags: this.data.settings.flashcardTags,
             profit: this.data.settings.profit,
-            excludeFlashcardTags: [],
+            excludeFlashcardTags: this.data.settings.excludeFlashcardTags,
             convertFoldersToDecks: this.data.settings.convertFoldersToDecks,
             cardCommentOnSameLine: this.data.settings.cardCommentOnSameLine,
             burySiblingCards: this.data.settings.burySiblingCards,
