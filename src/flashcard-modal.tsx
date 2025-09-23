@@ -121,7 +121,7 @@ export class FlashcardModal extends Modal {
         };
     }
 
-    private static initialized: boolean = false;
+    private static initialized = false;
 
     clearTimer(): void {
         if (this.timerId) {
@@ -174,8 +174,8 @@ export class FlashcardModal extends Modal {
             FlashcardModal.isOpening = false; // 确保释放锁
         }
     }
-    private static isClosing: boolean = false;
-    private static isOpening: boolean = false; // 新增打开状态锁
+    private static isClosing = false;
+    private static isOpening = false; // 新增打开状态锁
 
     async onClose(): Promise<void> {
         this.clearTimer();
@@ -298,7 +298,7 @@ export class FlashcardModal extends Modal {
         this.contentEl.appendChild(sidebarEl);
         this.contentEl.appendChild(mainContentEl);
     }
-    private isProcessing: boolean = false; // 新增防抖状态标志
+    private isProcessing = false; // 新增防抖状态标志
 
     setupCardsView(): void {
         this.contentEl.innerHTML = "";
