@@ -944,7 +944,7 @@ export class Deck {
     // }
 
     toJSONWithLimit(tagLimits: Record<string, number>): Record<string, any> {
-        let maxCount = 14;
+        let maxCount = 30;
         // if (this.deckTag.contains("#[[backendread")) {
         //     maxCount = 3;
         // } else if (this.deckTag.contains("read]]")) {
@@ -984,7 +984,6 @@ export class Deck {
         // } else if (this.deckTag.contains("#[[cquestv]]")) {
         //     maxCount = 3;
         // }
-        maxCount = maxCount * 2;
         if (tagLimits[this.deckTag] !== undefined) {
             maxCount = tagLimits[this.deckTag];
         }
