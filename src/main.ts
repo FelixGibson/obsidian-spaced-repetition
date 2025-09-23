@@ -124,18 +124,18 @@ export default class SRPlugin extends Plugin {
 
     jsonToDeck(obj: any, parent: Deck | null = null): Deck {
         const deck = new Deck(obj.deckTag, parent);
-        let newFlashcards = [];
-        let dueFlashcards = [];
+        const newFlashcards = [];
+        const dueFlashcards = [];
 
         for (let i = 0; i < obj.newFlashcards.length; i++) {
-            let card = this.jsonToCard(obj.newFlashcards[i]);
+            const card = this.jsonToCard(obj.newFlashcards[i]);
             if (card !== undefined) {
                 newFlashcards.push(card);
             }
         }
 
         for (let i = 0; i < obj.dueFlashcards.length; i++) {
-            let card = this.jsonToCard(obj.dueFlashcards[i]);
+            const card = this.jsonToCard(obj.dueFlashcards[i]);
             if (card !== undefined) {
                 dueFlashcards.push(card);
             }
@@ -590,7 +590,7 @@ export default class SRPlugin extends Plugin {
         const maxLevel = 6;
         const deckLevels: DeckLevel[] = Array.from({ length: maxLevel }, () => ({
             prefix: "",
-            parentDeck: null,
+            parentDeck: null as Deck | null,
         }));
         const processTagFile = async (tag: string) => {
             const tagContent = tag.match(/#\[\[(.*?)\]\]/)?.[1] || tag.replace(/^#/, "");
@@ -759,7 +759,7 @@ export default class SRPlugin extends Plugin {
             }
 
             // Find all tags using regex `#[[text]]`
-            const reg = /#\[\[([^\|\]]+)(?:\|[^\]]*)?\]\]/g; // <- 修改这里
+            const reg = /#\[\[([^|\]]+)(?:\|[^\]]*)?\]\]/g; // <- 修改这里
             let match;
 
             // Extract all matches and add them to the Set
@@ -776,7 +776,7 @@ export default class SRPlugin extends Plugin {
             }
 
             // Find all tags using regex `#[[text]]`
-            const reg = /#\[\[([^\|\]]+)(?:\|[^\]]*)?\]\]/g; // <- 修改这里
+            const reg = /#\[\[([^|\]]+)(?:\|[^\]]*)?\]\]/g; // <- 修改这里
             let match;
 
             // Extract all matches and add them to the Set
@@ -993,14 +993,14 @@ export default class SRPlugin extends Plugin {
             }
         } else {
             const fileCachedData = this.app.metadataCache.getFileCache(note) || {};
-            let tags = getAllTags(fileCachedData) || [];
+            const tags = getAllTags(fileCachedData) || [];
             if (fileCachedData.links) {
                 for (const link of fileCachedData.links) {
                     tags.push("#" + link.original);
                 }
             }
 
-            outer: for (let tagToReview of this.data.settings.flashcardTags) {
+            outer: for (const tagToReview of this.data.settings.flashcardTags) {
                 for (const tag of tags) {
                     if (tag === tagToReview || tag.startsWith(tagToReview + "/")) {
                         deckPath = tag.substring(1).split("/");
@@ -1019,7 +1019,7 @@ export default class SRPlugin extends Plugin {
         buryOnly = false,
         ignoreStats = false
     ): Promise<number> {
-        let fileText: string = await this.app.vault.read(note);
+        const fileText: string = await this.app.vault.read(note);
         const fileCachedData = this.app.metadataCache.getFileCache(note) || {};
         const headings: HeadingCache[] = fileCachedData.headings || [];
         let fileChanged = false,

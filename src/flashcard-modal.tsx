@@ -185,7 +185,7 @@ export class FlashcardModal extends Modal {
         // 添加搜索框
         const searchBox = this.contentEl.createEl("input", {
             type: "text",
-            placeholder: t("SEARCH_DECKS"),
+            attr: { placeholder: t("SEARCH_DECKS") },
             cls: "sr-deck-search",
         });
         searchBox.addEventListener("input", async (e) => {
