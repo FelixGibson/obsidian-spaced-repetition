@@ -54,6 +54,11 @@ export class FlashcardModal extends Modal {
     public progressContainer: HTMLElement;
     public progressBar: HTMLElement;
     public progressText: HTMLElement;
+    public timerId: NodeJS.Timeout | null = null;
+    public timerDuration = 20000; // 20 seconds
+    public timerProgressBar: HTMLElement;
+    public timerProgressContainer: HTMLElement;
+    public resetTimerBtn: HTMLElement;
 
     constructor(app: App, plugin: SRPlugin, ignoreStats = false) {
         super(app);
@@ -118,6 +123,47 @@ export class FlashcardModal extends Modal {
 
     private static initialized: boolean = false;
 
+    clearTimer(): void {
+        if (this.timerId) {
+            clearTimeout(this.timerId);
+            this.timerId = null;
+        }
+        if (this.timerProgressContainer) {
+            this.timerProgressContainer.style.display = "none";
+            this.resetTimerBtn.style.display = "none";
+        }
+    }
+
+    startTimer(): void {
+        this.clearTimer();
+
+        if (this.timerProgressContainer) {
+            this.timerProgressContainer.style.display = "block";
+            this.resetTimerBtn.style.display = "inline-block";
+            // Force a reflow to restart the animation
+            this.timerProgressBar.style.transition = "none";
+            this.timerProgressBar.style.width = "100%";
+            void this.timerProgressBar.offsetWidth;
+
+            this.timerProgressBar.style.transition = `width ${this.timerDuration / 1000}s linear`;
+            this.timerProgressBar.style.width = "0%";
+        }
+
+        this.timerId = setTimeout(async () => {
+            if (this.isProcessing) return;
+            this.isProcessing = true;
+            try {
+                await this.processReview(ReviewResponse.Good);
+            } finally {
+                this.isProcessing = false;
+            }
+        }, this.timerDuration);
+    }
+
+    resetTimer(): void {
+        this.startTimer();
+    }
+
     async onOpen(): Promise<void> {
         if (FlashcardModal.isClosing || FlashcardModal.isOpening) return; // 同时检查打开状态
         FlashcardModal.isOpening = true; // 加锁
@@ -132,6 +178,7 @@ export class FlashcardModal extends Modal {
     private static isOpening: boolean = false; // 新增打开状态锁
 
     async onClose(): Promise<void> {
+        this.clearTimer();
         try {
             if (FlashcardModal.isClosing || FlashcardModal.isOpening) return;
             FlashcardModal.isClosing = true;
@@ -153,6 +200,7 @@ export class FlashcardModal extends Modal {
     public static lastTimeDeck: Deck = null;
 
     async decksList(): Promise<void> {
+        this.clearTimer();
         const aimDeck = SRPlugin.deckTree.subdecks.filter(
             (deck) => deck.deckTag === this.plugin.data.historyDeck
         );
@@ -325,6 +373,20 @@ export class FlashcardModal extends Modal {
 
         // Add Progress Text
         this.progressText = this.progressContainer.createSpan("sr-progress-text");
+        // Add the new timer progress bar
+        this.timerProgressContainer = this.contentEl.createDiv("sr-timer-progress-container");
+        this.timerProgressBar = this.timerProgressContainer.createDiv("sr-timer-progress-bar");
+        this.timerProgressContainer.style.display = "none";
+
+        // Add the reset timer button
+        this.resetTimerBtn = this.contentEl.createEl("button", {
+            text: t("RESET_TIMER"),
+            cls: "sr-reset-timer-btn",
+        });
+        this.resetTimerBtn.addEventListener("click", () => {
+            this.resetTimer();
+        });
+        this.resetTimerBtn.style.display = "none"; // Initially hidden
 
         if (this.plugin.data.settings.showContextInCards) {
             this.contextView = this.contentEl.createDiv();
@@ -383,6 +445,7 @@ export class FlashcardModal extends Modal {
     }
 
     async showAnswer(): Promise<void> {
+        this.clearTimer();
         this.mode = FlashcardModalMode.Back;
 
         this.answerBtn.style.display = "none";
@@ -404,6 +467,7 @@ export class FlashcardModal extends Modal {
     }
 
     async processReview(response: ReviewResponse): Promise<void> {
+        this.clearTimer();
         try {
             if (this.ignoreStats) {
                 if (response == ReviewResponse.Easy) {
@@ -1384,6 +1448,7 @@ export class Deck {
                 "- Q:\n" + modal.currentCard.front,
                 modal.flashcardView
             );
+            modal.startTimer();
         }
     }
 }

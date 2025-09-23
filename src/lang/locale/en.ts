@@ -3,6 +3,7 @@
 export default {
     // flashcard-modal.tsx
     LOCATE_DECK: "Locate deck",
+    RESET_TIMER: "Reset Timer",
     SEARCH_DECKS: "Search decks",
     DECKS: "Decks",
     DUE_CARDS: "Due Cards",
