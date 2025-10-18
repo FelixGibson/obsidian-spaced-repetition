@@ -2,17 +2,22 @@
 
 export default {
     // flashcard-modal.tsx
-    DECKS: "卡组",
+    LOCATE_DECK: "定位牌组",
+    RESET_TIMER: "重置计时器",
+    SEARCH_DECKS: "搜索牌组",
+    DECKS: "牌组",
     DUE_CARDS: "到期卡片",
     NEW_CARDS: "新卡片",
-    TOTAL_CARDS: "全部卡片",
+    TOTAL_CARDS: "总卡片数",
     EDIT_LATER: "稍后编辑",
-    RESET_CARD_PROGRESS: "重置卡片",
-    HARD: "较难",
-    GOOD: "记得",
+    RESET_CARD_PROGRESS: "重置卡片进度",
+    HARD: "困难",
+    GOOD: "良好",
     EASY: "简单",
+    SKIP: "跳过",
+    DELETE: "删除",
     SHOW_ANSWER: "显示答案",
-    CARD_PROGRESS_RESET: "卡片已被重置。",
+    CARD_PROGRESS_RESET: "卡片进度已重置。",
 
     // main.ts
     OPEN_NOTE_FOR_REVIEW: "打开一个笔记开始复习",

@@ -40,6 +40,7 @@ export class FlashcardModal extends Modal {
     public skipBtn: HTMLElement;
     public goodBtn: HTMLElement;
     public easyBtn: HTMLElement;
+    public deleteBtn: HTMLElement;
     public nextBtn: HTMLElement;
     public responseDiv: HTMLElement;
     public fileLinkView: HTMLElement;
@@ -111,6 +112,8 @@ export class FlashcardModal extends Modal {
                             await this.processReview(ReviewResponse.Reset);
                         } else if (e.code === "Numpad5" || e.code === "Digit5") {
                             await this.processReview(ReviewResponse.Skip);
+                        } else if (e.code === "Numpad6" || e.code === "Digit6") {
+                            await this.processReview(ReviewResponse.Delete);
                         }
                     } catch (error) {
                         console.error("处理键盘事件失败:", error);
@@ -425,6 +428,13 @@ export class FlashcardModal extends Modal {
         this.skipBtn.addEventListener("click", createDebouncedHandler(ReviewResponse.Skip));
 
         this.responseDiv.appendChild(this.skipBtn);
+
+        this.deleteBtn = document.createElement("button");
+        this.deleteBtn.setAttribute("id", "sr-delete-btn");
+        this.deleteBtn.setText(t("DELETE"));
+        this.deleteBtn.addEventListener("click", createDebouncedHandler(ReviewResponse.Delete));
+
+        this.responseDiv.appendChild(this.deleteBtn);
         this.responseDiv.style.display = "none";
 
         this.answerBtn = this.contentEl.createDiv();
@@ -464,6 +474,76 @@ export class FlashcardModal extends Modal {
         }
 
         await this.renderMarkdownWrapper("- A:\n" + this.currentCard.back, this.flashcardView);
+    }
+    async deleteCurrentCard(): Promise<void> {
+        try {
+            // 从笔记文件中删除卡片
+            let fileText: string = await this.app.vault.read(this.currentCard.note);
+
+            // 创建一个更强大的正则表达式来匹配卡片文本及其可能关联的SR注释
+            // 1. 首先尝试匹配卡片文本后紧跟的SR注释
+            const cardWithSRRgx = new RegExp(
+                escapeRegexString(this.currentCard.cardText) + "(\\s*<!--SR:.+?-->)?",
+                "gm"
+            );
+
+            // 2. 对于多行卡片，需要特殊处理
+            let deletionSuccessful = false;
+            if (this.currentCard.cardType === CardType.MultiLineBasic) {
+                // 处理多行卡片
+                const multilineRegex = new RegExp(
+                    `^[\\t ]*${escapeRegex(this.plugin.data.settings.multilineCardSeparator)}`,
+                    "gm"
+                );
+                const questionLastIdx = this.currentCard.cardText.search(multilineRegex) - 1;
+                const question = this.currentCard.cardText.substring(0, questionLastIdx);
+
+                // 尝试匹配问题部分及其可能关联的SR注释
+                const questionWithSRRgx = new RegExp(
+                    escapeRegexString(question) + "(\\s*<!--SR:.+?-->)?",
+                    "gm"
+                );
+
+                if (questionWithSRRgx.test(fileText)) {
+                    fileText = fileText.replace(questionWithSRRgx, "");
+                    deletionSuccessful = true;
+                }
+            }
+
+            // 如果多行卡片处理失败或不是多行卡片，使用通用方法
+            if (!deletionSuccessful) {
+                // 尝试使用更精确的匹配
+                if (cardWithSRRgx.test(fileText)) {
+                    fileText = fileText.replace(cardWithSRRgx, "");
+                } else {
+                    // 如果上面的匹配失败，回退到原始方法
+                    const replacementRegex = new RegExp(
+                        escapeRegexString(this.currentCard.cardText),
+                        "gm"
+                    );
+                    fileText = fileText.replace(replacementRegex, "");
+                }
+            }
+
+            // 清理可能留下的多余空行
+            fileText = fileText.replace(/\n{3,}/g, "\n\n");
+
+            // 如果删除后文件为空或只包含空白字符，可以添加一个空行
+            if (!fileText.trim()) {
+                fileText = "\n";
+            }
+
+            await this.app.vault.modify(this.currentCard.note, fileText);
+
+            // 显示删除成功的通知
+            new Notice("卡片已删除");
+
+            // 移动到下一张卡片
+            await this.nextCard();
+        } catch (error) {
+            console.error("删除卡片时出错:", error);
+            new Notice("删除卡片失败，请检查控制台日志");
+        }
     }
 
     async processReview(response: ReviewResponse): Promise<void> {

@@ -10,6 +10,7 @@ export enum ReviewResponse {
     Hard,
     Reset,
     Skip,
+    Delete,
 }
 
 // Flashcards
