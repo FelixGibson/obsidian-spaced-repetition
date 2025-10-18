@@ -563,7 +563,11 @@ export class FlashcardModal extends Modal {
             let interval: number, ease: number, due;
 
             this.currentDeck.deleteFlashcardAtIndex(this.currentCardIdx, this.currentCard.isDue);
-            if (response !== ReviewResponse.Reset && response !== ReviewResponse.Skip) {
+            if (
+                response !== ReviewResponse.Reset &&
+                response !== ReviewResponse.Skip &&
+                response !== ReviewResponse.Delete
+            ) {
                 let schedObj: Record<string, number>;
                 // scheduled card
                 if (this.currentCard.isDue) {
@@ -619,6 +623,9 @@ export class FlashcardModal extends Modal {
                 // new Notice(t("CARD_PROGRESS_RESET"));
             } else if (response === ReviewResponse.Skip) {
                 await this.nextCard();
+                return;
+            } else if (response === ReviewResponse.Delete) {
+                await this.deleteCurrentCard();
                 return;
             }
 
