@@ -391,13 +391,11 @@ export class FlashcardModal extends Modal {
         });
         this.resetTimerBtn.style.display = "none"; // Initially hidden
 
-        this.deleteBtn = this.contentEl.createEl("button", {
-            text: t("DELETE"),
-            cls: "sr-delete-btn",
-        });
-        this.deleteBtn.addEventListener("click", () => {
-            this.processReview(ReviewResponse.Delete);
-        });
+        this.deleteBtn = document.createElement("button");
+        this.deleteBtn.setAttribute("id", "sr-delete-btn");
+        this.deleteBtn.setText(t("DELETE"));
+        this.deleteBtn.addEventListener("click", createDebouncedHandler(ReviewResponse.Delete));
+        this.contentEl.appendChild(this.deleteBtn);
 
         if (this.plugin.data.settings.showContextInCards) {
             this.contextView = this.contentEl.createDiv();
