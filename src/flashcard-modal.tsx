@@ -112,9 +112,10 @@ export class FlashcardModal extends Modal {
                             await this.processReview(ReviewResponse.Reset);
                         } else if (e.code === "Numpad5" || e.code === "Digit5") {
                             await this.processReview(ReviewResponse.Skip);
-                        } else if (e.code === "Numpad6" || e.code === "Digit6") {
-                            await this.processReview(ReviewResponse.Delete);
                         }
+                        // else if (e.code === "Numpad6" || e.code === "Digit6") {
+                        //     await this.processReview(ReviewResponse.Delete);
+                        // }
                     } catch (error) {
                         console.error("处理键盘事件失败:", error);
                         new Notice("操作失败，请检查控制台日志");
@@ -396,6 +397,7 @@ export class FlashcardModal extends Modal {
         this.deleteBtn.setText(t("DELETE"));
         this.deleteBtn.addEventListener("click", createDebouncedHandler(ReviewResponse.Delete));
         this.contentEl.appendChild(this.deleteBtn);
+        this.deleteBtn.style.display = "none";
 
         if (this.plugin.data.settings.showContextInCards) {
             this.contextView = this.contentEl.createDiv();
@@ -460,6 +462,7 @@ export class FlashcardModal extends Modal {
 
         this.answerBtn.style.display = "none";
         this.responseDiv.style.display = "grid";
+        this.deleteBtn.style.display = "inline-block";
 
         if (this.currentCard.isDue) {
             this.resetLinkView.style.display = "inline-block";
@@ -1419,6 +1422,7 @@ export class Deck {
         modal.progressText.textContent = `Progress: ${progressPercent}%`;
 
         modal.responseDiv.style.display = "none";
+        modal.deleteBtn.style.display = "none";
         modal.resetLinkView.style.display = "none";
         // modal.titleEl.setText(
         //     `${this.deckName}: ${this.dueFlashcardsCount + this.newFlashcardsCount}`
