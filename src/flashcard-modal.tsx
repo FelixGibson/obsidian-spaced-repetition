@@ -539,7 +539,7 @@ export class FlashcardModal extends Modal {
             await this.app.vault.modify(this.currentCard.note, fileText);
 
             // 显示删除成功的通知
-            new Notice("卡片已删除");
+            new Notice("卡片已删除: " + this.currentCard.cardText);
 
             // 移动到下一张卡片
             await this.nextCard();
