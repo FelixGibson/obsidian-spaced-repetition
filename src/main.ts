@@ -91,7 +91,8 @@ export default class SRPlugin extends Plugin {
 
     private getDeckCachePath(deckTag: string): string {
         // 将deckTag转换为有效的文件名，替换特殊字符
-        const safeFileName = deckTag.replace(/[^\w\s-]/g, "_").trim();
+        // 使用更全面的正则表达式，保留中文字符和其他Unicode字符，只替换文件系统不支持的字符
+        const safeFileName = deckTag.replace(/[\\/:"*?<>|]/g, "_").trim();
         return `${this.getCacheDirPath()}/${safeFileName}.json`;
     }
 
