@@ -66,6 +66,8 @@ export default class SRPlugin extends Plugin {
     public data: PluginData;
     public syncLock = false;
     public cacheDeckString = "";
+    // 添加新的属性来存储已加载的deck缓存
+    private loadedDeckCache: { [deckTag: string]: any } = {};
 
     public reviewDecks: { [deckKey: string]: ReviewDeck } = {};
     public lastSelectedReviewDeck: string;
@@ -81,6 +83,135 @@ export default class SRPlugin extends Plugin {
     public static deckTree: Deck | null;
     public dueDatesFlashcards: Record<number, number> = {}; // Record<# of days in future, due count>
     public cardStats: Stats;
+
+    // 添加新的方法来处理缓存文件的读取和写入
+    private getCacheDirPath(): string {
+        return `${this.app.vault.configDir}/plugins/obsidian-spaced-repetition/cache`;
+    }
+
+    private getDeckCachePath(deckTag: string): string {
+        // 将deckTag转换为有效的文件名，替换特殊字符
+        const safeFileName = deckTag.replace(/[^\w\s-]/g, "_").trim();
+        return `${this.getCacheDirPath()}/${safeFileName}.json`;
+    }
+
+    // 确保缓存目录存在
+    private async ensureCacheDirExists(): Promise<void> {
+        const cacheDirPath = this.getCacheDirPath();
+        try {
+            // 尝试读取目录，如果不存在会抛出异常
+            await this.app.vault.adapter.stat(cacheDirPath);
+        } catch (e) {
+            // 目录不存在，创建它
+            await this.app.vault.adapter.mkdir(cacheDirPath);
+        }
+    }
+
+    // 按需加载特定的deck缓存
+    private async loadDeckCache(deckTag: string): Promise<any | null> {
+        if (this.loadedDeckCache[deckTag]) {
+            return this.loadedDeckCache[deckTag];
+        }
+
+        const deckCachePath = this.getDeckCachePath(deckTag);
+        try {
+            const cacheContent = await this.app.vault.adapter.read(deckCachePath);
+            const deckData = JSON.parse(cacheContent);
+            this.loadedDeckCache[deckTag] = deckData;
+            return deckData;
+        } catch (e) {
+            // 文件不存在或读取失败
+            return null;
+        }
+    }
+
+    // 保存特定的deck缓存
+    private async saveDeckCache(deckTag: string, deckData: any): Promise<void> {
+        await this.ensureCacheDirExists();
+        const deckCachePath = this.getDeckCachePath(deckTag);
+        const cacheContent = JSON.stringify(deckData);
+        await this.app.vault.adapter.write(deckCachePath, cacheContent);
+        this.loadedDeckCache[deckTag] = deckData;
+    }
+
+    // 递归保存deck及其子deck
+    public async saveDeckRecursive(deck: Deck): Promise<void> {
+        // 保存当前deck
+        const deckData = deck.toJSONWithLimit(this.data.settings.tagLimits);
+        await this.saveDeckCache(deck.deckTag, deckData);
+
+        // 递归保存子deck
+        for (const subdeck of deck.subdecks) {
+            await this.saveDeckRecursive(subdeck);
+        }
+    }
+
+    // 递归加载deck及其子deck
+    private async loadDeckRecursive(
+        deckTag: string,
+        parent: Deck | null = null
+    ): Promise<Deck | null> {
+        const deckData = await this.loadDeckCache(deckTag);
+        if (!deckData) {
+            return null;
+        }
+
+        const deck = this.jsonToDeck(deckData, parent);
+
+        // 递归加载子deck
+        for (const subdeckData of deckData.subdecks || []) {
+            const subdeck = await this.loadDeckRecursive(subdeckData.deckTag, deck);
+            if (subdeck) {
+                // 替换原有的子deck
+                const index = deck.subdecks.findIndex((d) => d.deckTag === subdeck.deckTag);
+                if (index !== -1) {
+                    deck.subdecks[index] = subdeck;
+                } else {
+                    deck.subdecks.push(subdeck);
+                }
+            }
+        }
+
+        return deck;
+    }
+
+    // 从拆分的文件中加载subdecks并合并到主cache
+    private async loadSubdecksFromFiles(): Promise<any[]> {
+        const subdecks: any[] = [];
+
+        try {
+            // 确保缓存目录存在
+            await this.ensureCacheDirExists();
+
+            // 获取缓存目录中的所有文件
+            const cacheDirPath = this.getCacheDirPath();
+            const files = await this.app.vault.adapter.list(cacheDirPath);
+
+            // 遍历所有文件，加载每个deck
+            for (const file of files.files) {
+                if (file.endsWith(".json")) {
+                    try {
+                        const deckData = await this.app.vault.adapter.read(file);
+                        const parsedData = JSON.parse(deckData);
+                        subdecks.push(parsedData);
+                    } catch (e) {
+                        console.error(`Error loading deck cache from ${file}:`, e);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Error loading subdecks from files:", e);
+        }
+
+        return subdecks;
+    }
+
+    // 保存subdecks到单独的文件
+    private async saveSubdecksToFiles(subdecks: any[]): Promise<void> {
+        for (const subdeck of subdecks) {
+            await this.saveDeckCache(subdeck.deckTag, subdeck);
+        }
+    }
 
     jsonToCard(json: any): Card {
         const tmp: TAbstractFile = this.app.vault.getAbstractFileByPath(json.note);
@@ -1358,13 +1489,29 @@ export default class SRPlugin extends Plugin {
         const savedData = await this.loadData();
         this.data = Object.assign({}, DEFAULT_DATA, savedData);
         this.data.settings = Object.assign({}, DEFAULT_SETTINGS, this.data.settings);
-        // 修改为从本地文件读取缓存
+
+        // 读取主cache.json文件
         const cachePath = `${this.app.vault.configDir}/plugins/obsidian-spaced-repetition/cache.json`;
         try {
             this.cacheDeckString = await this.app.vault.adapter.read(cachePath);
+
+            // 解析主cache.json
+            const cacheData = JSON.parse(this.cacheDeckString);
+
+            // 从拆分的文件中加载subdecks
+            const subdecks = await this.loadSubdecksFromFiles();
+
+            // 将subdecks合并到主cache数据中
+            cacheData.subdecks = subdecks;
+
+            // 更新cacheDeckString
+            this.cacheDeckString = JSON.stringify(cacheData);
         } catch (e) {
             this.cacheDeckString = "";
         }
+
+        // 初始化loadedDeckCache
+        this.loadedDeckCache = {};
     }
 
     public async savePluginData(): Promise<void> {
@@ -1409,6 +1556,37 @@ export default class SRPlugin extends Plugin {
             historyDeck: this.data.historyDeck,
         };
         await this.saveData(cleanData);
+
+        // 处理cache数据
+        if (this.cacheDeckString) {
+            try {
+                const cacheData = JSON.parse(this.cacheDeckString);
+
+                // 保存subdecks到单独的文件
+                if (cacheData.subdecks && Array.isArray(cacheData.subdecks)) {
+                    await this.saveSubdecksToFiles(cacheData.subdecks);
+
+                    // 从主cache数据中移除subdecks，只保留根deck信息
+                    const rootDeckData = {
+                        deckTag: cacheData.deckTag,
+                        newFlashcards: cacheData.newFlashcards || [],
+                        newFlashcardsCount: cacheData.newFlashcardsCount || 0,
+                        dueFlashcards: cacheData.dueFlashcards || [],
+                        dueFlashcardsCount: cacheData.dueFlashcardsCount || 0,
+                        totalFlashcards: cacheData.totalFlashcards || 0,
+                        originCount: cacheData.originCount || 0,
+                        subdecks: [] as Deck[], // 清空subdecks数组
+                    };
+
+                    // 更新cacheDeckString，只包含根deck信息
+                    this.cacheDeckString = JSON.stringify(rootDeckData);
+                }
+            } catch (e) {
+                console.error("Error parsing cache data:", e);
+            }
+        }
+
+        // 保存主cache.json文件
         const cachePath = `${this.app.vault.configDir}/plugins/obsidian-spaced-repetition/cache.json`;
         await this.app.vault.adapter.write(cachePath, this.cacheDeckString);
     }

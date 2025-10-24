@@ -187,11 +187,30 @@ export class FlashcardModal extends Modal {
             if (FlashcardModal.isClosing || FlashcardModal.isOpening) return;
             FlashcardModal.isClosing = true;
             if (SRPlugin.deckTree) {
-                const cacheDeckString = JSON.stringify(
-                    SRPlugin.deckTree.toJSONWithLimit(this.plugin.data.settings.tagLimits)
+                // 直接保存每个deck到单独的文件
+                await this.plugin.saveDeckRecursive(SRPlugin.deckTree);
+
+                // 保存根deck信息到主cache.json文件
+                const rootDeckData = SRPlugin.deckTree.toJSONWithLimit(
+                    this.plugin.data.settings.tagLimits
                 );
-                this.plugin.cacheDeckString = cacheDeckString;
-                await this.plugin.savePluginData();
+                const rootDeckOnly = {
+                    deckTag: rootDeckData.deckTag,
+                    newFlashcards: rootDeckData.newFlashcards || [],
+                    newFlashcardsCount: rootDeckData.newFlashcardsCount || 0,
+                    dueFlashcards: rootDeckData.dueFlashcards || [],
+                    dueFlashcardsCount: rootDeckData.dueFlashcardsCount || 0,
+                    totalFlashcards: rootDeckData.totalFlashcards || 0,
+                    originCount: rootDeckData.originCount || 0,
+                    subdecks: [] as Deck[], // 清空subdecks数组
+                };
+
+                // 更新cacheDeckString，只包含根deck信息
+                this.plugin.cacheDeckString = JSON.stringify(rootDeckOnly);
+
+                // 保存主cache.json文件
+                const cachePath = `${this.plugin.app.vault.configDir}/plugins/obsidian-spaced-repetition/cache.json`;
+                await this.plugin.app.vault.adapter.write(cachePath, this.plugin.cacheDeckString);
             }
             this.mode = FlashcardModalMode.Closed;
         } catch (error) {
