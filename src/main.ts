@@ -203,7 +203,7 @@ export default class SRPlugin extends Plugin {
 
     // 从拆分的文件中加载subdecks并合并到主cache
     private async loadSubdecksFromFiles(): Promise<any[]> {
-        const subdecks: any[] = [];
+        const subdecks: Deck[] = [];
 
         try {
             // 确保缓存目录存在
@@ -225,7 +225,7 @@ export default class SRPlugin extends Plugin {
 
                         if (deckTag) {
                             const deckData = await this.app.vault.adapter.read(file);
-                            const parsedData = JSON.parse(deckData);
+                            const parsedData = this.jsonToDeck(JSON.parse(deckData));
                             subdecks.push(parsedData);
                         } else {
                             console.warn(`No mapping found for file: ${fileName}`);
@@ -584,7 +584,16 @@ export default class SRPlugin extends Plugin {
             const isFirstSyncToday = todayDate !== this.data.settings.lastSyncDate;
 
             if (!isFirstSyncToday && this.cacheDeckString) {
+                // 加载deck mappings文件
+                await this.loadDeckTagMappings();
+
+                // 加载子deck数据
+                const subdecks = await this.loadSubdecksFromFiles();
+
                 SRPlugin.deckTree = this.jsonToDeck(JSON.parse(this.cacheDeckString));
+
+                SRPlugin.deckTree.subdecks = subdecks;
+
                 if (this.data.settings.showDebugMessages) {
                     console.log(`SR: ${t("DECKS")}`, SRPlugin.deckTree);
                 }
@@ -1576,12 +1585,6 @@ export default class SRPlugin extends Plugin {
 
             // 解析主cache.json
             const cacheData = JSON.parse(this.cacheDeckString);
-
-            // 从拆分的文件中加载subdecks
-            const subdecks = await this.loadSubdecksFromFiles();
-
-            // 将subdecks合并到主cache数据中
-            cacheData.subdecks = subdecks;
 
             // 更新cacheDeckString
             this.cacheDeckString = JSON.stringify(cacheData);
