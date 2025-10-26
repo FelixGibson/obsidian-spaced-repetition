@@ -133,73 +133,113 @@ export default class SRPlugin extends Plugin {
         }
     }
 
-    // 按需加载特定的deck缓存
-    private async loadDeckCache(deckTag: string): Promise<any | null> {
-        if (this.loadedDeckCache[deckTag]) {
-            return this.loadedDeckCache[deckTag];
-        }
+    // // 按需加载特定的deck缓存
+    // private async loadDeckCache(deckTag: string): Promise<any | null> {
+    //     if (this.loadedDeckCache[deckTag]) {
+    //         return this.loadedDeckCache[deckTag];
+    //     }
 
-        const deckCachePath = this.getDeckCachePath(deckTag);
-        try {
-            const cacheContent = await this.app.vault.adapter.read(deckCachePath);
-            const deckData = JSON.parse(cacheContent);
-            this.loadedDeckCache[deckTag] = deckData;
-            return deckData;
-        } catch (e) {
-            // 文件不存在或读取失败
-            return null;
-        }
-    }
+    //     const deckCachePath = this.getDeckCachePath(deckTag);
+    //     try {
+    //         const cacheContent = await this.app.vault.adapter.read(deckCachePath);
+    //         const deckData = JSON.parse(cacheContent);
+    //         this.loadedDeckCache[deckTag] = deckData;
+    //         return deckData;
+    //     } catch (e) {
+    //         // 文件不存在或读取失败
+    //         return null;
+    //     }
+    // }
 
     // 保存特定的deck缓存
     public async saveDeckCache(deckTag: string, deckData: any): Promise<void> {
         await this.ensureCacheDirExists();
         const deckCachePath = this.getDeckCachePath(deckTag);
+
+        try {
+            // 检查文件是否已存在
+            const existingFileContent = await this.app.vault.adapter.read(deckCachePath);
+
+            if (existingFileContent && existingFileContent.trim()) {
+                try {
+                    // 解析现有文件内容
+                    const existingData = JSON.parse(existingFileContent);
+
+                    // 检查dueFlashcards和newFlashcards数量是否一致
+                    const existingDueCount = existingData.dueFlashcards
+                        ? existingData.dueFlashcards.length
+                        : 0;
+                    const existingNewCount = existingData.newFlashcards
+                        ? existingData.newFlashcards.length
+                        : 0;
+
+                    const newDueCount = deckData.dueFlashcards ? deckData.dueFlashcards.length : 0;
+                    const newNewCount = deckData.newFlashcards ? deckData.newFlashcards.length : 0;
+
+                    // 如果数量一致，则跳过写入
+                    if (existingDueCount === newDueCount && existingNewCount === newNewCount) {
+                        console.debug(`Skipping save for deck ${deckTag}: card counts unchanged`);
+                        this.loadedDeckCache[deckTag] = deckData;
+                        return;
+                    }
+                } catch (parseError) {
+                    // 解析失败，继续执行写入操作
+                    console.warn(
+                        `Failed to parse existing deck cache for ${deckTag}, will overwrite`
+                    );
+                }
+            }
+        } catch (readError) {
+            // 文件不存在或读取失败，继续执行写入操作
+            // 这是正常情况，不需要警告
+        }
+
+        // 执行写入操作
         const cacheContent = JSON.stringify(deckData);
         await this.app.vault.adapter.write(deckCachePath, cacheContent);
         this.loadedDeckCache[deckTag] = deckData;
     }
 
-    // 递归保存deck及其子deck
-    public async saveDeckRecursive(deck: Deck): Promise<void> {
-        // 保存当前deck
-        const deckData = deck.toJSONWithLimit(this.data.settings.tagLimits);
-        await this.saveDeckCache(deck.deckTag, deckData);
+    // // 递归保存deck及其子deck
+    // public async saveDeckRecursive(deck: Deck): Promise<void> {
+    //     // 保存当前deck
+    //     const deckData = deck.toJSONWithLimit(this.data.settings.tagLimits);
+    //     await this.saveDeckCache(deck.deckTag, deckData);
 
-        // 递归保存子deck
-        for (const subdeck of deck.subdecks) {
-            await this.saveDeckRecursive(subdeck);
-        }
-    }
+    //     // 递归保存子deck
+    //     for (const subdeck of deck.subdecks) {
+    //         await this.saveDeckRecursive(subdeck);
+    //     }
+    // }
 
-    // 递归加载deck及其子deck
-    private async loadDeckRecursive(
-        deckTag: string,
-        parent: Deck | null = null
-    ): Promise<Deck | null> {
-        const deckData = await this.loadDeckCache(deckTag);
-        if (!deckData) {
-            return null;
-        }
+    // // 递归加载deck及其子deck
+    // private async loadDeckRecursive(
+    //     deckTag: string,
+    //     parent: Deck | null = null
+    // ): Promise<Deck | null> {
+    //     const deckData = await this.loadDeckCache(deckTag);
+    //     if (!deckData) {
+    //         return null;
+    //     }
 
-        const deck = this.jsonToDeck(deckData, parent);
+    //     const deck = this.jsonToDeck(deckData, parent);
 
-        // 递归加载子deck
-        for (const subdeckData of deckData.subdecks || []) {
-            const subdeck = await this.loadDeckRecursive(subdeckData.deckTag, deck);
-            if (subdeck) {
-                // 替换原有的子deck
-                const index = deck.subdecks.findIndex((d) => d.deckTag === subdeck.deckTag);
-                if (index !== -1) {
-                    deck.subdecks[index] = subdeck;
-                } else {
-                    deck.subdecks.push(subdeck);
-                }
-            }
-        }
+    //     // 递归加载子deck
+    //     for (const subdeckData of deckData.subdecks || []) {
+    //         const subdeck = await this.loadDeckRecursive(subdeckData.deckTag, deck);
+    //         if (subdeck) {
+    //             // 替换原有的子deck
+    //             const index = deck.subdecks.findIndex((d) => d.deckTag === subdeck.deckTag);
+    //             if (index !== -1) {
+    //                 deck.subdecks[index] = subdeck;
+    //             } else {
+    //                 deck.subdecks.push(subdeck);
+    //             }
+    //         }
+    //     }
 
-        return deck;
-    }
+    //     return deck;
+    // }
 
     /**
      * 动态加载单个deck数据到内存
