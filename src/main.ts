@@ -611,6 +611,7 @@ export default class SRPlugin extends Plugin {
     }
 
     async sync(): Promise<void> {
+        await this.loadPluginData();
         if (this.syncLock) {
             return;
         }
@@ -1639,8 +1640,8 @@ export default class SRPlugin extends Plugin {
 
     async loadPluginData(): Promise<void> {
         const savedData = await this.loadData();
-        this.data = Object.assign({}, DEFAULT_DATA, savedData);
-        this.data.settings = Object.assign({}, DEFAULT_SETTINGS, this.data.settings);
+        this.data = DEFAULT_DATA;
+        this.data.settings = savedData;
 
         // 读取主cache.json文件
         const cachePath = `${this.app.vault.configDir}/plugins/${pluginName}/cache.json`;
@@ -1695,13 +1696,13 @@ export default class SRPlugin extends Plugin {
             showDebugMessages: this.data.settings.showDebugMessages,
         };
 
-        const cleanData: PluginData = {
-            settings: cleanSettings,
-            buryDate: this.data.buryDate,
-            buryList: this.data.buryList,
-            historyDeck: this.data.historyDeck,
-        };
-        await this.saveData(cleanData);
+        // const cleanData: PluginData = {
+        //     settings: cleanSettings,
+        //     buryDate: this.data.buryDate,
+        //     buryList: this.data.buryList,
+        //     historyDeck: this.data.historyDeck,
+        // };
+        await this.saveData(cleanSettings);
 
         // 处理cache数据
         if (this.cacheDeckString) {

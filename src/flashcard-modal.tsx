@@ -234,6 +234,30 @@ export class FlashcardModal extends Modal {
         const aimDeck = SRPlugin.deckTree.subdecks.filter(
             (deck) => deck.deckTag === this.plugin.data.historyDeck
         );
+
+        // 如果在SRPlugin.deckTree.subdecks中找不到historyDeck，尝试从deckTagToFileMap中加载
+        if (this.plugin.data.historyDeck && aimDeck.length === 0) {
+            const loadedDeck = await this.plugin.loadDeckByTag(this.plugin.data.historyDeck);
+            if (loadedDeck) {
+                // 将加载的deck添加到SRPlugin.deckTree.subdecks中
+                const existingDeckIndex = SRPlugin.deckTree.subdecks.findIndex(
+                    (deck) => deck.deckTag === loadedDeck.deckTag
+                );
+                if (existingDeckIndex === -1) {
+                    SRPlugin.deckTree.subdecks.push(loadedDeck);
+                } else {
+                    // 如果已存在，则替换为加载的deck
+                    SRPlugin.deckTree.subdecks[existingDeckIndex] = loadedDeck;
+                }
+
+                this.currentDeck = loadedDeck;
+                this.checkDeck = loadedDeck.parent;
+                this.setupCardsView();
+                await loadedDeck.nextCard(this);
+                return;
+            }
+        }
+
         if (this.plugin.data.historyDeck && aimDeck.length > 0) {
             const deck = aimDeck[0];
 
@@ -1316,7 +1340,7 @@ export class Deck {
             }
         }
         if (/^\|.+\|$/.test(this.deckTag)) {
-            let deckViewSelf = deckView.createDiv("tree-item-name");
+            const deckViewSelf = deckView.createDiv("tree-item-name");
             deckViewSelf.innerHTML = `<h3 class="tag-pane-tag-self">${this.deckTag}</h3>`;
             deckViewSelf.addEventListener("click", async () => {
                 const loadedDeck = await modal.plugin.loadDeckByTag(this.deckTag);
