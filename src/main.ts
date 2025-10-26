@@ -70,8 +70,8 @@ export default class SRPlugin extends Plugin {
     private loadedDeckCache: { [deckTag: string]: any } = {};
 
     // 添加新的属性来存储deckTag和文件名的映射关系
-    private deckTagToFileMap: { [deckTag: string]: string } = {};
-    private fileToDeckTagMap: { [fileName: string]: string } = {};
+    public deckTagToFileMap: { [deckTag: string]: string } = {};
+    public fileToDeckTagMap: { [fileName: string]: string } = {};
 
     public reviewDecks: { [deckKey: string]: ReviewDeck } = {};
     public lastSelectedReviewDeck: string;
@@ -201,46 +201,110 @@ export default class SRPlugin extends Plugin {
         return deck;
     }
 
-    // 从拆分的文件中加载subdecks并合并到主cache
-    private async loadSubdecksFromFiles(): Promise<any[]> {
+    /**
+     * 动态加载单个deck数据到内存
+     * @param deckTag 要加载的deck标签
+     * @returns Promise<Deck | null> 返回加载的deck对象，如果未找到则返回null
+     */
+    async loadDeckByTag(deckTag: string): Promise<Deck | null> {
+        try {
+            // 确保deckTag映射表已加载
+            if (!this.deckTagToFileMap) {
+                await this.loadDeckTagMappings();
+            }
+
+            // 通过deckTag找到对应的文件路径
+            const fileName = this.deckTagToFileMap[deckTag];
+            if (!fileName) {
+                console.warn(`No file name found for deck tag: ${deckTag}`);
+                return null;
+            }
+
+            // 检查文件是否存在
+            const fileContent = await this.app.vault.adapter.read(
+                `${this.getCacheDirPath()}/${fileName}`
+            );
+
+            if (!fileContent.trim()) {
+                console.warn(`File is empty: ${fileName}`);
+                return null;
+            }
+
+            // 解析JSON内容
+            const deckData = JSON.parse(fileContent);
+
+            // 转换为Deck对象
+            const deck = this.jsonToDeck(deckData);
+
+            return deck;
+        } catch (error) {
+            console.error(`Error loading deck by tag ${deckTag}:`, error);
+            return null;
+        }
+    }
+
+    public async loadSubdecksFromMap(): Promise<any[]> {
         const subdecks: Deck[] = [];
 
         try {
-            // 确保缓存目录存在
-            await this.ensureCacheDirExists();
-
-            // 加载映射表
-            await this.loadDeckTagMappings();
-
-            // 获取缓存目录中的所有文件
-            const cacheDirPath = this.getCacheDirPath();
-            const files = await this.app.vault.adapter.list(cacheDirPath);
-
-            // 遍历所有文件，加载每个deck
-            for (const file of files.files) {
-                if (file.endsWith(".json") && !file.endsWith("deck_mappings.json")) {
-                    try {
-                        const fileName = file.split("/").pop(); // 获取文件名
-                        const deckTag = this.fileToDeckTagMap[fileName];
-
-                        if (deckTag) {
-                            const deckData = await this.app.vault.adapter.read(file);
-                            const parsedData = this.jsonToDeck(JSON.parse(deckData));
-                            subdecks.push(parsedData);
-                        } else {
-                            console.warn(`No mapping found for file: ${fileName}`);
-                        }
-                    } catch (e) {
-                        console.error(`Error loading deck cache from ${file}:`, e);
-                    }
-                }
+            // 确保deckTag映射表已加载
+            if (!this.deckTagToFileMap) {
+                await this.loadDeckTagMappings();
             }
-        } catch (e) {
-            console.error("Error loading subdecks from files:", e);
+
+            // 遍历所有deckTag映射，为每个创建一个空的deck壳
+            for (const deckTag in this.deckTagToFileMap) {
+                // 创建一个空的deck壳，不加载实际内容
+                const emptyDeck = new Deck(deckTag, null);
+                subdecks.push(emptyDeck);
+            }
+        } catch (error) {
+            console.error("Error loading subdecks from map:", error);
         }
 
         return subdecks;
     }
+
+    // // 从拆分的文件中加载subdecks并合并到主cache
+    // private async loadSubdecksFromFiles(): Promise<any[]> {
+    //     const subdecks: Deck[] = [];
+
+    //     try {
+    //         // 确保缓存目录存在
+    //         await this.ensureCacheDirExists();
+
+    //         // 加载映射表
+    //         await this.loadDeckTagMappings();
+
+    //         // 获取缓存目录中的所有文件
+    //         const cacheDirPath = this.getCacheDirPath();
+    //         const files = await this.app.vault.adapter.list(cacheDirPath);
+
+    //         // 遍历所有文件，加载每个deck
+    //         for (const file of files.files) {
+    //             if (file.endsWith(".json") && !file.endsWith("deck_mappings.json")) {
+    //                 try {
+    //                     const fileName = file.split("/").pop(); // 获取文件名
+    //                     const deckTag = this.fileToDeckTagMap[fileName];
+
+    //                     if (deckTag) {
+    //                         const deckData = await this.app.vault.adapter.read(file);
+    //                         const parsedData = this.jsonToDeck(JSON.parse(deckData));
+    //                         subdecks.push(parsedData);
+    //                     } else {
+    //                         console.warn(`No mapping found for file: ${fileName}`);
+    //                     }
+    //                 } catch (e) {
+    //                     console.error(`Error loading deck cache from ${file}:`, e);
+    //                 }
+    //             }
+    //         }
+    //     } catch (e) {
+    //         console.error("Error loading subdecks from files:", e);
+    //     }
+
+    //     return subdecks;
+    // }
 
     // 保存subdecks到单独的文件
     private async saveSubdecksToFiles(subdecks: any[]): Promise<void> {
@@ -588,11 +652,11 @@ export default class SRPlugin extends Plugin {
                 await this.loadDeckTagMappings();
 
                 // 加载子deck数据
-                const subdecks = await this.loadSubdecksFromFiles();
 
                 SRPlugin.deckTree = this.jsonToDeck(JSON.parse(this.cacheDeckString));
 
-                SRPlugin.deckTree.subdecks = subdecks;
+                // const subdecks = await this.loadSubdecksFromMap();
+                // SRPlugin.deckTree.subdecks = subdecks;
 
                 if (this.data.settings.showDebugMessages) {
                     console.log(`SR: ${t("DECKS")}`, SRPlugin.deckTree);

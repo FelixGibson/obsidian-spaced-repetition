@@ -236,23 +236,11 @@ export class FlashcardModal extends Modal {
         );
         if (this.plugin.data.historyDeck && aimDeck.length > 0) {
             const deck = aimDeck[0];
-            // if (Platform.isMobile && 1) {
-            //     if (FlashcardModal.lastTimeDeck) {
-            //         deck = FlashcardModal.lastTimeDeck;
-            //     }
-            // }
 
             this.currentDeck = deck;
             this.checkDeck = deck.parent;
             this.setupCardsView();
             await deck.nextCard(this);
-            // if (Platform.isMobile && 1) {
-            //     if (SRPlugin.deckTree.subdecks.length > 1) {
-            //         // // clear all the other useless deck
-            //         // SRPlugin.deckTree.subdecks = [deck];
-            //         FlashcardModal.lastTimeDeck = deck;
-            //     }
-            // }
             return;
         }
 
@@ -291,9 +279,19 @@ export class FlashcardModal extends Modal {
             cls: "main-content",
         });
 
-        // 删除多余的克隆逻辑↓↓
+        // 从deckTagToFileMap获取所有deck标签，而不是使用SRPlugin.deckTree.subdecks
+        const deckTags = Object.keys(this.plugin.deckTagToFileMap);
+
+        // 创建deck对象数组用于过滤和渲染
+        const decks: Deck[] = [];
+        for (const deckTag of deckTags) {
+            // 创建空的deck壳，不加载实际内容
+            const deck = new Deck(deckTag, null);
+            decks.push(deck);
+        }
+
         // 过滤deck列表 (保持原逻辑)
-        const filteredDecks = SRPlugin.deckTree.subdecks.filter((deck) => {
+        const filteredDecks = decks.filter((deck) => {
             if (this.plugin.data.settings.excludeFlashcardTags.includes(deck.deckTag)) {
                 return false;
             }
@@ -1321,12 +1319,13 @@ export class Deck {
             let deckViewSelf = deckView.createDiv("tree-item-name");
             deckViewSelf.innerHTML = `<h3 class="tag-pane-tag-self">${this.deckTag}</h3>`;
             deckViewSelf.addEventListener("click", async () => {
-                modal.plugin.data.historyDeck = this.deckTag;
-                modal.currentDeck = this;
-                modal.checkDeck = this.parent;
+                const loadedDeck = await modal.plugin.loadDeckByTag(this.deckTag);
+                modal.plugin.data.historyDeck = loadedDeck.deckTag;
+                modal.currentDeck = loadedDeck;
+                modal.checkDeck = loadedDeck.parent;
 
                 modal.setupCardsView();
-                await this.nextCard(modal);
+                await loadedDeck.nextCard(modal);
             });
             return;
         }
@@ -1347,11 +1346,12 @@ export class Deck {
         const deckViewInnerText: HTMLElement = deckViewInner.createDiv("tag-pane-tag-text");
         deckViewInnerText.innerHTML += `<span class="tag-pane-tag-self">${this.deckTag}</span>`;
         deckViewInnerText.addEventListener("click", async () => {
-            modal.plugin.data.historyDeck = this.deckTag;
-            modal.currentDeck = this;
-            modal.checkDeck = this.parent;
+            const loadedDeck = await modal.plugin.loadDeckByTag(this.deckTag);
+            modal.plugin.data.historyDeck = loadedDeck.deckTag;
+            modal.currentDeck = loadedDeck;
+            modal.checkDeck = loadedDeck.parent;
             modal.setupCardsView();
-            await this.nextCard(modal);
+            await loadedDeck.nextCard(modal);
             // if (Platform.isMobile && 1) {
             //     if (SRPlugin.deckTree.subdecks.length > 1) {
             //         // clear all the other useless deck
