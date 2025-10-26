@@ -1320,12 +1320,25 @@ export class Deck {
             deckViewSelf.innerHTML = `<h3 class="tag-pane-tag-self">${this.deckTag}</h3>`;
             deckViewSelf.addEventListener("click", async () => {
                 const loadedDeck = await modal.plugin.loadDeckByTag(this.deckTag);
-                modal.plugin.data.historyDeck = loadedDeck.deckTag;
-                modal.currentDeck = loadedDeck;
-                modal.checkDeck = loadedDeck.parent;
+                if (loadedDeck) {
+                    modal.plugin.data.historyDeck = loadedDeck.deckTag;
+                    modal.currentDeck = loadedDeck;
+                    modal.checkDeck = loadedDeck;
 
-                modal.setupCardsView();
-                await loadedDeck.nextCard(modal);
+                    // 将加载的deck添加到SRPlugin.deckTree.subdecks中，如果不存在的话
+                    const existingDeckIndex = SRPlugin.deckTree.subdecks.findIndex(
+                        (deck) => deck.deckTag === loadedDeck.deckTag
+                    );
+                    if (existingDeckIndex === -1) {
+                        SRPlugin.deckTree.subdecks.push(loadedDeck);
+                    } else {
+                        // 如果已存在，则替换为加载的deck
+                        SRPlugin.deckTree.subdecks[existingDeckIndex] = loadedDeck;
+                    }
+
+                    modal.setupCardsView();
+                    await loadedDeck.nextCard(modal);
+                }
             });
             return;
         }
@@ -1347,11 +1360,25 @@ export class Deck {
         deckViewInnerText.innerHTML += `<span class="tag-pane-tag-self">${this.deckTag}</span>`;
         deckViewInnerText.addEventListener("click", async () => {
             const loadedDeck = await modal.plugin.loadDeckByTag(this.deckTag);
-            modal.plugin.data.historyDeck = loadedDeck.deckTag;
-            modal.currentDeck = loadedDeck;
-            modal.checkDeck = loadedDeck.parent;
-            modal.setupCardsView();
-            await loadedDeck.nextCard(modal);
+            if (loadedDeck) {
+                modal.plugin.data.historyDeck = loadedDeck.deckTag;
+                modal.currentDeck = loadedDeck;
+                modal.checkDeck = loadedDeck;
+
+                // 将加载的deck添加到SRPlugin.deckTree.subdecks中，如果不存在的话
+                const existingDeckIndex = SRPlugin.deckTree.subdecks.findIndex(
+                    (deck) => deck.deckTag === loadedDeck.deckTag
+                );
+                if (existingDeckIndex === -1) {
+                    SRPlugin.deckTree.subdecks.push(loadedDeck);
+                } else {
+                    // 如果已存在，则替换为加载的deck
+                    SRPlugin.deckTree.subdecks[existingDeckIndex] = loadedDeck;
+                }
+
+                modal.setupCardsView();
+                await loadedDeck.nextCard(modal);
+            }
             // if (Platform.isMobile && 1) {
             //     if (SRPlugin.deckTree.subdecks.length > 1) {
             //         // clear all the other useless deck
