@@ -1470,13 +1470,9 @@ export class Deck {
                     }
                 }
             }
-
-            if (this.parent == modal.checkDeck) {
-                modal.plugin.data.historyDeck = "";
-                await modal.decksList();
-            } else {
-                await this.parent.nextCard(modal);
-            }
+            new Notice("No more flashcards in this deck: " + this.deckTag);
+            modal.plugin.data.historyDeck = "";
+            await modal.decksList();
             return;
         }
 

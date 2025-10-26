@@ -611,7 +611,7 @@ export default class SRPlugin extends Plugin {
     }
 
     async sync(): Promise<void> {
-        await this.loadPluginData();
+        // await this.loadPluginData();
         if (this.syncLock) {
             return;
         }
@@ -1641,7 +1641,7 @@ export default class SRPlugin extends Plugin {
     async loadPluginData(): Promise<void> {
         const savedData = await this.loadData();
         this.data = DEFAULT_DATA;
-        this.data.settings = savedData;
+        this.data.settings = Object.assign({}, DEFAULT_SETTINGS, savedData);
 
         // 读取主cache.json文件
         const cachePath = `${this.app.vault.configDir}/plugins/${pluginName}/cache.json`;
