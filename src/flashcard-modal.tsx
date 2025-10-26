@@ -1083,53 +1083,14 @@ export class Deck {
 
     toJSONWithLimit(tagLimits: Record<string, number>): Record<string, any> {
         let maxCount = 30;
-        // if (this.deckTag.contains("#[[backendread")) {
-        //     maxCount = 3;
-        // } else if (this.deckTag.contains("read]]")) {
-        //     maxCount = 1;
-        // } else if (this.deckTag.contains("#[[c]]")) {
-        //     maxCount = 8;
-        // } else if (this.deckTag.contains("#[[p]]")) {
-        //     maxCount = 8;
-        // } else if (this.deckTag.startsWith("|Collector|")) {
-        //     maxCount = 3;
-        // } else if (this.deckTag.startsWith("#[[super thinking index]]")) {
-        //     maxCount = 3;
-        // } else if (this.deckTag.contains("#[[cquest]]") || this.deckTag.contains("#[[pquest]]")) {
-        //     maxCount = 1;
-        //     // } else if (this.deckTag.contains("#[[zk]]") || this.deckTag.contains("#[[solidity]]")) {
-        //     //     maxCount = 1;
-        // } else if (this.deckTag.contains("#[[fri]]")) {
-        //     maxCount = 5;
-        // } else if (this.deckTag.contains("fri")) {
-        //     maxCount = 2;
-        // } else if (this.deckTag.contains("quest]]")) {
-        //     maxCount = 5;
-        // } else if (this.deckTag.startsWith("|Backend|")) {
-        //     maxCount = 20;
-        // } else if (this.deckTag.startsWith("|营销|")) {
-        //     maxCount = 15;
-        // } else if (this.deckTag.startsWith("|Leetcode|")) {
-        //     maxCount = 7;
-        // } else if (this.deckTag.startsWith("||")) {
-        //     maxCount = 30;
-        // } else if (this.deckTag.startsWith("|")) {
-        //     maxCount = 15;
-        // } else if (this.deckTag.contains("algorithm") || this.deckTag.contains("leetcode-top150")) {
-        //     maxCount = 7;
-        // } else if (this.deckTag.contains("#[[pquestv]]")) {
-        //     maxCount = 3;
-        // } else if (this.deckTag.contains("#[[cquestv]]")) {
-        //     maxCount = 3;
-        // }
         if (tagLimits[this.deckTag] !== undefined) {
             maxCount = tagLimits[this.deckTag];
         }
 
-        let dueFlashcardsJSON = [];
-        let newFlashcardsJSON = [];
+        const dueFlashcardsJSON = [];
+        const newFlashcardsJSON = [];
         for (let i = 0; i < Math.min(this.newFlashcards.length, maxCount); i++) {
-            let card = cardToJSON(this.newFlashcards[i]);
+            const card = cardToJSON(this.newFlashcards[i]);
             if (card !== undefined) {
                 newFlashcardsJSON.push(card);
             }
@@ -1139,14 +1100,14 @@ export class Deck {
             i < Math.min(this.dueFlashcards.length, maxCount - newFlashcardsJSON.length);
             i++
         ) {
-            let card = cardToJSON(this.dueFlashcards[i]);
+            const card = cardToJSON(this.dueFlashcards[i]);
             if (card !== undefined) {
                 dueFlashcardsJSON.push(card);
             }
         }
-        let subdecksJSON = [];
+        const subdecksJSON = [];
         for (let i = 0; i < this.subdecks.length; i++) {
-            let subdeck = this.subdecks[i].toJSONWithLimit(tagLimits);
+            const subdeck = this.subdecks[i].toJSONWithLimit(tagLimits);
             if (subdeck !== undefined) {
                 subdecksJSON.push(subdeck);
             }
