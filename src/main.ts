@@ -69,6 +69,10 @@ export default class SRPlugin extends Plugin {
     // 添加新的属性来存储已加载的deck缓存
     private loadedDeckCache: { [deckTag: string]: any } = {};
 
+    // 添加新的属性来存储deckTag和文件名的映射关系
+    private deckTagToFileMap: { [deckTag: string]: string } = {};
+    private fileToDeckTagMap: { [fileName: string]: string } = {};
+
     public reviewDecks: { [deckKey: string]: ReviewDeck } = {};
     public lastSelectedReviewDeck: string;
 
@@ -89,14 +93,35 @@ export default class SRPlugin extends Plugin {
         return `${this.app.vault.configDir}/plugins/${pluginName}/cache`;
     }
 
-    private getDeckCachePath(deckTag: string): string {
-        // 将deckTag转换为有效的文件名，替换特殊字符
-        // 使用更全面的正则表达式，保留中文字符和其他Unicode字符，只替换文件系统不支持的字符
-        const safeFileName = deckTag.replace(/[\\/:"*?<>|]/g, "_").trim();
-        return `${this.getCacheDirPath()}/${safeFileName}.json`;
+    // 生成唯一的文件ID，使用UUID或时间戳+随机数
+    private generateFileId(): string {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
     }
 
-    // 确保缓存目录存在
+    // 获取或创建deckTag对应的文件名
+    private getDeckFileName(deckTag: string): string {
+        // 如果映射已存在，直接返回
+        if (this.deckTagToFileMap[deckTag]) {
+            return this.deckTagToFileMap[deckTag];
+        }
+
+        // 生成新的文件ID
+        const fileId = this.generateFileId();
+        const fileName = `deck_${fileId}.json`;
+
+        // 更新映射表
+        this.deckTagToFileMap[deckTag] = fileName;
+        this.fileToDeckTagMap[fileName] = deckTag;
+
+        return fileName;
+    }
+
+    private getDeckCachePath(deckTag: string): string {
+        // 使用映射表获取文件名，而不是直接转换deckTag
+        const fileName = this.getDeckFileName(deckTag);
+        return `${this.getCacheDirPath()}/${fileName}`;
+    }
+
     private async ensureCacheDirExists(): Promise<void> {
         const cacheDirPath = this.getCacheDirPath();
         try {
@@ -184,17 +209,27 @@ export default class SRPlugin extends Plugin {
             // 确保缓存目录存在
             await this.ensureCacheDirExists();
 
+            // 加载映射表
+            await this.loadDeckTagMappings();
+
             // 获取缓存目录中的所有文件
             const cacheDirPath = this.getCacheDirPath();
             const files = await this.app.vault.adapter.list(cacheDirPath);
 
             // 遍历所有文件，加载每个deck
             for (const file of files.files) {
-                if (file.endsWith(".json")) {
+                if (file.endsWith(".json") && !file.endsWith("deck_mappings.json")) {
                     try {
-                        const deckData = await this.app.vault.adapter.read(file);
-                        const parsedData = JSON.parse(deckData);
-                        subdecks.push(parsedData);
+                        const fileName = file.split("/").pop(); // 获取文件名
+                        const deckTag = this.fileToDeckTagMap[fileName];
+
+                        if (deckTag) {
+                            const deckData = await this.app.vault.adapter.read(file);
+                            const parsedData = JSON.parse(deckData);
+                            subdecks.push(parsedData);
+                        } else {
+                            console.warn(`No mapping found for file: ${fileName}`);
+                        }
                     } catch (e) {
                         console.error(`Error loading deck cache from ${file}:`, e);
                     }
@@ -212,6 +247,49 @@ export default class SRPlugin extends Plugin {
         for (const subdeck of subdecks) {
             await this.saveDeckCache(subdeck.deckTag, subdeck);
         }
+
+        // 保存映射表
+        await this.saveDeckTagMappings();
+    }
+
+    // 加载deckTag和文件名的映射表
+    private async loadDeckTagMappings(): Promise<void> {
+        const mappingsPath = `${this.getCacheDirPath()}/deck_mappings.json`;
+
+        try {
+            // 确保缓存目录存在
+            await this.ensureCacheDirExists();
+
+            // 尝试读取映射表文件
+            const mappingsContent = await this.app.vault.adapter.read(mappingsPath);
+            const mappings = JSON.parse(mappingsContent);
+
+            // 加载映射表到内存
+            this.deckTagToFileMap = mappings.deckTagToFileMap || {};
+            this.fileToDeckTagMap = mappings.fileToDeckTagMap || {};
+        } catch (e) {
+            // 文件不存在或读取失败，初始化空的映射表
+            this.deckTagToFileMap = {};
+            this.fileToDeckTagMap = {};
+        }
+    }
+
+    // 保存deckTag和文件名的映射表
+    private async saveDeckTagMappings(): Promise<void> {
+        const mappingsPath = `${this.getCacheDirPath()}/deck_mappings.json`;
+
+        // 确保缓存目录存在
+        await this.ensureCacheDirExists();
+
+        // 准备要保存的映射表数据
+        const mappings = {
+            deckTagToFileMap: this.deckTagToFileMap,
+            fileToDeckTagMap: this.fileToDeckTagMap,
+        };
+
+        // 将映射表写入文件
+        const mappingsContent = JSON.stringify(mappings);
+        await this.app.vault.adapter.write(mappingsPath, mappingsContent);
     }
 
     jsonToCard(json: any): Card {
