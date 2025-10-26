@@ -12,7 +12,7 @@ import {
 import * as graph from "pagerank.js";
 
 import { SRSettingTab, SRSettings, DEFAULT_SETTINGS, applySettingsUpdate } from "src/settings";
-import { FlashcardModal, Deck } from "src/flashcard-modal";
+import { FlashcardModal, Deck, pluginName } from "src/flashcard-modal";
 import { StatsModal, Stats } from "src/stats-modal";
 import { ReviewQueueListView, REVIEW_QUEUE_VIEW_TYPE } from "src/sidebar";
 import { Card, CardType, ReviewResponse, schedule } from "src/scheduling";
@@ -86,7 +86,7 @@ export default class SRPlugin extends Plugin {
 
     // 添加新的方法来处理缓存文件的读取和写入
     private getCacheDirPath(): string {
-        return `${this.app.vault.configDir}/plugins/obsidian-spaced-repetition/cache`;
+        return `${this.app.vault.configDir}/plugins/${pluginName}/cache`;
     }
 
     private getDeckCachePath(deckTag: string): string {
@@ -1492,7 +1492,7 @@ export default class SRPlugin extends Plugin {
         this.data.settings = Object.assign({}, DEFAULT_SETTINGS, this.data.settings);
 
         // 读取主cache.json文件
-        const cachePath = `${this.app.vault.configDir}/plugins/obsidian-spaced-repetition/cache.json`;
+        const cachePath = `${this.app.vault.configDir}/plugins/${pluginName}/cache.json`;
         try {
             this.cacheDeckString = await this.app.vault.adapter.read(cachePath);
 
@@ -1588,7 +1588,7 @@ export default class SRPlugin extends Plugin {
         }
 
         // 保存主cache.json文件
-        const cachePath = `${this.app.vault.configDir}/plugins/obsidian-spaced-repetition/cache.json`;
+        const cachePath = `${this.app.vault.configDir}/plugins/${pluginName}/cache.json`;
         await this.app.vault.adapter.write(cachePath, this.cacheDeckString);
     }
 

@@ -32,6 +32,8 @@ export enum FlashcardModalMode {
     Closed,
 }
 
+export const pluginName = "yet-another-obsidian-spaced-repetition";
+
 export class FlashcardModal extends Modal {
     public plugin: SRPlugin;
     public answerBtn: HTMLElement;
@@ -209,7 +211,7 @@ export class FlashcardModal extends Modal {
                 this.plugin.cacheDeckString = JSON.stringify(rootDeckOnly);
 
                 // 保存主cache.json文件
-                const cachePath = `${this.plugin.app.vault.configDir}/plugins/obsidian-spaced-repetition/cache.json`;
+                const cachePath = `${this.plugin.app.vault.configDir}/plugins/${pluginName}/cache.json`;
                 await this.plugin.app.vault.adapter.write(cachePath, this.plugin.cacheDeckString);
             }
             this.mode = FlashcardModalMode.Closed;
