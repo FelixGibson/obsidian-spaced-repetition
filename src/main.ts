@@ -152,7 +152,7 @@ export default class SRPlugin extends Plugin {
     }
 
     // 保存特定的deck缓存
-    private async saveDeckCache(deckTag: string, deckData: any): Promise<void> {
+    public async saveDeckCache(deckTag: string, deckData: any): Promise<void> {
         await this.ensureCacheDirExists();
         const deckCachePath = this.getDeckCachePath(deckTag);
         const cacheContent = JSON.stringify(deckData);

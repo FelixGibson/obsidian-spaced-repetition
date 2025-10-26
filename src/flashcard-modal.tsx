@@ -190,7 +190,12 @@ export class FlashcardModal extends Modal {
             FlashcardModal.isClosing = true;
             if (SRPlugin.deckTree) {
                 // 直接保存每个deck到单独的文件
-                await this.plugin.saveDeckRecursive(SRPlugin.deckTree);
+                for (const deck of SRPlugin.deckTree.subdecks) {
+                    await this.plugin.saveDeckCache(
+                        deck.deckTag,
+                        deck.toJSONWithLimit(this.plugin.data.settings.tagLimits)
+                    );
+                }
 
                 // 保存根deck信息到主cache.json文件
                 const rootDeckData = SRPlugin.deckTree.toJSONWithLimit(
@@ -1319,15 +1324,9 @@ export class Deck {
                 modal.plugin.data.historyDeck = this.deckTag;
                 modal.currentDeck = this;
                 modal.checkDeck = this.parent;
+
                 modal.setupCardsView();
                 await this.nextCard(modal);
-                // if (Platform.isMobile && 1) {
-                //     if (SRPlugin.deckTree.subdecks.length > 1) {
-                //         // clear all the other useless deck
-                //         SRPlugin.deckTree.subdecks = [this];
-                //         FlashcardModal.lastTimeDeck = this;
-                //     }
-                // }
             });
             return;
         }
