@@ -686,9 +686,17 @@ export default class SRPlugin extends Plugin {
             const now = window.moment().utcOffset(8); // 设置为 UTC+8
             const todayDate = now.format("YYYY-MM-DD");
 
-            const isFirstSyncToday = todayDate !== this.data.settings.lastSyncDate;
+            // 计算距离上次同步的天数
+            let daysSinceLastSync = 0;
+            if (this.data.settings.lastSyncDate) {
+                const lastSync = window.moment(this.data.settings.lastSyncDate);
+                daysSinceLastSync = now.diff(lastSync, "days");
+            }
 
-            if (!isFirstSyncToday && this.cacheDeckString) {
+            // 每隔3天刷新一次
+            const shouldSkipSync = daysSinceLastSync < 3 && this.cacheDeckString;
+
+            if (shouldSkipSync) {
                 // 加载deck mappings文件
                 await this.loadDeckTagMappings();
 
