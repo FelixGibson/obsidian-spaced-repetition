@@ -688,9 +688,12 @@ export default class SRPlugin extends Plugin {
 
             // 计算距离上次同步的天数
             let daysSinceLastSync = 0;
-            if (this.data.settings.lastSyncDate) {
+            if (this.data.settings.lastSyncDate !== "") {
                 const lastSync = window.moment(this.data.settings.lastSyncDate);
                 daysSinceLastSync = now.diff(lastSync, "days");
+            } else {
+                // 首次同步，设置daysSinceLastSync为3以确保执行完整同步
+                daysSinceLastSync = 3;
             }
 
             // 每隔3天刷新一次
@@ -701,11 +704,7 @@ export default class SRPlugin extends Plugin {
                 await this.loadDeckTagMappings();
 
                 // 加载子deck数据
-
                 SRPlugin.deckTree = this.jsonToDeck(JSON.parse(this.cacheDeckString));
-
-                // const subdecks = await this.loadSubdecksFromMap();
-                // SRPlugin.deckTree.subdecks = subdecks;
 
                 if (this.data.settings.showDebugMessages) {
                     console.log(`SR: ${t("DECKS")}`, SRPlugin.deckTree);
@@ -868,6 +867,7 @@ export default class SRPlugin extends Plugin {
                     SRPlugin.deckTree.toJSONWithLimit(this.data.settings.tagLimits)
                 );
                 this.cacheDeckString = cacheDeckString;
+                // 只在实际执行同步时才更新lastSyncDate
                 this.data.settings.lastSyncDate = now.format("YYYY-MM-DD");
                 await this.savePluginData();
             }
