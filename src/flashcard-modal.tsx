@@ -1554,10 +1554,10 @@ export class Deck {
                 modal.currentCard.cardText.contains("//x.com") ||
                 modal.currentCard.cardText.contains("#[[b]]") ||
                 modal.currentCard.cardText.contains("#[[bquest]]") ||
-                modal.currentCard.cardText.contains("#[[bquestv]]") ||
-                modal.currentCard.cardText.contains("weibo") ||
-                modal.currentCard.cardText.contains("invest") ||
-                modal.currentCard.cardText.contains("business"))
+                modal.currentCard.cardText.contains("#[[bquestv]]"))
+            // modal.currentCard.cardText.contains("weibo") ||
+            // modal.currentCard.cardText.contains("invest") ||
+            // modal.currentCard.cardText.contains("business")
             // && false
         ) {
             await modal.processReview(ReviewResponse.Good);
