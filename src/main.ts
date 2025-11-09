@@ -358,6 +358,50 @@ export default class SRPlugin extends Plugin {
 
         // 保存映射表
         await this.saveDeckTagMappings();
+
+        // 清理未使用的缓存文件
+        await this.cleanUnusedCacheFiles();
+    }
+
+    // 清理未使用的缓存文件
+    private async cleanUnusedCacheFiles(): Promise<void> {
+        try {
+            const cacheDirPath = this.getCacheDirPath();
+
+            // 获取缓存目录中的所有文件
+            const files = await this.app.vault.adapter.list(cacheDirPath);
+
+            // 获取当前映射表中存在的文件
+            const validFiles = new Set<string>();
+            for (const deckTag in this.deckTagToFileMap) {
+                const fileName = this.deckTagToFileMap[deckTag];
+                if (fileName) {
+                    validFiles.add(fileName);
+                }
+            }
+
+            // 遍历所有文件，删除未在映射表中的文件（除了deck_mappings.json）
+            for (const file of files.files) {
+                const fileName = file.split("/").pop();
+
+                // 跳过deck_mappings.json文件
+                if (fileName === "deck_mappings.json") {
+                    continue;
+                }
+
+                // 如果文件不在有效文件列表中，则删除
+                if (!validFiles.has(fileName)) {
+                    try {
+                        await this.app.vault.adapter.remove(file);
+                        console.log(`Deleted unused cache file: ${fileName}`);
+                    } catch (error) {
+                        console.error(`Error deleting cache file ${fileName}:`, error);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Error cleaning unused cache files:", error);
+        }
     }
 
     // 加载deckTag和文件名的映射表
