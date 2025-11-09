@@ -100,6 +100,10 @@ export default class SRPlugin extends Plugin {
 
     // 获取或创建deckTag对应的文件名
     private getDeckFileName(deckTag: string): string {
+        // 确保deckTag映射表已加载
+        if (!this.deckTagToFileMap) {
+            this.loadDeckTagMappings();
+        }
         // 如果映射已存在，直接返回
         if (this.deckTagToFileMap[deckTag]) {
             return this.deckTagToFileMap[deckTag];
