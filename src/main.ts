@@ -99,10 +99,11 @@ export default class SRPlugin extends Plugin {
     }
 
     // 获取或创建deckTag对应的文件名
-    private getDeckFileName(deckTag: string): string {
-        // 确保deckTag映射表已加载
-        if (!this.deckTagToFileMap) {
-            this.loadDeckTagMappings();
+    private async getDeckFileName(deckTag: string): Promise<string> {
+        // 确保deckTag映射表已加载（修改判断条件）
+        if (Object.keys(this.deckTagToFileMap).length === 0) {
+            // 注意：这里应该使用await，因为loadDeckTagMappings是异步方法
+            await this.loadDeckTagMappings();
         }
         // 如果映射已存在，直接返回
         if (this.deckTagToFileMap[deckTag]) {
@@ -120,9 +121,9 @@ export default class SRPlugin extends Plugin {
         return fileName;
     }
 
-    private getDeckCachePath(deckTag: string): string {
+    private async getDeckCachePath(deckTag: string): Promise<string> {
         // 使用映射表获取文件名，而不是直接转换deckTag
-        const fileName = this.getDeckFileName(deckTag);
+        const fileName = await this.getDeckFileName(deckTag);
         return `${this.getCacheDirPath()}/${fileName}`;
     }
 
@@ -158,7 +159,7 @@ export default class SRPlugin extends Plugin {
     // 保存特定的deck缓存
     public async saveDeckCache(deckTag: string, deckData: any): Promise<void> {
         await this.ensureCacheDirExists();
-        const deckCachePath = this.getDeckCachePath(deckTag);
+        const deckCachePath = await this.getDeckCachePath(deckTag);
 
         try {
             // 检查文件是否已存在
@@ -1755,6 +1756,7 @@ export default class SRPlugin extends Plugin {
 
         // 初始化loadedDeckCache
         this.loadedDeckCache = {};
+        await this.loadDeckTagMappings();
     }
 
     public async savePluginData(): Promise<void> {
