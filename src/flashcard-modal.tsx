@@ -303,8 +303,9 @@ export class FlashcardModal extends Modal {
             cls: "main-content",
         });
 
-        // 从deckTagToFileMap获取所有deck标签，而不是使用SRPlugin.deckTree.subdecks
-        const deckTags = Object.keys(this.plugin.deckTagToFileMap);
+        const deckTags = this.plugin.data.settings.flashcardTags.filter((tag) =>
+            Object.prototype.hasOwnProperty.call(this.plugin.deckTagToFileMap, tag)
+        );
 
         // 创建deck对象数组用于过滤和渲染
         const decks: Deck[] = [];

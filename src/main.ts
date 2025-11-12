@@ -1756,7 +1756,7 @@ export default class SRPlugin extends Plugin {
 
         // 初始化loadedDeckCache
         this.loadedDeckCache = {};
-        await this.loadDeckTagMappings();
+        // await this.loadDeckTagMappings();
     }
 
     public async savePluginData(): Promise<void> {
