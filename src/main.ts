@@ -762,6 +762,19 @@ export default class SRPlugin extends Plugin {
                 // 首次同步
                 shouldSkipSync = false;
             }
+            if (shouldSkipSync) {
+                // 加载deck mappings文件
+                await this.loadDeckTagMappings();
+
+                // 加载子deck数据
+                SRPlugin.deckTree = this.jsonToDeck(JSON.parse(this.cacheDeckString));
+
+                if (this.data.settings.showDebugMessages) {
+                    console.log(`SR: ${t("DECKS")}`, SRPlugin.deckTree);
+                }
+                this.syncLock = false;
+                return;
+            }
 
             // reset flashcards stuff
             SRPlugin.deckTree = new Deck("root", null);
