@@ -746,16 +746,22 @@ export default class SRPlugin extends Plugin {
                 // 获取今天是星期几 (0=星期日, 1=星期一, ..., 6=星期六)
                 const todayDayOfWeek = now.day();
 
-                // 获取上次同步是星期几
                 const lastSyncDayOfWeek = lastSync.day();
 
                 // 计算是否是新的一周（跨周了）
                 const isNewWeek = !now.isSame(lastSync, "week");
 
+                // 计算距离上次同步的天数
+                const daysSinceLastSync = now.diff(lastSync, "days");
+
                 // 只有在以下情况才同步：
                 // 1. 今天是星期一且是新的一周
                 // 2. 或者今天是星期一且上次同步不是本周一
-                if (todayDayOfWeek === 1 && (isNewWeek || !lastSync.isSame(now, "day"))) {
+                // 3. 或者距离上次同步大于7天
+                if (
+                    (todayDayOfWeek === 1 && (isNewWeek || !lastSync.isSame(now, "day"))) ||
+                    daysSinceLastSync > 7
+                ) {
                     shouldSkipSync = false;
                 }
             } else {
