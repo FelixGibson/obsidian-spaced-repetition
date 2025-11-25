@@ -542,24 +542,27 @@ export class FlashcardModal extends Modal {
             // 2. 对于多行卡片，需要特殊处理
             let deletionSuccessful = false;
             if (this.currentCard.cardType === CardType.MultiLineBasic) {
-                // 处理多行卡片
-                const multilineRegex = new RegExp(
-                    `^[\\t ]*${escapeRegex(this.plugin.data.settings.multilineCardSeparator)}`,
-                    "gm"
-                );
-                const questionLastIdx = this.currentCard.cardText.search(multilineRegex) - 1;
-                const question = this.currentCard.cardText.substring(0, questionLastIdx);
+                // // 处理多行卡片
+                // const multilineRegex = new RegExp(
+                //     `^[\\t ]*${escapeRegex(this.plugin.data.settings.multilineCardSeparator)}`,
+                //     "gm"
+                // );
+                // const questionLastIdx = this.currentCard.cardText.search(multilineRegex) - 1;
+                // const question = this.currentCard.cardText.substring(0, questionLastIdx);
 
-                // 尝试匹配问题部分及其可能关联的SR注释
-                const questionWithSRRgx = new RegExp(
-                    escapeRegexString(question) + "(\\s*<!--SR:.+?-->)?",
-                    "gm"
-                );
+                // // 尝试匹配问题部分及其可能关联的SR注释
+                // const questionWithSRRgx = new RegExp(
+                //     escapeRegexString(question) + "(\\s*<!--SR:.+?-->)?",
+                //     "gm"
+                // );
 
-                if (questionWithSRRgx.test(fileText)) {
-                    fileText = fileText.replace(questionWithSRRgx, "");
-                    deletionSuccessful = true;
-                }
+                // if (questionWithSRRgx.test(fileText)) {
+                //     fileText = fileText.replace(questionWithSRRgx, "");
+                //     deletionSuccessful = true;
+                // }
+                new Notice("多行卡片删除功能暂未实现");
+                await this.nextCard();
+                return;
             }
 
             // 如果多行卡片处理失败或不是多行卡片，使用通用方法
