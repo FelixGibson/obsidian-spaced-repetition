@@ -731,35 +731,36 @@ export default class SRPlugin extends Plugin {
                 }
             }
 
-            // 获取当前北京时间
             const now = window.moment().utcOffset(8); // 设置为 UTC+8
             const todayDate = now.format("YYYY-MM-DD");
 
-            // 计算距离上次同步的天数
-            let daysSinceLastSync = 0;
-            if (this.data.settings.lastSyncDate !== "") {
+            // 检查是否是星期一，并且是否需要同步
+            let shouldSkipSync = true;
+
+            if (!this.cacheDeckString) {
+                // 如果没有缓存数据，强制同步
+                shouldSkipSync = false;
+            } else if (this.data.settings.lastSyncDate !== "") {
                 const lastSync = window.moment(this.data.settings.lastSyncDate);
-                daysSinceLastSync = now.diff(lastSync, "days");
-            } else {
-                // 首次同步，设置daysSinceLastSync为3以确保执行完整同步
-                daysSinceLastSync = 3;
-            }
 
-            // 每隔7天刷新一次
-            const shouldSkipSync = daysSinceLastSync < 7 && this.cacheDeckString;
+                // 获取今天是星期几 (0=星期日, 1=星期一, ..., 6=星期六)
+                const todayDayOfWeek = now.day();
 
-            if (shouldSkipSync) {
-                // 加载deck mappings文件
-                await this.loadDeckTagMappings();
+                // 获取上次同步是星期几
+                const lastSyncDayOfWeek = lastSync.day();
 
-                // 加载子deck数据
-                SRPlugin.deckTree = this.jsonToDeck(JSON.parse(this.cacheDeckString));
+                // 计算是否是新的一周（跨周了）
+                const isNewWeek = !now.isSame(lastSync, "week");
 
-                if (this.data.settings.showDebugMessages) {
-                    console.log(`SR: ${t("DECKS")}`, SRPlugin.deckTree);
+                // 只有在以下情况才同步：
+                // 1. 今天是星期一且是新的一周
+                // 2. 或者今天是星期一且上次同步不是本周一
+                if (todayDayOfWeek === 1 && (isNewWeek || !lastSync.isSame(now, "day"))) {
+                    shouldSkipSync = false;
                 }
-                this.syncLock = false;
-                return;
+            } else {
+                // 首次同步
+                shouldSkipSync = false;
             }
 
             // reset flashcards stuff
