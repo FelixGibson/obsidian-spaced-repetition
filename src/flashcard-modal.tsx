@@ -1086,7 +1086,7 @@ export class Deck {
     // }
 
     toJSONWithLimit(tagLimits: Record<string, number>): Record<string, any> {
-        let maxCount = 100;
+        let maxCount = 250;
         if (tagLimits[this.deckTag] !== undefined) {
             maxCount = tagLimits[this.deckTag];
         }

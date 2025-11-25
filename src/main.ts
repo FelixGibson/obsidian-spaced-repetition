@@ -745,8 +745,8 @@ export default class SRPlugin extends Plugin {
                 daysSinceLastSync = 3;
             }
 
-            // 每隔3天刷新一次
-            const shouldSkipSync = daysSinceLastSync < 3 && this.cacheDeckString;
+            // 每隔7天刷新一次
+            const shouldSkipSync = daysSinceLastSync < 7 && this.cacheDeckString;
 
             if (shouldSkipSync) {
                 // 加载deck mappings文件
