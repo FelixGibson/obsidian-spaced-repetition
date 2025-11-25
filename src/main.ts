@@ -768,10 +768,8 @@ export default class SRPlugin extends Plugin {
                 // 首次同步
                 shouldSkipSync = false;
             }
+            await this.loadDeckTagMappings();
             if (shouldSkipSync) {
-                // 加载deck mappings文件
-                await this.loadDeckTagMappings();
-
                 // 加载子deck数据
                 SRPlugin.deckTree = this.jsonToDeck(JSON.parse(this.cacheDeckString));
 
