@@ -86,6 +86,7 @@ export class FlashcardModal extends Modal {
 
             if (this.mode !== FlashcardModalMode.DecksList) {
                 if (this.mode !== FlashcardModalMode.Closed && e.code === "KeyS") {
+                    e.preventDefault();
                     this.currentDeck.deleteFlashcardAtIndex(
                         this.currentCardIdx,
                         this.currentCard.isDue
@@ -96,26 +97,33 @@ export class FlashcardModal extends Modal {
                     this.mode === FlashcardModalMode.Front &&
                     (e.code === "Space" || e.code === "Enter")
                 ) {
+                    e.preventDefault();
                     await this.showAnswer();
                 } else if (this.mode === FlashcardModalMode.Back) {
                     try {
                         // 添加错误处理
                         if (e.code === "Numpad1" || e.code === "Digit1") {
+                            e.preventDefault();
                             await this.processReview(ReviewResponse.Hard); // 添加 await
                         } else if (
                             e.code === "Numpad2" ||
                             e.code === "Digit2" ||
                             e.code === "Space"
                         ) {
+                            e.preventDefault();
                             await this.processReview(ReviewResponse.Good);
                         } else if (e.code === "Numpad3" || e.code === "Digit3") {
+                            e.preventDefault();
                             await this.processReview(ReviewResponse.Easy);
                         } else if (e.code === "Numpad4" || e.code === "Digit4") {
+                            e.preventDefault();
                             await this.processReview(ReviewResponse.Reset);
                         } else if (e.code === "Numpad5" || e.code === "Digit5") {
+                            e.preventDefault();
                             await this.processReview(ReviewResponse.Skip);
                         }
                         // else if (e.code === "Numpad6" || e.code === "Digit6") {
+                        //     e.preventDefault();
                         //     await this.processReview(ReviewResponse.Delete);
                         // }
                     } catch (error) {
