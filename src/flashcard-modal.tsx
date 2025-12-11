@@ -672,11 +672,26 @@ export class FlashcardModal extends Modal {
             fileText = fileText.replace(replacementRegex, "");
         }
 
-        // 为单行卡片清理前后换行符，确保只保留一个换行符
-        // 匹配卡片前后可能存在的换行符，并标准化为一个换行符
+        // 为单行卡片清理前后换行符，确保适当的换行符处理
         const cardTextEscaped = escapeRegexString(this.currentCard.cardText);
-        const newlinesAndCardRegex = new RegExp(`\\n\\s*(${cardTextEscaped})\\s*\\n`, "g");
-        fileText = fileText.replace(newlinesAndCardRegex, "\n$1\n");
+
+        // 处理各种情况下的换行符
+
+        // 1. 卡片在文件中间，前后都有换行符
+        const middleCardRegex = new RegExp(`\\n\\s*${cardTextEscaped}\\s*\\n`, "g");
+        fileText = fileText.replace(middleCardRegex, "\n");
+
+        // 2. 卡片在文件开头，后面有换行符
+        const startCardRegex = new RegExp(`^\\s*${cardTextEscaped}\\s*\\n`, "g");
+        fileText = fileText.replace(startCardRegex, "");
+
+        // 3. 卡片在文件末尾，前面有换行符
+        const endCardRegex = new RegExp(`\\n\\s*${cardTextEscaped}\\s*$`, "g");
+        fileText = fileText.replace(endCardRegex, "\n");
+
+        // 4. 卡片是文件中的唯一内容
+        const onlyCardRegex = new RegExp(`^\\s*${cardTextEscaped}\\s*$`, "g");
+        fileText = fileText.replace(onlyCardRegex, "");
 
         return fileText;
     }
