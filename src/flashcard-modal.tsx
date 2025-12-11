@@ -567,14 +567,24 @@ export class FlashcardModal extends Modal {
                 this.currentCard.cardText.split("\n")[0]
             );
 
+            // 格式化通知文本，避免过长的URL刷屏
+            const formatNotificationText = (text: string): string => {
+                const preview = text.length > 1000 ? text.substring(0, 1000) + "..." : text;
+                // 更精确的正则表达式，匹配以空格、换行或")"结束的URL
+                return preview.replace(/https?:\/\/[^\s)]+/g, "https://....");
+            };
+
             if (!cardStillExists) {
                 // 显示删除成功的通知
-                new Notice("卡片已删除: " + this.currentCard.cardText);
+                new Notice("卡片已删除: " + formatNotificationText(this.currentCard.cardText));
                 // 删除成功，移动到下一张卡片
                 await this.nextCard();
             } else {
                 // 删除可能失败，显示警告消息
-                new Notice("卡片删除可能失败，请检查文件内容: " + this.currentCard.cardText);
+                new Notice(
+                    "卡片删除可能失败，请检查文件内容: " +
+                        formatNotificationText(this.currentCard.cardText)
+                );
                 // 删除失败，不移动到下一张卡片
             }
         } catch (error) {
