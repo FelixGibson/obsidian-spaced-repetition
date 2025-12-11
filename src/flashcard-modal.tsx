@@ -621,7 +621,6 @@ export class FlashcardModal extends Modal {
 
                 if (!deletionSuccessful) {
                     new Notice("多行卡片删除失败");
-                    await this.nextCard();
                     return;
                 }
             }
