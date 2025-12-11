@@ -650,11 +650,21 @@ export class FlashcardModal extends Modal {
 
             await this.app.vault.modify(this.currentCard.note, fileText);
 
-            // 显示删除成功的通知
-            new Notice("卡片已删除: " + this.currentCard.cardText);
+            // 验证删除是否成功
+            const updatedFileText: string = await this.app.vault.read(this.currentCard.note);
+            const cardStillExists = updatedFileText.includes(
+                this.currentCard.cardText.split("\n")[0]
+            );
 
-            // 移动到下一张卡片
-            await this.nextCard();
+            if (!cardStillExists) {
+                // 显示删除成功的通知
+                new Notice("卡片已删除: " + this.currentCard.cardText);
+                // 移动到下一张卡片
+                await this.nextCard();
+            } else {
+                // 删除可能失败，显示警告消息
+                new Notice("卡片删除可能失败，请检查文件内容: " + this.currentCard.cardText);
+            }
         } catch (error) {
             console.error("删除卡片时出错:", error);
             new Notice("删除卡片失败，请检查控制台日志");
