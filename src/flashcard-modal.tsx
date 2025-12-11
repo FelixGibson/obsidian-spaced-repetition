@@ -663,11 +663,12 @@ export class FlashcardModal extends Modal {
             if (!cardStillExists) {
                 // 显示删除成功的通知
                 new Notice("卡片已删除: " + this.currentCard.cardText);
-                // 移动到下一张卡片
+                // 删除成功，移动到下一张卡片
                 await this.nextCard();
             } else {
                 // 删除可能失败，显示警告消息
                 new Notice("卡片删除可能失败，请检查文件内容: " + this.currentCard.cardText);
+                // 删除失败，不移动到下一张卡片
             }
         } catch (error) {
             console.error("删除卡片时出错:", error);
