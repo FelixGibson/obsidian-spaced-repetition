@@ -540,108 +540,12 @@ export class FlashcardModal extends Modal {
             // 从笔记文件中删除卡片
             let fileText: string = await this.app.vault.read(this.currentCard.note);
 
-            // 创建一个更强大的正则表达式来匹配卡片文本及其可能关联的SR注释
-            // 1. 首先尝试匹配卡片文本后紧跟的SR注释
-            const cardWithSRRgx = new RegExp(
-                escapeRegexString(this.currentCard.cardText) + "(\\s*<!--SR:.+?-->)?",
-                "gm"
-            );
-
-            // 2. 对于多行卡片，需要特殊处理
-            let deletionSuccessful = false;
             if (this.currentCard.cardType === CardType.MultiLineBasic) {
-                // 处理多行卡片
-                const lines = fileText.split("\n");
-                const cardLines = this.currentCard.cardText.split("\n");
-
-                // 找到卡片在文件中的起始位置
-                let startIndex = -1;
-                for (let i = 0; i < lines.length; i++) {
-                    // 使用正则表达式匹配第一行，考虑可能包含的SR注释
-                    const lineRegex = new RegExp(
-                        escapeRegexString(cardLines[0]) + "(\\s*<!--SR:.+?-->)?"
-                    );
-                    if (lineRegex.test(lines[i])) {
-                        // 检查后续行是否匹配
-                        let match = true;
-                        for (let j = 1; j < Math.min(cardLines.length, lines.length - i); j++) {
-                            if (lines[i + j] !== cardLines[j]) {
-                                match = false;
-                                break;
-                            }
-                        }
-                        if (match) {
-                            startIndex = i;
-                            break;
-                        }
-                    }
-                }
-
-                if (startIndex !== -1) {
-                    // 计算"?"行的缩进
-                    const questionLine = cardLines[0];
-                    const separatorLine = cardLines[1]; // "?" 行
-
-                    // 改进缩进计算：将tab转换为4个空格再计算
-                    const normalizedSeparatorLine = separatorLine.replace(/\t/g, "    ");
-                    const separatorIndent = normalizedSeparatorLine.search(/\S/); // "?" 的缩进
-
-                    // 删除第一行和第二行
-                    lines.splice(startIndex, 2);
-
-                    // 继续删除后续行，只要缩进大于等于"?"的缩进
-                    let i = startIndex;
-                    while (i < lines.length) {
-                        const line = lines[i];
-                        // 如果是空行或换行，停止删除
-                        if (line.trim() === "") {
-                            break;
-                        }
-
-                        // 改进缩进计算：将tab转换为4个空格再计算
-                        const normalizedLine = line.replace(/\t/g, "    ");
-                        const currentIndent = normalizedLine.search(/\S/);
-
-                        // 如果当前行没有内容，继续下一行
-                        if (currentIndent === -1) {
-                            i++;
-                            continue;
-                        }
-
-                        // 如果当前行的缩进大于等于"?"的缩进，删除该行
-                        if (currentIndent >= separatorIndent) {
-                            lines.splice(i, 1);
-                            // 不增加i，因为数组长度减少了
-                        } else {
-                            // 缩进小于"?"的缩进，停止删除
-                            break;
-                        }
-                    }
-
-                    // 重新组合文件内容
-                    fileText = lines.join("\n");
-                    deletionSuccessful = true;
-                }
-
-                if (!deletionSuccessful) {
-                    new Notice("多行卡片删除失败");
-                    return;
-                }
-            }
-
-            // 如果多行卡片处理失败或不是多行卡片，使用通用方法
-            if (!deletionSuccessful) {
-                // 尝试使用更精确的匹配
-                if (cardWithSRRgx.test(fileText)) {
-                    fileText = fileText.replace(cardWithSRRgx, "");
-                } else {
-                    // 如果上面的匹配失败，回退到原始方法
-                    const replacementRegex = new RegExp(
-                        escapeRegexString(this.currentCard.cardText),
-                        "gm"
-                    );
-                    fileText = fileText.replace(replacementRegex, "");
-                }
+                // 处理多行卡片删除
+                fileText = this.deleteMultiLineCard(fileText);
+            } else {
+                // 处理单行卡片删除
+                fileText = this.deleteSingleLineCard(fileText);
             }
 
             // 清理可能留下的多余空行
@@ -674,6 +578,107 @@ export class FlashcardModal extends Modal {
             console.error("删除卡片时出错:", error);
             new Notice("删除卡片失败，请检查控制台日志");
         }
+    }
+
+    private deleteMultiLineCard(fileText: string): string {
+        // 处理多行卡片
+        const lines = fileText.split("\n");
+        const cardLines = this.currentCard.cardText.split("\n");
+
+        // 找到卡片在文件中的起始位置
+        let startIndex = -1;
+        for (let i = 0; i < lines.length; i++) {
+            // 使用正则表达式匹配第一行，考虑可能包含的SR注释
+            const lineRegex = new RegExp(escapeRegexString(cardLines[0]) + "(\\s*<!--SR:.+?-->)?");
+            if (lineRegex.test(lines[i])) {
+                // 检查后续行是否匹配
+                let match = true;
+                for (let j = 1; j < Math.min(cardLines.length, lines.length - i); j++) {
+                    if (lines[i + j] !== cardLines[j]) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) {
+                    startIndex = i;
+                    break;
+                }
+            }
+        }
+
+        if (startIndex !== -1) {
+            // 计算"?"行的缩进
+            const questionLine = cardLines[0];
+            const separatorLine = cardLines[1]; // "?" 行
+
+            // 改进缩进计算：将tab转换为4个空格再计算
+            const normalizedSeparatorLine = separatorLine.replace(/\t/g, "    ");
+            const separatorIndent = normalizedSeparatorLine.search(/\S/); // "?" 的缩进
+
+            // 删除第一行和第二行
+            lines.splice(startIndex, 2);
+
+            // 继续删除后续行，只要缩进大于等于"?"的缩进
+            let i = startIndex;
+            while (i < lines.length) {
+                const line = lines[i];
+                // 如果是空行或换行，停止删除
+                if (line.trim() === "") {
+                    break;
+                }
+
+                // 改进缩进计算：将tab转换为4个空格再计算
+                const normalizedLine = line.replace(/\t/g, "    ");
+                const currentIndent = normalizedLine.search(/\S/);
+
+                // 如果当前行没有内容，继续下一行
+                if (currentIndent === -1) {
+                    i++;
+                    continue;
+                }
+
+                // 如果当前行的缩进大于等于"?"的缩进，删除该行
+                if (currentIndent >= separatorIndent) {
+                    lines.splice(i, 1);
+                    // 不增加i，因为数组长度减少了
+                } else {
+                    // 缩进小于"?"的缩进，停止删除
+                    break;
+                }
+            }
+
+            // 重新组合文件内容
+            return lines.join("\n");
+        }
+
+        // 如果多行卡片删除失败，返回原始文本
+        new Notice("多行卡片删除失败");
+        return fileText;
+    }
+
+    private deleteSingleLineCard(fileText: string): string {
+        // 创建一个更强大的正则表达式来匹配卡片文本及其可能关联的SR注释
+        const cardWithSRRgx = new RegExp(
+            escapeRegexString(this.currentCard.cardText) + "(\\s*<!--SR:.+?-->)?",
+            "gm"
+        );
+
+        // 尝试使用更精确的匹配
+        if (cardWithSRRgx.test(fileText)) {
+            fileText = fileText.replace(cardWithSRRgx, "");
+        } else {
+            // 如果上面的匹配失败，回退到原始方法
+            const replacementRegex = new RegExp(escapeRegexString(this.currentCard.cardText), "gm");
+            fileText = fileText.replace(replacementRegex, "");
+        }
+
+        // 为单行卡片清理前后换行符，确保只保留一个换行符
+        // 匹配卡片前后可能存在的换行符，并标准化为一个换行符
+        const cardTextEscaped = escapeRegexString(this.currentCard.cardText);
+        const newlinesAndCardRegex = new RegExp(`\\n\\s*(${cardTextEscaped})\\s*\\n`, "g");
+        fileText = fileText.replace(newlinesAndCardRegex, "\n$1\n");
+
+        return fileText;
     }
 
     async processReview(response: ReviewResponse): Promise<void> {
