@@ -551,6 +551,9 @@ export class FlashcardModal extends Modal {
             // 清理可能留下的多余空行
             fileText = fileText.replace(/\n{3,}/g, "\n\n");
 
+            // 清理文件末尾的多余空行
+            fileText = fileText.replace(/\n+$/, "\n");
+
             // 如果删除后文件为空或只包含空白字符，可以添加一个空行
             if (!fileText.trim()) {
                 fileText = "\n";
@@ -687,7 +690,7 @@ export class FlashcardModal extends Modal {
 
         // 3. 卡片在文件末尾，前面有换行符
         const endCardRegex = new RegExp(`\\n\\s*${cardTextEscaped}\\s*$`, "g");
-        fileText = fileText.replace(endCardRegex, "\n");
+        fileText = fileText.replace(endCardRegex, "");
 
         // 4. 卡片是文件中的唯一内容
         const onlyCardRegex = new RegExp(`^\\s*${cardTextEscaped}\\s*$`, "g");
