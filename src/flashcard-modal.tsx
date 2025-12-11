@@ -581,7 +581,10 @@ export class FlashcardModal extends Modal {
                     // 计算"?"行的缩进
                     const questionLine = cardLines[0];
                     const separatorLine = cardLines[1]; // "?" 行
-                    const separatorIndent = separatorLine.search(/\S/); // "?" 的缩进
+
+                    // 改进缩进计算：将tab转换为4个空格再计算
+                    const normalizedSeparatorLine = separatorLine.replace(/\t/g, "    ");
+                    const separatorIndent = normalizedSeparatorLine.search(/\S/); // "?" 的缩进
 
                     // 删除第一行和第二行
                     lines.splice(startIndex, 2);
@@ -595,8 +598,9 @@ export class FlashcardModal extends Modal {
                             break;
                         }
 
-                        // 计算当前行的缩进
-                        const currentIndent = line.search(/\S/);
+                        // 改进缩进计算：将tab转换为4个空格再计算
+                        const normalizedLine = line.replace(/\t/g, "    ");
+                        const currentIndent = normalizedLine.search(/\S/);
 
                         // 如果当前行没有内容，继续下一行
                         if (currentIndent === -1) {
