@@ -569,7 +569,7 @@ export class FlashcardModal extends Modal {
 
             // 格式化通知文本，避免过长的URL刷屏
             const formatNotificationText = (text: string): string => {
-                const preview = text.length > 1000 ? text.substring(0, 1000) + "..." : text;
+                const preview = text.length > 100 ? text.substring(0, 100) + "..." : text;
                 // 更精确的正则表达式，匹配以空格、换行或")"结束的URL
                 return preview.replace(/https?:\/\/[^\s)]+/g, "https://....");
             };
@@ -670,41 +670,31 @@ export class FlashcardModal extends Modal {
     }
 
     private deleteSingleLineCard(fileText: string): string {
-        // 创建一个更强大的正则表达式来匹配卡片文本及其可能关联的SR注释
-        const cardWithSRRgx = new RegExp(
-            escapeRegexString(this.currentCard.cardText) + "(\\s*<!--SR:.+?-->)?",
-            "gm"
-        );
+        // 保存原始卡片文本用于后续的清理操作
+        const originalCardText = this.currentCard.cardText;
+        const cardTextEscaped = escapeRegexString(originalCardText);
 
-        // 尝试使用更精确的匹配
-        if (cardWithSRRgx.test(fileText)) {
-            fileText = fileText.replace(cardWithSRRgx, "");
-        } else {
-            // 如果上面的匹配失败，回退到原始方法
-            const replacementRegex = new RegExp(escapeRegexString(this.currentCard.cardText), "gm");
-            fileText = fileText.replace(replacementRegex, "");
-        }
+        // 直接处理各种情况下的卡片删除和换行符清理
 
-        // 为单行卡片清理前后换行符，确保适当的换行符处理
-        const cardTextEscaped = escapeRegexString(this.currentCard.cardText);
+        // 1. 处理卡片在文件开头的情况（包括后面可能有的换行符）
+        const startCardRegex = new RegExp(`^\\s*${cardTextEscaped}\\s*\\n?`, "g");
+        fileText = fileText.replace(startCardRegex, "");
 
-        // 处理各种情况下的换行符
+        // 2. 处理卡片在文件末尾的情况（包括前面可能有的换行符）
+        const endCardRegex = new RegExp(`\\n?\\s*${cardTextEscaped}\\s*$`, "g");
+        fileText = fileText.replace(endCardRegex, "");
 
-        // 1. 卡片在文件中间，前后都有换行符
+        // 3. 处理卡片在文件中间的情况（包括前后换行符）
         const middleCardRegex = new RegExp(`\\n\\s*${cardTextEscaped}\\s*\\n`, "g");
         fileText = fileText.replace(middleCardRegex, "\n");
 
-        // 2. 卡片在文件开头，后面有换行符
-        const startCardRegex = new RegExp(`^\\s*${cardTextEscaped}\\s*\\n`, "g");
-        fileText = fileText.replace(startCardRegex, "");
-
-        // 3. 卡片在文件末尾，前面有换行符
-        const endCardRegex = new RegExp(`\\n\\s*${cardTextEscaped}\\s*$`, "g");
-        fileText = fileText.replace(endCardRegex, "");
-
-        // 4. 卡片是文件中的唯一内容
+        // 4. 处理卡片是文件中唯一内容的情况
         const onlyCardRegex = new RegExp(`^\\s*${cardTextEscaped}\\s*$`, "g");
         fileText = fileText.replace(onlyCardRegex, "");
+
+        // 5. 处理可能残留的卡片文本（没有换行符的情况）
+        const remainingCardRegex = new RegExp(`\\s*${cardTextEscaped}\\s*`, "g");
+        fileText = fileText.replace(remainingCardRegex, "");
 
         return fileText;
     }
