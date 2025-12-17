@@ -785,6 +785,43 @@ export class FlashcardModal extends Modal {
             const dueString: string = due.format("YYYY-MM-DD");
 
             let fileText: string = await this.app.vault.read(this.currentCard.note);
+
+            // <FIX>
+            // 在处理之前，尝试从文件更新 cardText
+            if (this.currentCard.cardType !== CardType.MultiLineBasic) {
+                const lines = fileText.split("\n");
+                const currentCardTextWithoutSR = this.currentCard.cardText
+                    .replace(/<!--SR:.+-->/gm, "")
+                    .trim();
+
+                let found = false;
+
+                // 1. 优先检查记录的行号 (Fast path)
+                if (this.currentCard.lineNo < lines.length) {
+                    const line = lines[this.currentCard.lineNo];
+                    const lineWithoutSR = line.replace(/<!--SR:.+-->/gm, "").trim();
+                    if (lineWithoutSR === currentCardTextWithoutSR) {
+                        this.currentCard.cardText = line;
+                        found = true;
+                    }
+                }
+
+                // 2. 如果行号对应的内容不匹配（可能文件被修改导致行号偏移），则进行全文搜索
+                if (!found) {
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        const lineWithoutSR = line.replace(/<!--SR:.+-->/gm, "").trim();
+                        if (lineWithoutSR === currentCardTextWithoutSR) {
+                            this.currentCard.cardText = line;
+                            this.currentCard.lineNo = i; // 更新行号
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            // </FIX>
+
             const replacementRegex = new RegExp(escapeRegexString(this.currentCard.cardText), "gm");
             const originalText = this.currentCard.cardText;
 
