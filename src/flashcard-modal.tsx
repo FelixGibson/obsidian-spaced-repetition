@@ -890,7 +890,11 @@ export class FlashcardModal extends Modal {
                     if (this.currentCard.isDue) {
                         scheduling[this.currentCard.siblingIdx] = currCardSched;
                     } else {
-                        scheduling.push(currCardSched);
+                        if (scheduling.length > 0) {
+                            scheduling[0] = currCardSched;
+                        } else {
+                            scheduling.push(currCardSched);
+                        }
                     }
 
                     this.currentCard.cardText = this.currentCard.cardText.replace(
