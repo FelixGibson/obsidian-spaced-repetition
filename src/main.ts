@@ -1809,6 +1809,7 @@ export default class SRPlugin extends Plugin {
             multilineCardSeparator: this.data.settings.multilineCardSeparator,
             lastSyncDate: this.data.settings.lastSyncDate,
             multilineReversedCardSeparator: this.data.settings.multilineReversedCardSeparator,
+            enableAutoTimer: this.data.settings.enableAutoTimer,
             tagsToReview: this.data.settings.tagsToReview,
             noteFoldersToIgnore: this.data.settings.noteFoldersToIgnore,
             openRandomNote: this.data.settings.openRandomNote,

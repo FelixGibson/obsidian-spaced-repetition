@@ -1709,7 +1709,9 @@ export class Deck {
                 "- Q:\n" + modal.currentCard.front,
                 modal.flashcardView
             );
-            modal.startTimer();
+            if (modal.plugin.data.settings.enableAutoTimer) {
+                modal.startTimer();
+            }
         }
     }
 }

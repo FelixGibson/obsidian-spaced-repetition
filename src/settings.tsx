@@ -26,6 +26,7 @@ export interface SRSettings {
     multilineCardSeparator: string;
     lastSyncDate: string;
     multilineReversedCardSeparator: string;
+    enableAutoTimer: boolean;
     // notes
     tagsToReview: string[];
     noteFoldersToIgnore: string[];
@@ -64,6 +65,7 @@ export const DEFAULT_SETTINGS: SRSettings = {
     multilineCardSeparator: "?",
     lastSyncDate: "",
     multilineReversedCardSeparator: "??",
+    enableAutoTimer: false,
     // notes
     tagsToReview: ["#review"],
     noteFoldersToIgnore: [],
@@ -309,6 +311,18 @@ export class SRSettingTab extends PluginSettingTab {
                     await this.plugin.savePluginData();
                 })
         );
+
+        new Setting(containerEl)
+            .setName(t("ENABLE_AUTO_TIMER"))
+            .setDesc(t("ENABLE_AUTO_TIMER_DESC"))
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.data.settings.enableAutoTimer)
+                    .onChange(async (value) => {
+                        this.plugin.data.settings.enableAutoTimer = value;
+                        await this.plugin.savePluginData();
+                    })
+            );
 
         new Setting(containerEl)
             .setName(t("INLINE_CARDS_SEPARATOR"))

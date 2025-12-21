@@ -73,6 +73,9 @@ export default {
     DISABLE_CLOZE_CARDS: "不进行完形填空？",
     CONVERT_HIGHLIGHTS_TO_CLOZES: "将 ==高亮== 转换为完形填空？",
     CONVERT_BOLD_TEXT_TO_CLOZES: "将 **粗体** 转换为完形填空？",
+    ENABLE_AUTO_TIMER: "启用自动计时器",
+    ENABLE_AUTO_TIMER_DESC:
+        "显示卡片问题时自动启动20秒计时器。计时器到期时，卡片将自动标记为'良好'。",
     INLINE_CARDS_SEPARATOR: "单行卡片的分隔符",
     FIX_SEPARATORS_MANUALLY_WARNING: "注意：更改此选项后你将需要自行更改已存在卡片的分隔符。",
     INLINE_REVERSED_CARDS_SEPARATOR: "单行翻转卡片的分隔符",
