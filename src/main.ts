@@ -994,7 +994,7 @@ export default class SRPlugin extends Plugin {
         const processTagFile = async (tag: string) => {
             const tagContent = tag.match(/#\[\[(.*?)\]\]/)?.[1] || tag.replace(/^#/, "");
             // 定义需要检查的两个目标标签
-            const targetTags = ["#[[cheatsheet]]", "#[[anti-model]]"];
+            const targetTags = ["#[[cheatsheet", "anti-model"];
             const filePath = `pages/${tagContent}.md`;
 
             try {
