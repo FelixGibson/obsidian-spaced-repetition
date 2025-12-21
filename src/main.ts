@@ -993,16 +993,28 @@ export default class SRPlugin extends Plugin {
         }));
         const processTagFile = async (tag: string) => {
             const tagContent = tag.match(/#\[\[(.*?)\]\]/)?.[1] || tag.replace(/^#/, "");
-            // 定义需要检查的两个目标标签
-            const targetTags = ["#[[cheatsheet", "anti-model"];
             const filePath = `pages/${tagContent}.md`;
 
             try {
                 const file = this.app.vault.getAbstractFileByPath(filePath);
                 if (file instanceof TFile) {
                     const content = await this.app.vault.read(file);
-                    // 找出缺失的标签
-                    const missingTags = targetTags.filter((t) => !content.includes(t));
+
+                    // 检查缺失的标签
+                    const missingTags = [];
+
+                    // 检查是否包含所需的标签之一（#[[cheatsheet 或 #[[mental model）
+                    const hasRequiredTag =
+                        content.includes("#[[cheatsheet") || content.includes("#[[mental model");
+                    if (!hasRequiredTag) {
+                        // 如果不包含所需的任一标签，则标记为缺失（默认添加第一个选项）
+                        missingTags.push("#[[cheatsheet");
+                    }
+
+                    // 检查 anti-model 标签（保持原有逻辑）
+                    if (!content.includes("anti-model")) {
+                        missingTags.push("anti-model");
+                    }
 
                     if (missingTags.length > 0) {
                         // 只为缺失的标签生成内容
@@ -1015,7 +1027,6 @@ export default class SRPlugin extends Plugin {
                 console.error(`SR: 处理 ${filePath} 时出错:`, error);
             }
         };
-
         for (const deckTag of this.data.settings.flashcardTags) {
             const level = (deckTag.match(/^\|+/)?.[0]?.length || 0) - 1;
 
