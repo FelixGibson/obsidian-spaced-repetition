@@ -1703,7 +1703,7 @@ export class Deck {
             // modal.currentCard.cardText.contains("business")
             // && false
         ) {
-            await modal.processReview(ReviewResponse.Good);
+            await modal.processReview(ReviewResponse.Easy);
         } else {
             await modal.renderMarkdownWrapper(
                 "- Q:\n" + modal.currentCard.front,
