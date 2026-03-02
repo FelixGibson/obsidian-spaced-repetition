@@ -28,7 +28,7 @@
         "husky": "^7.0.4",
         "jest": "^27.5.1",
         "moment": "^2.29.1",
-        "obsidian": "latest",
+        "obsidian": "^1.12.3",
         "prettier": "^2.5.1",
         "ts-jest": "^27.0.4",
         "tslib": "2.3.1",
