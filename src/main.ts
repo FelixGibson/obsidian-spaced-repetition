@@ -1003,12 +1003,12 @@ export default class SRPlugin extends Plugin {
                     // 检查缺失的标签
                     const missingTags = [];
 
-                    // 检查是否包含所需的标签之一（#[[cheatsheet 或 #[[mental model）
+                    // 检查是否包含所需的标签之一（#[[cheatsheet... 或 #[[mental model...）
                     const hasRequiredTag =
                         content.includes("#[[cheatsheet") || content.includes("#[[mental model");
                     if (!hasRequiredTag) {
                         // 如果不包含所需的任一标签，则标记为缺失（默认添加第一个选项）
-                        missingTags.push("#[[cheatsheet");
+                        missingTags.push("#[[cheatsheet]]");
                     }
 
                     // 检查 anti-model 标签（保持原有逻辑）
